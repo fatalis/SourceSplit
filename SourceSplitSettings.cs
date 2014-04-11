@@ -14,8 +14,8 @@ namespace LiveSplit.SourceSplit
 
     public partial class SourceSplitSettings : UserControl
     {
-        public bool AutoSplitEnabled { get; private set; }
-        public int SplitInterval { get; private set; }
+        public bool AutoSplitEnabled { get; set; }
+        public int SplitInterval { get; set; }
         public AutoSplitType AutoSplitType { get; private set; }
 
         private readonly object _lock = new object();
@@ -59,6 +59,7 @@ namespace LiveSplit.SourceSplit
             this.UpdateDisabledControls(this, EventArgs.Empty);
         }
 
+        // TODO: In LiveSplit 1.3 this is called on a background thread. It'll be fixed in 1.4.
         public XmlNode GetSettings(XmlDocument doc)
         {
             XmlElement settingsNode = doc.CreateElement("Settings");
@@ -86,12 +87,19 @@ namespace LiveSplit.SourceSplit
         {
             bool bval;
             int ival;
+
+            this.AutoSplitEnabled = settings["AutoSplitEnabled"] != null ?
+                (Boolean.TryParse(settings["AutoSplitEnabled"].InnerText, out bval) ? bval : false)
+                : false;
+
+            this.SplitInterval = settings["SplitInterval"] != null ?
+                (Int32.TryParse(settings["SplitInterval"].InnerText, out ival) ? ival : 1)
+                : 1;
+
             AutoSplitType splitType;
-
-            this.AutoSplitEnabled = settings["AutoSplitEnabled"] != null && (Boolean.TryParse(settings["AutoSplitEnabled"].InnerText, out bval) && bval);
-            this.SplitInterval = settings["SplitInterval"] != null ? (Int32.TryParse(settings["SplitInterval"].InnerText, out ival) ? ival : 1) : 1;
-
-            this.AutoSplitType = settings["AutoSplitType"] != null ? (Enum.TryParse(settings["AutoSplitType"].InnerText, out splitType) ? splitType : AutoSplitType.Interval) : AutoSplitType.Interval;
+            this.AutoSplitType = settings["AutoSplitType"] != null ?
+                (Enum.TryParse(settings["AutoSplitType"].InnerText, out splitType) ? splitType : AutoSplitType.Interval)
+                : AutoSplitType.Interval;
             this.rdoInterval.Checked = this.AutoSplitType == AutoSplitType.Interval;
             this.rdoWhitelist.Checked = this.AutoSplitType == AutoSplitType.Whitelist;
 
