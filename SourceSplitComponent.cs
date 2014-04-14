@@ -192,7 +192,6 @@ namespace LiveSplit.SourceSplit
             // changelevel command
             if (e.SignOnState == SignOnState.Connected && e.PrevSignOnState == SignOnState.Full)
             {
-                SystemSounds.Asterisk.Play();
                 // note: e.GameTime is the final map time before starting the next level
                 this.AddMapTime(new MapTime { Map = _gameMemory.CurrentMap, Time = TimeSpan.FromSeconds(e.GameTime + _mapTotalTime) });
                 _totalTime += e.GameTime;
