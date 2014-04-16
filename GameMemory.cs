@@ -12,8 +12,8 @@ namespace LiveSplit.SourceSplit
 {
     class GameMemory
     {
-        public event GameStateChangeEventHandler OnSignOnStateChange;
-        public delegate void GameStateChangeEventHandler(object sender, SignOnStateChangeEventArgs state);
+        public event SignOnStateChangeEventHandler OnSignOnStateChange;
+        public delegate void SignOnStateChangeEventHandler(object sender, SignOnStateChangeEventArgs state);
         public event GameTimeUpdateEventHandler OnGameTimeUpdate;
         public delegate void GameTimeUpdateEventHandler(object sender, float gameTime);
 

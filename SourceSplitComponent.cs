@@ -31,7 +31,7 @@ namespace LiveSplit.SourceSplit
 
         private readonly object _lock = new object();
         private float _mapTime;
-        private float _mapTotalTime;
+        private float _quickLoadTime;
         private float _totalTime;
         private float _removeTime;
         private int _splitCount;
@@ -145,6 +145,8 @@ namespace LiveSplit.SourceSplit
             _mapsVisited.Clear();
             _mapTimes.Clear();
             _mapTimesForm.Reset();
+            _splitCount = 0;
+            _quickLoadTime = 0;
 
             _waitingForDelay = _state.PauseTime < TimeSpan.Zero;
 
@@ -173,7 +175,8 @@ namespace LiveSplit.SourceSplit
             if (_state.CurrentPhase == TimerPhase.Ended)
             {
                 _endTime = this.GameTime;
-                this.AddMapTime(new MapTime { Map = _gameMemory.CurrentMap, Time = this.GameTime }, true);
+                this.AddMapTime(new MapTime { Map = _gameMemory.CurrentMap, Time = TimeSpan.FromSeconds(_mapTime + _quickLoadTime) }, true);
+                this.AddMapTime(new MapTime { Map = "-Total-", Time = this.GameTime }, true);
             }
         }
 
@@ -192,17 +195,18 @@ namespace LiveSplit.SourceSplit
             // changelevel command
             if (e.SignOnState == SignOnState.Connected && e.PrevSignOnState == SignOnState.Full)
             {
+                string map = _gameMemory.CurrentMap;
                 // note: e.GameTime is the final map time before starting the next level
-                this.AddMapTime(new MapTime { Map = _gameMemory.CurrentMap, Time = TimeSpan.FromSeconds(e.GameTime + _mapTotalTime) });
+                this.AddMapTime(new MapTime { Map = map, Time = TimeSpan.FromSeconds(e.GameTime + _quickLoadTime) });
                 _totalTime += e.GameTime;
                 _mapTime = 0;
-                _mapTotalTime = 0;
+                _quickLoadTime = 0;
                 Debug.WriteLine("changelevel time add: " + e.GameTime);
 
-                if (!_mapsVisited.Contains(e.Map))
+                if (!_mapsVisited.Contains(map))
                 {
-                    _mapsVisited.Add(e.Map);
-                    this.AutoSplit(e.Map);
+                    _mapsVisited.Add(map);
+                    this.AutoSplit(map);
                 }
             }
             // new game or quick save loaded
@@ -210,7 +214,7 @@ namespace LiveSplit.SourceSplit
             {
                 Debug.WriteLine("newgame or quick load time add: " + e.GameTime);
                 _totalTime += e.GameTime;
-                _mapTotalTime += e.GameTime;
+                _quickLoadTime += e.GameTime;
                 _mapTime = 0;
             }
         }
