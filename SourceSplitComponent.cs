@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Media;
 using LiveSplit.Model;
 using LiveSplit.TimeFormatters;
 using LiveSplit.UI.Components;

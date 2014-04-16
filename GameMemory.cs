@@ -47,6 +47,7 @@ namespace LiveSplit.SourceSplit
             _serverStateTarget = new SigScanTarget();
             _serverStateTarget.OnFound = (proc, ptr) => !ReadProcessPtr32(proc, ptr, out ptr) ? IntPtr.Zero : ptr;
             // works for every engine.dll
+            // \x83\xf8\x01\x0f\x8c..\x00\x00\x3d\x00\x02\x00\x00\x0f\x8f..\x00\x00\x83\x3d(....)\x02\x7d
             _serverStateTarget.AddSignature(22,
                 "83 F8 01",                // cmp     eax, 1
                 "0F 8C ?? ?? 00 00",       // jl      loc_200087FB
@@ -59,6 +60,7 @@ namespace LiveSplit.SourceSplit
             // hl2 old engine / portal latest / hl2 new engine
             _curTimeTarget = new SigScanTarget();
             _curTimeTarget.OnFound = (proc, ptr) => !ReadProcessPtr32(proc, ptr, out ptr) ? IntPtr.Zero : ptr;
+            // \xa3....\xb9....\xa3....\xe8....\xd9\x1d(....)\xb9....\xe8....\xd9\x1d
             _curTimeTarget.AddSignature(22,
                 "A3 ?? ?? ?? ??",          // mov     dword_2038BA6C, eax
                 "B9 ?? ?? ?? ??",          // mov     ecx, offset unk_2038B8E8
@@ -70,6 +72,7 @@ namespace LiveSplit.SourceSplit
                 "D9 1D");                  // fstp    frametime
 
             // dear esther / portal 2
+            // \x89\x96\xc4\x00\x00\x00\x8b\x86\xc8\x00\x00\x00\x8b\xce\xa3....\xe8....\xd9\x1d(....)\x8b\xce\xe8....\xd9\x1d
             _curTimeTarget.AddSignature(26,
                 "89 96 C4 00 00 00",       // mov     [esi+0C4h], edx
                 "8B 86 C8 00 00 00",       // mov     eax, [esi+0C8h]
@@ -82,6 +85,7 @@ namespace LiveSplit.SourceSplit
                 "D9 1D");                  // fstp    frametime
 
             // l4d2
+            // \x89\x8f\xc4\x00\x00\x00\x8b\x97\xc8\x00\x00\x00\x8b\xcf\x89\x15....\xe8....\xd9\x1d(....)\x8b\xcf\xe8....\xd9\x1d
             _curTimeTarget.AddSignature(27,
                 "89 8F C4 00 00 00",       // mov     [edi+0C4h], ecx
                 "8B 97 C8 00 00 00",       // mov     edx, [edi+0C8h]
@@ -96,6 +100,7 @@ namespace LiveSplit.SourceSplit
             // CBaseClientState::m_nSignOnState (older engines)
             _signOnStateTarget1 = new SigScanTarget();
             _signOnStateTarget1.OnFound = (proc, ptr) => !ReadProcessPtr32(proc, ptr, out ptr) ? IntPtr.Zero : ptr;
+            // \x80\x3d....\x00\x74\x06\xb8....\xc3\x83\x3d(....)\x02\xb8....\x7c\x05
             _signOnStateTarget1.AddSignature(17,
                 "80 3D ?? ?? ?? ?? 00",    // cmp     byte_698EE114, 0
                 "74 06",                   // jz      short loc_6936C8FF
@@ -114,6 +119,7 @@ namespace LiveSplit.SourceSplit
                     return IntPtr.Zero;
                 return IntPtr.Add(ptr, 0x70); // this+0x70 = m_nSignOnState
             };
+            // \x74.\x8b\x74\x87\x04\x83\x7e\x18\x00\x74\x2d\x8b\x0d(....)\x8b\x49\x18
             _signOnStateTarget2.AddSignature(14,
                 "74 ??",                   // jz      short loc_693D4E22
                 "8B 74 87 04",             // mov     esi, [edi+eax*4+4]
@@ -123,31 +129,45 @@ namespace LiveSplit.SourceSplit
                 "8B 49 18");               // mov     mov     ecx, [ecx+18h]
 
             // CBaseServer::m_szMapname[64]
-            // \x68(....).\xe8...\x00\x83\xc4\x08\x85\xc0\x0f\x84..\x00\x00(?:\x83\xc7\x01|\x47)\x83.\x50\x3b\x7e\x18\x7c
             _curMapTarget = new SigScanTarget();
             _curMapTarget.OnFound = (proc, ptr) => !ReadProcessPtr32(proc, ptr, out ptr) ? IntPtr.Zero : ptr;
+            // TODO: these signatures arent very generic
+            // \x68(....).\xe8...\x00\x83\xc4\x08\x85\xc0\x0f\x84..\x00\x00\x47\x83.\x50\x3b\x7e\x18\x7c
             _curMapTarget.AddSignature(1,
                 "68 ?? ?? ?? ??",          // push    offset map
                 "??",                      // push    ebx
                 "E8 ?? ?? ?? 00",          // call    __stricmp
                 "83 C4 08",                // add     esp, 8
-                "85 c0",                   // test    eax, eax
+                "85 C0",                   // test    eax, eax
                 "0F 84 ?? ?? 00 00",       // jz      loc_6947E980
                 "47",                      // inc     edi
                 "83 ?? 50",                // add     ebx, 50h
                 "3B 7E 18",                // cmp     edi, [esi+18h]
                 "7C");                     // jl      short loc_6947E830
+            // \x68(....).\xe8...\x00\x83\xc4\x08\x85\xc0\x0f\x84..\x00\x00\x83\xc7\x01\x83.\x50\x3b\x7e\x18\x7c
             _curMapTarget.AddSignature(1,
                 "68 ?? ?? ?? ??",          // push    offset map
                 "??",                      // push    ebp
                 "E8 ?? ?? ?? 00",          // call    __stricmp
                 "83 C4 08",                // add     esp, 8
-                "85 c0",                   // test    eax, eax
+                "85 C0",                   // test    eax, eax
                 "0F 84 ?? ?? 00 00",       // jz      loc_200CDF8D
                 "83 C7 01",                // add     edi, 1
                 "83 ?? 50",                // add     ebp, 50h
                 "3B 7E 18",                // cmp     edi, [esi+18h]
                 "7C");                     // jl      short loc_200CDEC0
+            // \x68(....).\xe8...\x00\x83\xc4\x08\x85\xc0\x0f\x84..\x00\x00\x47\x81.\xb0\x00\x00\x00\x3b\x7e\x18\x7c
+            _curMapTarget.AddSignature(1,
+                "68 ?? ?? ?? ??",          // push    offset map
+                "??",                      // push    ebp
+                "E8 ?? ?? ?? 00",          // call    __stricmp
+                "83 C4 08",                // add     esp, 8
+                "85 C0",                   // test    eax, eax
+                "0F 84 ?? ?? 00 00",       // jz      loc_101B2BC1
+                "47",                      // inc     edi
+                "81 ?? B0 00 00 00",       // add     ebp, 0B0h
+                "3B 7E 18",                // cmp     edi, [esi+18h]
+                "7C");                     // jl      short loc_101B2A62
         }
 
         /// <summary>
