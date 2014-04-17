@@ -329,6 +329,7 @@ namespace LiveSplit.SourceSplit
                 catch (Exception ex) // probably a Win32Exception on access denied to a process
                 {
                     Trace.WriteLine(ex.ToString());
+                    Thread.Sleep(1000);
                 }
             }
         }

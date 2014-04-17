@@ -58,12 +58,18 @@ https://github.com/fatalis/sourcesplit
 
 Changelog:
 
+1.1
+Fixed Portal 2 support not working.
+Hopefully fixed auto-split not working all of the time.
+Show total time in the map times list when run is ended.
+Fixed several small bugs.
+
 1.0
 First release. Don't consider the timer to be accurate until it's been tested
 thoroughly by the community. There are going to be bugs.
 
 
-Testers: xcd, rewrite, pallidus, S.
+Testers: xcd, rewrite, pallidus, S, Colfra
 Source engine help: DeathByNukes
 
 @fatalis_
