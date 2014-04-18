@@ -253,7 +253,7 @@ namespace LiveSplit.SourceSplit
 
         void AddMapTime(MapTime time, bool end=false)
         {
-            string timeStr = time.Time.ToString(@"mm\:ss\.fff");
+            string timeStr = time.Time.ToString(time.Time >= TimeSpan.FromHours(1) ? @"hh\:mm\:ss\.fff" : @"mm\:ss\.fff");
             if (_mapTimes.Count == 0 || end)
                 timeStr += " *";
             _mapTimesForm.AddMapTime(time.Map, timeStr);
