@@ -23,7 +23,7 @@ namespace LiveSplit.SourceSplit
         public IDictionary<string, Action> ContextMenuControls { get; protected set; }
         protected InfoTimeComponent InternalComponent { get; set; }
 
-        private SourceSplitTimerModel _model;
+        private TimerModel _timer;
         private LiveSplitState _state;
         private GameMemory _gameMemory;
         private List<string> _mapsVisited;
@@ -69,8 +69,7 @@ namespace LiveSplit.SourceSplit
 
             _cache = new GraphicsCache();
 
-            _model = new SourceSplitTimerModel { CurrentState = state };
-            state.RegisterTimerModel(_model);
+            _timer = new TimerModel { CurrentState = state };
             state.OnSplit += state_OnSplit;
             state.OnReset += state_OnReset;
             state.OnStart += state_OnStart;
@@ -240,11 +239,11 @@ namespace LiveSplit.SourceSplit
                 if (whitelist.Length > 0)
                 {
                     if (whitelist.Contains(map))
-                        _model.Split();
+                        this.DoSplit();
                 }
                 else if (!blacklist.Contains(map))
                 {
-                    _model.Split();
+                    this.DoSplit();
                 }
             }
             else if (this.Settings.AutoSplitType == AutoSplitType.Interval)
@@ -252,9 +251,18 @@ namespace LiveSplit.SourceSplit
                 if (!blacklist.Contains(map) && ++_splitCount >= this.Settings.SplitInterval)
                 {
                     _splitCount = 0;
-                    _model.Split();
+                    this.DoSplit();
                 }
             }
+        }
+
+        void DoSplit()
+        {
+            bool before = _state.Settings.DoubleTapPrevention;
+            _state.Settings.DoubleTapPrevention = false;
+            _timer.Split();
+            _state.Settings.DoubleTapPrevention = before;
+
         }
 
         void AddMapTime(MapTime time, bool end=false)
@@ -292,51 +300,5 @@ namespace LiveSplit.SourceSplit
         public float PaddingRight       { get { return this.InternalComponent.PaddingRight; } }
         public float PaddingTop         { get { return this.InternalComponent.PaddingTop; } }
         public float PaddingBottom      { get { return this.InternalComponent.PaddingBottom; } }
-    }
-
-    class SourceSplitTimerModel : ITimerModel
-    {
-        public LiveSplitState CurrentState { get; set; }
-
-        public void Split()
-        {
-            if (this.CurrentState.CurrentPhase != TimerPhase.Running)
-                return;
-
-            TimeSpan? currentTime = this.CurrentState.CurrentTime;
-            if ((currentTime.HasValue && currentTime.GetValueOrDefault() > TimeSpan.Zero))
-            {
-                this.CurrentState.CurrentSplit.SplitTime = currentTime;
-                this.CurrentState.CurrentSplitIndex++;
-                if (this.CurrentState.Run.Count == this.CurrentState.CurrentSplitIndex)
-                    this.CurrentState.CurrentPhase = TimerPhase.Ended;
-                this.CurrentState.Run.HasChanged = true;
-                if (this.OnSplit != null)
-                    this.OnSplit(this, null);
-            }
-        }
-        
-        public void Pause()                     { throw new NotImplementedException(); }
-        public void Start()                     { throw new NotImplementedException(); }
-        public void SwitchComparisonNext()      { throw new NotImplementedException(); }
-        public void SwitchComparisonPrevious()  { throw new NotImplementedException(); }
-        public void UndoSplit()                 { throw new NotImplementedException(); }
-        public void Reset()                     { throw new NotImplementedException(); }
-        public void ResetWithoutUpdating()      { throw new NotImplementedException(); }
-        public void ScrollDown()                { throw new NotImplementedException(); }
-        public void ScrollUp()                  { throw new NotImplementedException(); }
-        public void SkipSplit()                 { throw new NotImplementedException(); }
-
-        public event EventHandler OnPause;
-        public event EventHandler OnReset;
-        public event EventHandler OnResume;
-        public event EventHandler OnScrollDown;
-        public event EventHandler OnScrollUp;
-        public event EventHandler OnSkipSplit;
-        public event EventHandler OnSplit;
-        public event EventHandler OnStart;
-        public event EventHandler OnSwitchComparisonNext;
-        public event EventHandler OnSwitchComparisonPrevious;
-        public event EventHandler OnUndoSplit;
     }
 }
