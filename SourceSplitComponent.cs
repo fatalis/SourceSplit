@@ -28,7 +28,6 @@ namespace LiveSplit.SourceSplit
         private GameMemory _gameMemory;
         private List<string> _mapsVisited;
 
-        private readonly object _lock = new object();
         private float _mapTime;
         private float _quickLoadTime;
         private float _totalTime;
@@ -49,8 +48,7 @@ namespace LiveSplit.SourceSplit
         private TimeSpan GameTime
         {
             get {
-                lock (_lock)
-                    return TimeSpan.FromSeconds(_totalTime + _mapTime - _removeTime);
+                return TimeSpan.FromSeconds(_totalTime + _mapTime - _removeTime);
             }
         }
 
@@ -107,8 +105,7 @@ namespace LiveSplit.SourceSplit
                     // Update is called every 25ms, so up to 25ms can be lost if using delay
                     if (_waitingForDelay)
                     {
-                        lock (_lock)
-                            _removeTime = _mapTime;
+                        _removeTime = _mapTime;
                         _waitingForDelay = false;
                     }
 
@@ -161,8 +158,7 @@ namespace LiveSplit.SourceSplit
 
             if (!_waitingForDelay)
             {
-                lock (_lock)
-                    _removeTime = _mapTime;
+                _removeTime = _mapTime;
             }
         }
 
@@ -187,8 +183,7 @@ namespace LiveSplit.SourceSplit
         // called from thread
         void gameMemory_OnGameTimeUpdate(object sender, float gameTime)
         {
-            lock (_lock)
-                _mapTime = gameTime;
+            _mapTime = gameTime;
         }
 
         void gameMemory_OnSignOnStateChange(object sender, SignOnStateChangeEventArgs e)
@@ -262,7 +257,6 @@ namespace LiveSplit.SourceSplit
             _state.Settings.DoubleTapPrevention = false;
             _timer.Split();
             _state.Settings.DoubleTapPrevention = before;
-
         }
 
         void AddMapTime(MapTime time, bool end=false)
