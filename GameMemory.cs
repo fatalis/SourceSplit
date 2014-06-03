@@ -42,6 +42,8 @@ namespace LiveSplit.SourceSplit
         public GameMemory(SourceSplitSettings settings)
         {
             _settings = settings;
+
+            // TODO: refine hl2 2014 signatures once an update after the may 29th one is released
             
             /*// CBaseServer::(server_state_t)m_State
             _serverStateTarget = new SigScanTarget();
@@ -97,6 +99,19 @@ namespace LiveSplit.SourceSplit
                 "E8 ?? ?? ?? ??",          // call    sub_1008FEB0
                 "D9 1D");                  // fstp    flt_1042261C
 
+            // hl2 may 29 2014 update
+            // \xa3....\x89\x15....\xe8....\xd9\x1d....\x57\xb9....\xe8....\x8b\x0d....\xd9\x1d
+            _curTimeTarget.AddSignature(18,
+                "A3 ?? ?? ?? ??",          // mov     dword_103B4AC8, eax
+                "89 15 ?? ?? ?? ??",       // mov     dword_10452F38, edx
+                "E8 ?? ?? ?? ??",          // call    sub_100CE610
+                "D9 1D ?? ?? ?? ??",       // fstp    curTime
+                "57",                      // push    edi
+                "B9 ?? ?? ?? ??",          // mov     ecx, offset unk_10452D98
+                "E8 ?? ?? ?? ??",          // call    sub_100CE390
+                "8B 0D ?? ?? ?? ??",       // mov     ecx, dword_1043686C
+                "D9 1D");                  // fstp    frametime
+
             // CBaseClientState::m_nSignOnState (older engines)
             _signOnStateTarget1 = new SigScanTarget();
             _signOnStateTarget1.OnFound = (proc, ptr) => !ReadProcessPtr32(proc, ptr, out ptr) ? IntPtr.Zero : ptr;
@@ -107,8 +122,7 @@ namespace LiveSplit.SourceSplit
                 "B8 ?? ?? ?? ??",          // mov     eax, offset aDedicatedServe ; "Dedicated Server"
                 "C3",                      // retn
                 "83 3D ?? ?? ?? ?? 02",    // cmp     CBaseClientState__m_nSignonState, 2
-                "B8 ?? ?? ?? ??",          // mov     eax, offset MultiByteStr
-                "7C 05");                  // jl      short locret_6936C912
+                "B8 ?? ?? ?? ??");         // mov     eax, offset MultiByteStr
 
             // CBaseClientState::m_nSignOnState (newer engines)
             _signOnStateTarget2 = new SigScanTarget();
@@ -168,6 +182,16 @@ namespace LiveSplit.SourceSplit
                 "81 ?? B0 00 00 00",       // add     ebp, 0B0h
                 "3B 7E 18",                // cmp     edi, [esi+18h]
                 "7C");                     // jl      short loc_101B2A62
+            // hl2 may 29 2014 update
+            // \xc7\x05....\x00\x00\x00\x00\x5f\x84\xc0\x75.\x68....\x51\x68
+            _curMapTarget.AddSignature(16,
+          "C7 05 ?? ?? ?? ?? 00 00 00 00", // mov     dword_103B5BE4, 0
+                "5F",                      // pop     edi
+                "84 C0",                   // test    al, al
+                "75 ??",                   // jnz     short loc_101AA0C7
+                "68 ?? ?? ?? ??",          // push    offset map
+                "51",                      // push    ecx
+                "68");                     // push    offset aLevelTransitio
         }
 
         /// <summary>
