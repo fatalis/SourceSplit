@@ -17,6 +17,7 @@ namespace LiveSplit.SourceSplit
         public bool AutoSplitEnabled { get; set; }
         public int SplitInterval { get; set; }
         public AutoSplitType AutoSplitType { get; private set; }
+        public bool ShowGameTime { get; set; }
 
         private readonly object _lock = new object();
 
@@ -44,6 +45,7 @@ namespace LiveSplit.SourceSplit
             
             this.chkAutoSplitEnabled.DataBindings.Add("Checked", this, "AutoSplitEnabled", false, DataSourceUpdateMode.OnPropertyChanged);
             this.dmnSplitInterval.DataBindings.Add("Value", this, "SplitInterval", false, DataSourceUpdateMode.OnPropertyChanged);
+            this.chkShowGameTime.DataBindings.Add("Checked", this, "ShowGameTime", false, DataSourceUpdateMode.OnPropertyChanged);
 
             this.rdoWhitelist.CheckedChanged += rdoAutoSplitType_CheckedChanged;
             this.rdoInterval.CheckedChanged += rdoAutoSplitType_CheckedChanged;
@@ -55,6 +57,7 @@ namespace LiveSplit.SourceSplit
             this.lbGameProcesses.Rows.Add("dearesther.exe");
             this.SplitInterval = 1;
             this.AutoSplitType = AutoSplitType.Interval;
+            this.ShowGameTime = true;
 
             this.UpdateDisabledControls(this, EventArgs.Empty);
         }
@@ -80,6 +83,8 @@ namespace LiveSplit.SourceSplit
 
             settingsNode.AppendChild(ToElement(doc, "AutoSplitType", this.AutoSplitType));
 
+            settingsNode.AppendChild(ToElement(doc, "ShowGameTime", this.ShowGameTime));
+
             return settingsNode;
         }
 
@@ -95,6 +100,10 @@ namespace LiveSplit.SourceSplit
             this.SplitInterval = settings["SplitInterval"] != null ?
                 (Int32.TryParse(settings["SplitInterval"].InnerText, out ival) ? ival : 1)
                 : 1;
+
+            this.ShowGameTime = settings["ShowGameTime"] != null ?
+                (Boolean.TryParse(settings["ShowGameTime"].InnerText, out bval) ? bval : true)
+                : true;
 
             AutoSplitType splitType;
             this.AutoSplitType = settings["AutoSplitType"] != null ?

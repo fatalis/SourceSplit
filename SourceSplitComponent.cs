@@ -94,6 +94,9 @@ namespace LiveSplit.SourceSplit
 
         public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)
         {
+            if (!this.Settings.ShowGameTime)
+                return;
+
             if (state.CurrentPhase == TimerPhase.Ended)
             {
                 this.InternalComponent.TimeValue = _endTime.HasValue ? _endTime.Value : TimeSpan.Zero;
@@ -278,9 +281,9 @@ namespace LiveSplit.SourceSplit
 
         public void RenameComparison(string oldName, string newName) { }
 
-        public float VerticalHeight     { get { return this.InternalComponent.VerticalHeight; } }
+        public float VerticalHeight     { get { return this.Settings.ShowGameTime ? this.InternalComponent.VerticalHeight : 0; } }
+        public float HorizontalWidth    { get { return this.Settings.ShowGameTime ? this.InternalComponent.HorizontalWidth : 0; } }
         public float MinimumWidth       { get { return this.InternalComponent.MinimumWidth; } }
-        public float HorizontalWidth    { get { return this.InternalComponent.HorizontalWidth; } }
         public float MinimumHeight      { get { return this.InternalComponent.MinimumHeight; } }
         public float PaddingLeft        { get { return this.InternalComponent.PaddingLeft; } }
         public float PaddingRight       { get { return this.InternalComponent.PaddingRight; } }

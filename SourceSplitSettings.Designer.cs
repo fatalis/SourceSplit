@@ -46,6 +46,7 @@
             this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lbGameProcesses = new LiveSplit.SourceSplit.EditableListBox();
             this.dataGridViewTextBoxColumn2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.chkShowGameTime = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.tableLayoutPanel3.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -217,6 +218,7 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.Controls.Add(this.groupBox2, 0, 1);
             this.tableLayoutPanel1.Controls.Add(this.groupBox1, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.chkShowGameTime, 1, 1);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(7, 7);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -226,6 +228,16 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 37F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(456, 435);
             this.tableLayoutPanel1.TabIndex = 13;
+            // 
+            // chkShowGameTime
+            // 
+            this.chkShowGameTime.AutoSize = true;
+            this.chkShowGameTime.Location = new System.Drawing.Point(231, 166);
+            this.chkShowGameTime.Name = "chkShowGameTime";
+            this.chkShowGameTime.Size = new System.Drawing.Size(110, 17);
+            this.chkShowGameTime.TabIndex = 12;
+            this.chkShowGameTime.Text = "Show Game Time";
+            this.chkShowGameTime.UseVisualStyleBackColor = true;
             // 
             // lbMapBlacklist
             // 
@@ -347,5 +359,6 @@
         private System.Windows.Forms.GroupBox groupBox3;
         private EditableListBox lbGameProcesses;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
+        private System.Windows.Forms.CheckBox chkShowGameTime;
     }
 }
