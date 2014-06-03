@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 
 namespace LiveSplit.SourceSplit
 {
@@ -27,7 +28,7 @@ namespace LiveSplit.SourceSplit
         }
 
         private Task _thread;
-        private SynchronizationContext _callerThreadCtx;
+        private SynchronizationContext _uiThread;
         private CancellationTokenSource _cancelSource;
         private readonly object _lock = new object();
 
@@ -201,8 +202,10 @@ namespace LiveSplit.SourceSplit
         {
             if (_thread != null && _thread.Status == TaskStatus.Running)
                 throw new InvalidOperationException();
+            if (!(SynchronizationContext.Current is WindowsFormsSynchronizationContext))
+                throw new InvalidOperationException("SynchronizationContext.Current is not a UI thread.");
 
-            _callerThreadCtx = SynchronizationContext.Current;
+            _uiThread = SynchronizationContext.Current;
             _cancelSource = new CancellationTokenSource();
             _thread = Task.Factory.StartNew(MemoryReadThread);
         }
@@ -320,7 +323,7 @@ namespace LiveSplit.SourceSplit
                             // invoke on main thread
                             SignOnState prevStateClosure = prevSignOnState;
                             float startTimeClosure = startTime;
-                            _callerThreadCtx.Send(s => {
+                            _uiThread.Post(s => {
                                 if (this.OnSignOnStateChange != null)
                                     this.OnSignOnStateChange(this, new SignOnStateChangeEventArgs(signOnState, prevStateClosure,
                                         mapName.ToString(),
@@ -335,8 +338,10 @@ namespace LiveSplit.SourceSplit
 
                         if (signOnState == SignOnState.Full)
                         {
-                            if (this.OnGameTimeUpdate != null)
-                                this.OnGameTimeUpdate(this, tickTime - startTime);
+                            _uiThread.Post(d => {
+                                if (this.OnGameTimeUpdate != null)
+                                    this.OnGameTimeUpdate(this, tickTime - startTime);
+                            }, null);
                         }
 
                         lock (_lock)
