@@ -57,7 +57,7 @@ namespace LiveSplit.SourceSplit
         public SourceSplitComponent(LiveSplitState state)
         {
             this.Settings = new SourceSplitSettings();
-            this.InternalComponent = new InfoTimeComponent(null, null, new RegularTimeFormatter(TimeAccuracy.Hundredths));
+            this.InternalComponent = new InfoTimeComponent("Game Time", null, new RegularTimeFormatter(TimeAccuracy.Hundredths));
             
             this.ContextMenuControls = new Dictionary<String, Action>();
             this.ContextMenuControls.Add("SourceSplit: Map Times", () => {
@@ -127,18 +127,21 @@ namespace LiveSplit.SourceSplit
 
         public void DrawVertical(Graphics g, LiveSplitState state, float width, Region region)
         {
-            this.InternalComponent.NameLabel.Text = "Game Time";
-            this.InternalComponent.NameLabel.ForeColor = state.LayoutSettings.TextColor;
-            this.InternalComponent.ValueLabel.ForeColor = state.LayoutSettings.TextColor;
+            this.PrepareDraw(state);
             this.InternalComponent.DrawVertical(g, state, width, region);
         }
 
         public void DrawHorizontal(Graphics g, LiveSplitState state, float height, Region region)
         {
-            this.InternalComponent.NameLabel.Text = "Game Time";
+            this.PrepareDraw(state);
+            this.InternalComponent.DrawHorizontal(g, state, height, region);
+        }
+
+        void PrepareDraw(LiveSplitState state)
+        {
             this.InternalComponent.NameLabel.ForeColor = state.LayoutSettings.TextColor;
             this.InternalComponent.ValueLabel.ForeColor = state.LayoutSettings.TextColor;
-            this.InternalComponent.DrawHorizontal(g, state, height, region);
+            this.InternalComponent.NameLabel.HasShadow = this.InternalComponent.ValueLabel.HasShadow = state.LayoutSettings.DropShadows;
         }
 
         void state_OnStart(object sender, EventArgs e)
