@@ -58,6 +58,11 @@ https://github.com/fatalis/sourcesplit
 
 Changelog:
 
+1.2
+Fixed HL2 Steampipe May 29 2014 update
+Added an option to disable Game Time
+Now obeys drop shadow settings
+
 1.1
 Fixed Portal 2 support not working.
 Hopefully fixed auto-split not working all of the time.
