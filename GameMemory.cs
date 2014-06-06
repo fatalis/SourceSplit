@@ -338,9 +338,10 @@ namespace LiveSplit.SourceSplit
 
                         if (signOnState == SignOnState.Full)
                         {
+                            float startTimeClosure = startTime;
                             _uiThread.Post(d => {
                                 if (this.OnGameTimeUpdate != null)
-                                    this.OnGameTimeUpdate(this, tickTime - startTime);
+                                    this.OnGameTimeUpdate(this, tickTime - startTimeClosure);
                             }, null);
                         }
 
@@ -404,7 +405,16 @@ namespace LiveSplit.SourceSplit
             if (!SafeNativeMethods.ReadProcessMemory(process.Handle, addr, bytes, bytes.Length, out read) || read != bytes.Length)
                 return false;
             sb.Append(Encoding.ASCII.GetString(bytes));
-            sb.Replace("\0", String.Empty);
+
+            for (int i = 0; i < sb.Length; i++)
+            {
+                if (sb[i] == '\0')
+                {
+                    sb.Remove(i, sb.Length - i);
+                    break;
+                }
+            }
+
             return true;
         }
 
