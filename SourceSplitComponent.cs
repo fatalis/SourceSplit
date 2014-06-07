@@ -194,18 +194,17 @@ namespace LiveSplit.SourceSplit
             // changelevel command
             if (e.SignOnState == SignOnState.Connected && e.PrevSignOnState == SignOnState.Full)
             {
-                string map = _gameMemory.CurrentMap;
                 // note: e.GameTime is the final map time before starting the next level
-                this.AddMapTime(new MapTime { Map = map, Time = TimeSpan.FromSeconds(e.GameTime + _quickLoadTime) });
+                this.AddMapTime(new MapTime { Map = e.PrevMap, Time = TimeSpan.FromSeconds(e.GameTime + _quickLoadTime) });
                 _totalTime += e.GameTime;
                 _mapTime = 0;
                 _quickLoadTime = 0;
                 Debug.WriteLine("changelevel time add: " + e.GameTime);
 
-                if (!_mapsVisited.Contains(map))
+                if (!_mapsVisited.Contains(e.PrevMap))
                 {
-                    _mapsVisited.Add(map);
-                    this.AutoSplit(map);
+                    _mapsVisited.Add(e.PrevMap);
+                    this.AutoSplit(e.PrevMap);
                 }
             }
             // new game or quick save loaded

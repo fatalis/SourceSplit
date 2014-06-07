@@ -292,6 +292,7 @@ namespace LiveSplit.SourceSplit
                     SignOnState prevSignOnState = SignOnState.None;
                     float startTime = 0;
                     float prevTime = 0;
+                    string prevMapName = String.Empty;
                     while (!gameProcess.HasExited)
                     {
                         //int st;
@@ -323,10 +324,11 @@ namespace LiveSplit.SourceSplit
                             // invoke on main thread
                             SignOnState prevStateClosure = prevSignOnState;
                             float startTimeClosure = startTime;
+                            string prevMapNameClosure = prevMapName;
                             _uiThread.Post(s => {
                                 if (this.OnSignOnStateChange != null)
                                     this.OnSignOnStateChange(this, new SignOnStateChangeEventArgs(signOnState, prevStateClosure,
-                                        mapName.ToString(),
+                                        mapName.ToString(), prevMapNameClosure,
                                         tickTime - startTimeClosure));
                             }, null);
 
@@ -350,6 +352,7 @@ namespace LiveSplit.SourceSplit
                         //prevState = state;
                         prevSignOnState = signOnState;
                         prevTime = tickTime;
+                        prevMapName = mapName.ToString();
 
                         Thread.Sleep(15); // 66 tickrate
                         if (_cancelSource.IsCancellationRequested)
@@ -555,16 +558,18 @@ namespace LiveSplit.SourceSplit
 
     class SignOnStateChangeEventArgs : EventArgs
     {
-        public string Map { get; set; }
+        public string NewMap { get; set; }
+        public string PrevMap { get; set; }
         public SignOnState SignOnState { get; set; }
         public SignOnState PrevSignOnState { get; set; }
         public float GameTime { get; set; }
 
-        public SignOnStateChangeEventArgs(SignOnState state, SignOnState prevState, string map, float gameTime)
+        public SignOnStateChangeEventArgs(SignOnState state, SignOnState prevState, string newMap, string prevMap, float gameTime)
         {
             this.SignOnState = state;
             this.PrevSignOnState = prevState;
-            this.Map = map;
+            this.NewMap = newMap;
+            this.PrevMap = prevMap;
             this.GameTime = gameTime;
         }
     }
