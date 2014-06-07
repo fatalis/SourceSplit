@@ -58,6 +58,9 @@ https://github.com/fatalis/sourcesplit
 
 Changelog:
 
+1.2.1
+Hotfix for autosplit breakage introduced in 1.2
+
 1.2
 Fixed HL2 Steampipe May 29 2014 update
 Added an option to disable Game Time
