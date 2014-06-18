@@ -40,13 +40,13 @@
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.chkShowGameTime = new System.Windows.Forms.CheckBox();
             this.lbMapBlacklist = new LiveSplit.SourceSplit.EditableListBox();
             this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lbMapWhitelist = new LiveSplit.SourceSplit.EditableListBox();
             this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lbGameProcesses = new LiveSplit.SourceSplit.EditableListBox();
             this.dataGridViewTextBoxColumn2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.chkShowGameTime = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.tableLayoutPanel3.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -234,9 +234,9 @@
             this.chkShowGameTime.AutoSize = true;
             this.chkShowGameTime.Location = new System.Drawing.Point(231, 166);
             this.chkShowGameTime.Name = "chkShowGameTime";
-            this.chkShowGameTime.Size = new System.Drawing.Size(110, 17);
+            this.chkShowGameTime.Size = new System.Drawing.Size(155, 17);
             this.chkShowGameTime.TabIndex = 12;
-            this.chkShowGameTime.Text = "Show Game Time";
+            this.chkShowGameTime.Text = "Show Other Timing Method";
             this.chkShowGameTime.UseVisualStyleBackColor = true;
             // 
             // lbMapBlacklist
@@ -332,6 +332,7 @@
             this.groupBox3.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);
+            this.tableLayoutPanel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.lbMapBlacklist)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.lbMapWhitelist)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.lbGameProcesses)).EndInit();

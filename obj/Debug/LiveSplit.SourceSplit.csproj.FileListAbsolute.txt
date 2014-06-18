@@ -1,0 +1,8 @@
+D:\Google Drive\Projekte\LiveSplit\LiveSplit\bin\Debug\Components\LiveSplit.SourceSplit.dll
+D:\Google Drive\Projekte\LiveSplit\LiveSplit\bin\Debug\Components\LiveSplit.SourceSplit.pdb
+D:\Projekte\Git\sourcesplit\obj\Debug\LiveSplit.SourceSplit.csprojResolveAssemblyReference.cache
+D:\Projekte\Git\sourcesplit\obj\Debug\LiveSplit.SourceSplit.MapTimesForm.resources
+D:\Projekte\Git\sourcesplit\obj\Debug\LiveSplit.SourceSplit.SourceSplitSettings.resources
+D:\Projekte\Git\sourcesplit\obj\Debug\LiveSplit.SourceSplit.csproj.GenerateResource.Cache
+D:\Projekte\Git\sourcesplit\obj\Debug\LiveSplit.SourceSplit.dll
+D:\Projekte\Git\sourcesplit\obj\Debug\LiveSplit.SourceSplit.pdb
