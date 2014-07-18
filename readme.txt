@@ -58,6 +58,9 @@ https://github.com/fatalis/sourcesplit
 
 Changelog:
 
+1.2.2
+Fixed game time not working properly in Aperture Tag
+
 1.2.1
 Hotfix for autosplit breakage introduced in 1.2
 
