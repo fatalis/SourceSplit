@@ -36,6 +36,7 @@ namespace LiveSplit.SourceSplit
         private TimeSpan? _endTime;
         private GraphicsCache _cache;
         private bool _waitingForDelay;
+        private float _lastChangelevelTime;
 
         struct MapTime
         {
@@ -199,6 +200,7 @@ namespace LiveSplit.SourceSplit
                 _totalTime += e.GameTime;
                 _mapTime = 0;
                 _quickLoadTime = 0;
+                _lastChangelevelTime = e.GameTime;
                 Debug.WriteLine("changelevel time add: " + e.GameTime);
 
                 if (!_mapsVisited.Contains(e.PrevMap))
@@ -210,10 +212,14 @@ namespace LiveSplit.SourceSplit
             // new game or quick save loaded
             else if (e.SignOnState == SignOnState.None)
             {
-                Debug.WriteLine("newgame or quick load time add: " + e.GameTime);
-                _totalTime += e.GameTime;
-                _quickLoadTime += e.GameTime;
-                _mapTime = 0;
+                // Aperture Tag fix
+                if (!e.NewMap.StartsWith("gg_") || Math.Abs(e.GameTime - _lastChangelevelTime) > 0.0001)
+                {
+                    Debug.WriteLine("newgame or quick load time add: " + e.GameTime);
+                    _totalTime += e.GameTime;
+                    _quickLoadTime += e.GameTime;
+                    _mapTime = 0;
+                }
             }
         }
 
