@@ -58,7 +58,7 @@ https://github.com/fatalis/sourcesplit
 
 Changelog:
 
-1.2.2
+1.2.3
 Fixed game time not working properly in Aperture Tag
 
 1.2.1

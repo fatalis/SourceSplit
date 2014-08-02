@@ -212,8 +212,8 @@ namespace LiveSplit.SourceSplit
             // new game or quick save loaded
             else if (e.SignOnState == SignOnState.None)
             {
-                // Aperture Tag fix
-                if (!e.NewMap.StartsWith("gg_") || Math.Abs(e.GameTime - _lastChangelevelTime) > 0.0001)
+                // Aperture Tag hacky fix
+                if (!e.NewMap.StartsWith("gg_") || (Math.Abs(e.GameTime - _lastChangelevelTime) > 0.0001 && e.GameTime > 0.0))
                 {
                     Debug.WriteLine("newgame or quick load time add: " + e.GameTime);
                     _totalTime += e.GameTime;
