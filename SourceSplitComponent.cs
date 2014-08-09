@@ -84,24 +84,23 @@ namespace LiveSplit.SourceSplit
             _gameMemory.StartReading();
         }
 
-        ~SourceSplitComponent()
+        public void Dispose()
         {
-            // TODO: in LiveSplit 1.4, components will be IDisposable
-            //_gameMemory.Stop();
+            if (_gameMemory != null)
+                _gameMemory.Stop();
         }
 
         public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)
         {
-            if (!this.Settings.ShowGameTime)
-                return;
+            state.IsGameTimePaused = true; // prevent flicker, doesn't actually pause anything.
 
             if (state.CurrentPhase == TimerPhase.Ended)
             {
-                this.InternalComponent.TimeValue = _endTime.HasValue ? _endTime.Value : TimeSpan.Zero;
+                state.SetGameTime(_endTime.HasValue ? _endTime.Value : TimeSpan.Zero);
             }
             else
             {
-                if (state.CurrentTime >= TimeSpan.Zero)
+                if (state.CurrentTime.RealTime >= TimeSpan.Zero)
                 {
                     // Update is called every 25ms, so up to 25ms can be lost if using delay
                     if (_waitingForDelay)
@@ -110,14 +109,24 @@ namespace LiveSplit.SourceSplit
                         _waitingForDelay = false;
                     }
 
-                    this.InternalComponent.TimeValue = state.CurrentPhase == TimerPhase.Running
+                    state.SetGameTime(state.CurrentPhase == TimerPhase.Running
                         || state.CurrentPhase == TimerPhase.Paused
-                        ? this.GameTime : TimeSpan.Zero;
+                        ? this.GameTime : TimeSpan.Zero);
                 }
             }
 
+            if (!this.Settings.ShowGameTime)
+                return;
+
+            this.InternalComponent.TimeValue =
+                state.CurrentTime[state.CurrentTimingMethod == TimingMethod.GameTime
+                    ? TimingMethod.RealTime : TimingMethod.GameTime];
+            this.InternalComponent.InformationName = state.CurrentTimingMethod == TimingMethod.GameTime
+                ? "Real Time" : "Game Time";
+
             _cache.Restart();
             _cache["TimeValue"] = this.InternalComponent.ValueLabel.Text;
+            _cache["TimingMethod"] = state.CurrentTimingMethod;
             if (invalidator != null && _cache.HasChanged)
                 invalidator.Invalidate(0f, 0f, width, height);
         }
@@ -163,7 +172,7 @@ namespace LiveSplit.SourceSplit
             }
         }
 
-        void state_OnReset(object sender, EventArgs e)
+        void state_OnReset(object sender, TimerPhase t)
         {
             _endTime = null;
             _mapTimes.Clear();
@@ -295,9 +304,9 @@ namespace LiveSplit.SourceSplit
         public float HorizontalWidth    { get { return this.Settings.ShowGameTime ? this.InternalComponent.HorizontalWidth : 0; } }
         public float MinimumWidth       { get { return this.InternalComponent.MinimumWidth; } }
         public float MinimumHeight      { get { return this.InternalComponent.MinimumHeight; } }
-        public float PaddingLeft        { get { return this.InternalComponent.PaddingLeft; } }
-        public float PaddingRight       { get { return this.InternalComponent.PaddingRight; } }
-        public float PaddingTop         { get { return this.InternalComponent.PaddingTop; } }
-        public float PaddingBottom      { get { return this.InternalComponent.PaddingBottom; } }
+        public float PaddingLeft        { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingLeft : 0; } }
+        public float PaddingRight       { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingRight : 0; } }
+        public float PaddingTop         { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingTop : 0; } }
+        public float PaddingBottom      { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingBottom : 0; } }
     }
 }

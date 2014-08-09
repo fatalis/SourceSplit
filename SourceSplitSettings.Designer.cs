@@ -236,7 +236,7 @@
             this.chkShowGameTime.Name = "chkShowGameTime";
             this.chkShowGameTime.Size = new System.Drawing.Size(110, 17);
             this.chkShowGameTime.TabIndex = 12;
-            this.chkShowGameTime.Text = "Show Game Time";
+            this.chkShowGameTime.Text = "Show Alternate Timing Time";
             this.chkShowGameTime.UseVisualStyleBackColor = true;
             // 
             // lbMapBlacklist

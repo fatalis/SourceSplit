@@ -7,20 +7,24 @@ namespace LiveSplit.SourceSplit
 {
     public class SourceSplitFactory : IComponentFactory
     {
-        private SourceSplitComponent _instance;
-
         public string ComponentName
         {
             get { return "SourceSplit"; }
         }
 
+        public string Description
+        {
+            get { return "Game Time / Auto-splitting for Source engine games.";  }
+        }
+
+        public ComponentCategory Category
+        {
+            get { return ComponentCategory.Control; }
+        }
+
         public IComponent Create(LiveSplitState state)
         {
-            // TODO: in LiveSplit 1.4, components will be IDisposable
-            // this assumes the passed state is always the same one, until then
-            return _instance ?? (_instance = new SourceSplitComponent(state));
-
-            // return new SourceSplitComponent(state);
+            return new SourceSplitComponent(state);
         }
 
         public string UpdateName
