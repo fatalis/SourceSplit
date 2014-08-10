@@ -56,6 +56,7 @@ namespace LiveSplit.SourceSplit
             this.lbGameProcesses.Rows.Add("portal2.exe");
             this.lbGameProcesses.Rows.Add("dearesther.exe");
             this.lbGameProcesses.Rows.Add("mm.exe");
+            this.lbGameProcesses.Rows.Add("EYE.exe");
             this.SplitInterval = 1;
             this.AutoSplitType = AutoSplitType.Interval;
             this.ShowGameTime = true;

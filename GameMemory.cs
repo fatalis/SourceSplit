@@ -146,20 +146,8 @@ namespace LiveSplit.SourceSplit
             // CBaseServer::m_szMapname[64]
             _curMapTarget = new SigScanTarget();
             _curMapTarget.OnFound = (proc, ptr) => !ReadProcessPtr32(proc, ptr, out ptr) ? IntPtr.Zero : ptr;
-            // TODO: these signatures arent very generic
-            // \x68(....).\xe8...\x00\x83\xc4\x08\x85\xc0\x0f\x84..\x00\x00\x47\x83.\x50\x3b\x7e\x18\x7c
-            _curMapTarget.AddSignature(1,
-                "68 ?? ?? ?? ??",          // push    offset map
-                "??",                      // push    ebx
-                "E8 ?? ?? ?? 00",          // call    __stricmp
-                "83 C4 08",                // add     esp, 8
-                "85 C0",                   // test    eax, eax
-                "0F 84 ?? ?? 00 00",       // jz      loc_6947E980
-                "47",                      // inc     edi
-                "83 ?? 50",                // add     ebx, 50h
-                "3B 7E 18",                // cmp     edi, [esi+18h]
-                "7C");                     // jl      short loc_6947E830
             // \x68(....).\xe8...\x00\x83\xc4\x08\x85\xc0\x0f\x84..\x00\x00\x83\xc7\x01\x83.\x50\x3b\x7e\x18\x7c
+            // old engine
             _curMapTarget.AddSignature(1,
                 "68 ?? ?? ?? ??",          // push    offset map
                 "??",                      // push    ebp
@@ -171,28 +159,15 @@ namespace LiveSplit.SourceSplit
                 "83 ?? 50",                // add     ebp, 50h
                 "3B 7E 18",                // cmp     edi, [esi+18h]
                 "7C");                     // jl      short loc_200CDEC0
-            // \x68(....).\xe8...\x00\x83\xc4\x08\x85\xc0\x0f\x84..\x00\x00\x47\x81.\xb0\x00\x00\x00\x3b\x7e\x18\x7c
-            _curMapTarget.AddSignature(1,
-                "68 ?? ?? ?? ??",          // push    offset map
-                "??",                      // push    ebp
-                "E8 ?? ?? ?? 00",          // call    __stricmp
-                "83 C4 08",                // add     esp, 8
-                "85 C0",                   // test    eax, eax
-                "0F 84 ?? ?? 00 00",       // jz      loc_101B2BC1
-                "47",                      // inc     edi
-                "81 ?? B0 00 00 00",       // add     ebp, 0B0h
-                "3B 7E 18",                // cmp     edi, [esi+18h]
-                "7C");                     // jl      short loc_101B2A62
-            // hl2 may 29 2014 update
-            // \xc7\x05....\x00\x00\x00\x00\x5f\x84\xc0\x75.\x68....\x51\x68
-            _curMapTarget.AddSignature(16,
-          "C7 05 ?? ?? ?? ?? 00 00 00 00", // mov     dword_103B5BE4, 0
-                "5F",                      // pop     edi
-                "84 C0",                   // test    al, al
-                "75 ??",                   // jnz     short loc_101AA0C7
-                "68 ?? ?? ?? ??",          // push    offset map
-                "51",                      // push    ecx
-                "68");                     // push    offset aLevelTransitio
+            // >= orange box
+            // \xd9.\x2c\xd9\xc9\xdf\xf1\xdd\xd8\x76.\x80.....\x00
+            _curMapTarget.AddSignature(13,
+                "D9 ?? 2C",                // fld     dword ptr [edx+2Ch]
+                "D9 C9",                   // fxch    st(1)
+                "DF F1",                   // fcomip  st, st(1)
+                "DD D8",                   // fstp    st
+                "76 ??",                   // jbe     short loc_6946F651
+                "80 ?? ?? ?? ?? ?? 00");   // cmp     map, 0
         }
 
         /// <summary>
