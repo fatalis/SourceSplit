@@ -433,11 +433,12 @@ namespace LiveSplit.SourceSplit
             string[] badExes = { "csgo", "dota2", "swarm", "left4dead",
                 "left4dead2", "dinodday", "insurgency", "nucleardawn", "ship" };
             string[] badMods = { "cstrike", "dods", "hl2mp", "insurgency", "tf", "zps" };
+            string[] badRootDirs = { "Dark Messiah of Might and Magic Multi-Player" };
 
             if (badExes.Contains(p.ProcessName.ToLower()))
                 return true;
 
-            if (p.ProcessName.ToLower() == "hl2")
+            if (p.ProcessName.ToLower() == "hl2" || p.ProcessName.ToLower() == "mm")
             {
                 // it's too difficult to get another process' start arguments, so let's scan the dir
                 // http://stackoverflow.com/questions/440932/reading-command-line-arguments-of-another-process-win32-c-code
@@ -447,11 +448,13 @@ namespace LiveSplit.SourceSplit
                     string dir = Path.GetDirectoryName(p.MainModule.FileName);
                     if (dir == null)
                         return true;
-                    foreach (DirectoryInfo di in new DirectoryInfo(dir).GetDirectories())
-                    {
-                        if (badMods.Contains(di.Name.ToLower()))
-                            return true;
-                    }
+
+                    if (new DirectoryInfo(dir).GetDirectories().Any(di => badMods.Contains(di.Name.ToLower())))
+                        return true;
+
+                    string root = new DirectoryInfo(dir).Name.ToLower();
+                    if (badRootDirs.Any(badRoot => badRoot.ToLower() == root))
+                        return true;
                 }
                 catch (Exception ex)
                 {
