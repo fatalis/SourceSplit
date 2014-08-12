@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Threading;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace LiveSplit.SourceSplit
@@ -207,7 +205,7 @@ namespace LiveSplit.SourceSplit
 
             if (p != null && !p.HasExited && !IsVACProtectedProcess(p))
             {
-                ProcessModuleEx engine = GetProcessModules(p).FirstOrDefault(x => x.ModuleName.ToLower() == "engine.dll");
+                ProcessModule engine = p.Modules.Cast<ProcessModule>().FirstOrDefault(x => x.ModuleName.ToLower() == "engine.dll");
                 if (engine != null)
                 {
                     var scanner = new SignatureScanner(p, engine.BaseAddress, engine.ModuleMemorySize);
@@ -436,77 +434,6 @@ namespace LiveSplit.SourceSplit
             }
 
             return false;
-        }
-
-        static ProcessModuleEx[] ModuleToModuleEx(Process p)
-        {
-            var ret = new List<ProcessModuleEx>();
-            foreach (ProcessModule module in p.Modules)
-            {
-                var ex = new ProcessModuleEx {
-                    BaseAddress = module.BaseAddress,
-                    EntryPointAddress = module.EntryPointAddress,
-                    FileName = module.FileName,
-                    ModuleMemorySize = module.ModuleMemorySize,
-                    ModuleName = module.ModuleName
-                };
-                ret.Add(ex);
-            }
-            return ret.ToArray();
-        }
-
-        /// <summary>
-        /// Get the modules that have been loaded by the associated process.
-        /// This will get an x86 process' modules when running from x64 code,
-        /// unlike Process.Modules.
-        /// </summary>
-        static ProcessModuleEx[] GetProcessModules(Process p)
-        {
-            if (p.HasExited)
-                throw new ArgumentException("Process should be alive.");
-            if (!Environment.Is64BitProcess)
-                return ModuleToModuleEx(p);
-            
-            var ret = new List<ProcessModuleEx>();
-            
-            IntPtr[] hMods = new IntPtr[1024];
-
-            uint uiSize = (uint)(IntPtr.Size * hMods.Length);
-            uint cbNeeded;
-            try
-            {
-                const int LIST_MODULES_ALL = 3;
-                if (!SafeNativeMethods.EnumProcessModulesEx(p.Handle, hMods, uiSize, out cbNeeded, LIST_MODULES_ALL))
-                    throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
-            }
-            catch (EntryPointNotFoundException) // this function is only on vista and higher. this is likely only to happen on XP x64
-            {
-                return ModuleToModuleEx(p); // fall back
-            }
-
-            uint count = (uint)(cbNeeded / IntPtr.Size);
-            for (int i = 0; i < count; i++)
-            {
-                var info = new SafeNativeMethods.MODULEINFO();
-                var path = new StringBuilder(260);
-                var module = new ProcessModuleEx();
-
-                if (SafeNativeMethods.GetModuleFileNameEx(p.Handle, hMods[i], path, path.Capacity) > 0)
-                {
-                    module.FileName = path.ToString();
-                    module.ModuleName = Path.GetFileName(module.FileName);
-                }
-
-                if (SafeNativeMethods.GetModuleInformation(p.Handle, hMods[i], out info, (uint)Marshal.SizeOf(info)))
-                {
-                    module.BaseAddress = info.lpBaseOfDll;
-                    module.EntryPointAddress = info.EntryPoint;
-                    module.ModuleMemorySize = (int)info.SizeOfImage;
-                    ret.Add(module);
-                }
-            }
-
-            return ret.ToArray();
         }
     }
 
