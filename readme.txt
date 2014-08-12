@@ -3,18 +3,26 @@ engine speedrunning. It can automatically split for you when a map changes, and
 it keeps track of in-game time so you don't have to record demos. It works by
 reading the game's memory, and it should work on every Source engine game.
 
-Install:
+Install (automatically):
+
+LiveSplit's 'Edit Splits' section will automatically download and install
+SourceSplit if you enter in the name of one of the popular Source games. This
+doesn't work for all of the obscure games/mods SourceSplit supports, though.
+
+Install (manually):
 
 Extract LiveSplit.SourceSplit.dll to your LiveSplit\Components folder. Restart
-LiveSplit. Version 1.3 or higher is required.
+LiveSplit. Version 1.4 or higher is required.
 
 Configure:
 
-Add SourceSplit in LiveSplit's Layout Editor. Double click 'SourceSplit' to go
-to the settings. Enable AutoSplit if you want, it's disabled by default. Add
-your game's executable if it isn't present in the Game Processes list. Keep in
-mind a lot of source games use hl2.exe and you probably won't have to add
-anything. Use the Whitelist if you only want to auto-split on maps you choose.
+If you used the Edit Splits automatic install system, click Activate then
+Settings. If your game isn't detected there, you'll have to add SourceSplit
+in LiveSplit's Layout Settings and double-click it. Enable AutoSplit if you
+want, it's disabled by default. Add your game's executable if it isn't present
+in the Game Processes list. Keep in mind a lot of source games use hl2.exe and
+you probably won't have to add anything. Use the Whitelist if you only want to
+auto-split on maps you choose.
 
 Map Times List:
 
