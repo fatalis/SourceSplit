@@ -64,7 +64,6 @@ namespace LiveSplit.SourceSplit
             this.UpdateDisabledControls(this, EventArgs.Empty);
         }
 
-        // TODO: In LiveSplit 1.3 this is called on a background thread. It'll be fixed in 1.4.
         public XmlNode GetSettings(XmlDocument doc)
         {
             XmlElement settingsNode = doc.CreateElement("Settings");
