@@ -58,6 +58,10 @@ https://github.com/fatalis/sourcesplit
 
 Changelog:
 
+1.3
+Added support for LiveSplit 1.4's 'Game Time as primary timing method' feature
+Made game detection a little more generic to support E.Y.E: Divine Cybermancy
+
 1.2.3
 Fixed game time not working properly in Aperture Tag
 
