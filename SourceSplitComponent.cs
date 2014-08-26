@@ -230,10 +230,10 @@ namespace LiveSplit.SourceSplit
 
             // this is in case they load a save that was made before current map
             // fuck time travel
-            if (!_mapsVisited.Contains(e.Map))
+            if (!_mapsVisited.Contains(e.PrevMap))
             {
-                _mapsVisited.Add(e.Map);
-                this.AutoSplit(e.Map);
+                _mapsVisited.Add(e.PrevMap);
+                this.AutoSplit(e.PrevMap);
             }
 
             // prevent adding map time twice
@@ -273,6 +273,8 @@ namespace LiveSplit.SourceSplit
         {
             if (!this.Settings.AutoSplitEnabled)
                 return;
+
+            Debug.WriteLine("AutoSplit " + map);
 
             map = map.ToLower();
 
