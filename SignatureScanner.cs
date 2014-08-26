@@ -76,7 +76,7 @@ namespace LiveSplit.SourceSplit
                 if (ptr != IntPtr.Zero)
                 {
                     if (target.OnFound != null)
-                        ptr = target.OnFound(_process, ptr);
+                        ptr = target.OnFound(_process, this, ptr);
                     return ptr;
                 }
             }
@@ -84,26 +84,33 @@ namespace LiveSplit.SourceSplit
             return IntPtr.Zero;
         }
 
-        bool MaskCheck(int offset, byte[] sig, bool[] mask)
+        unsafe IntPtr FindPattern(byte[] sig, bool[] mask, int finalOffset)
         {
-            for (int i = 0; i < sig.Length; i++)
+            if (sig.Length != mask.Length)
+                throw new ArgumentException();
+
+            fixed (byte* mem = _memory, s = sig)
+            fixed (bool* m = mask)
             {
-                if (mask[i])
-                    continue;
+                int sigLen = sig.Length;
+                int memLen = _memory.Length;
 
-                if (sig[i] != _memory[offset + i])
-                    return false;
-            }
+                for (int addr = 0; addr < memLen; addr++)
+                {
+                    for (int i = 0; i < sigLen; i++)
+                    {
+                        if (m[i])
+                            continue;
 
-            return true;
-        }
+                        if (addr + i >= memLen || s[i] != mem[addr + i])
+                            goto next;
+                    }
 
-        IntPtr FindPattern(byte[] sig, bool[] mask, int offset)
-        {
-            for (int i = 0; i < _memory.Length; i++)
-            {
-                if (this.MaskCheck(i, sig, mask))
-                    return IntPtr.Add(_address, (i + offset));
+                    return _address + (addr + finalOffset);
+
+                next:
+                    ;
+                }
             }
 
             return IntPtr.Zero;
@@ -119,7 +126,7 @@ namespace LiveSplit.SourceSplit
             public int Offset;
         }
 
-        public delegate IntPtr OnFoundCallback(Process proc, IntPtr ptr);
+        public delegate IntPtr OnFoundCallback(Process proc, SignatureScanner scanner, IntPtr ptr);
         public OnFoundCallback OnFound { get; set; }
 
         private List<Signature> _sigs;
@@ -128,6 +135,20 @@ namespace LiveSplit.SourceSplit
         public SigScanTarget()
         {
             _sigs = new List<Signature>();
+        }
+
+        public SigScanTarget(int offset, params string[] signature)
+        {
+            _sigs = new List<Signature>();
+            this.AddSignature(offset, signature);
+        }
+
+        public SigScanTarget(int offset, byte[] binary)
+        {
+            _sigs = new List<Signature>();
+
+            var emptyMask = new bool[binary.Length];
+            _sigs.Add(new Signature { Pattern = binary, Mask = emptyMask, Offset = offset });
         }
 
         public void AddSignature(int offset, params string[] signature)

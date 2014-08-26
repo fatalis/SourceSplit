@@ -23,48 +23,50 @@ namespace LiveSplit.SourceSplit
         public IDictionary<string, Action> ContextMenuControls { get; protected set; }
         protected InfoTimeComponent InternalComponent { get; set; }
 
+        public bool Disposed { get; private set; }
+        public bool IsLayoutComponent { get; private set; }
+
         private TimerModel _timer;
         private LiveSplitState _state;
-        private GameMemory _gameMemory;
-        private List<string> _mapsVisited;
-
-        private float _mapTime;
-        private float _quickLoadTime;
-        private float _totalTime;
-        private float _removeTime;
-        private int _splitCount;
-        private TimeSpan? _endTime;
         private GraphicsCache _cache;
-        private bool _waitingForDelay;
-        private float _lastChangelevelTime;
 
-        struct MapTime
-        {
-            public string Map { get; set; }
-            public TimeSpan Time { get; set; }
-        }
-        private List<MapTime> _mapTimes;
-        private MapTimesForm _mapTimesForm;
+        private GameMemory _gameMemory;
+
+        private float _sessionTime;
+        private float _totalMapTime;
+        private float _totalTime;
+        private float _sessionTimeOffset;
+
+        private bool _waitingForDelay;
+
+        private string _currentMap = String.Empty;
+        private int _splitCount;
+        private List<string> _mapsVisited;
 
         private TimeSpan GameTime
         {
-            get {
-                return TimeSpan.FromSeconds(_totalTime + _mapTime - _removeTime);
-            }
+            get { return TimeSpan.FromSeconds(_totalTime + _sessionTime - _sessionTimeOffset); }
         }
 
-        public SourceSplitComponent(LiveSplitState state)
+        public SourceSplitComponent(LiveSplitState state, bool isLayoutComponent)
         {
+            // make Debug.WriteLine prepend update count and tick count
+            while (Debug.Listeners.Count > 0)
+                Debug.Listeners.RemoveAt(0);
+            Debug.Listeners.Add(TimedTraceListener.Instance);
+            while (Trace.Listeners.Count > 0)
+                Trace.Listeners.RemoveAt(0);
+            Trace.Listeners.Add(TimedTraceListener.Instance); // is it okay to use the same instance?
+            //Debug.AutoFlush = Trace.AutoFlush = true;
+
+            _state = state;
+            this.IsLayoutComponent = isLayoutComponent;
+
             this.Settings = new SourceSplitSettings();
             this.InternalComponent = new InfoTimeComponent("Game Time", null, new RegularTimeFormatter(TimeAccuracy.Hundredths));
             
             this.ContextMenuControls = new Dictionary<String, Action>();
-            this.ContextMenuControls.Add("SourceSplit: Map Times", () => {
-                if (_mapTimesForm.Visible)
-                    _mapTimesForm.Hide();
-                else
-                    _mapTimesForm.Show();
-            });
+            this.ContextMenuControls.Add("SourceSplit: Map Times", () => MapTimesForm.Instance.Show());
 
             _cache = new GraphicsCache();
 
@@ -72,48 +74,64 @@ namespace LiveSplit.SourceSplit
             state.OnSplit += state_OnSplit;
             state.OnReset += state_OnReset;
             state.OnStart += state_OnStart;
-            _state = state;
 
-            _mapTimes = new List<MapTime>();
             _mapsVisited = new List<string>();
-            _mapTimesForm = new MapTimesForm();
 
             _gameMemory = new GameMemory(this.Settings);
-            _gameMemory.OnSignOnStateChange += gameMemory_OnSignOnStateChange;
-            _gameMemory.OnGameTimeUpdate += gameMemory_OnGameTimeUpdate;
+            _gameMemory.OnSessionTimeUpdate += gameMemory_OnSessionTimeUpdate;
+            _gameMemory.OnPlayerGainedControl += gameMemory_OnPlayerGainedControl;
+            _gameMemory.OnPlayerLostControl += gameMemory_OnPlayerLostControl;
+            _gameMemory.OnMapChanged += gameMemory_OnMapChanged;
+            _gameMemory.OnSessionStarted += gameMemory_OnSessionStarted;
+            _gameMemory.OnSessionEnded += gameMemory_OnSessionEnded;
+            _gameMemory.OnNewGameStarted += gameMemory_OnNewGameStarted;
             _gameMemory.StartReading();
         }
 
+#if DEBUG
+        ~SourceSplitComponent()
+        {
+            Debug.WriteLine("SourceSplitComponent finalizer");
+        }
+#endif
+
         public void Dispose()
         {
+            this.Disposed = true;
+
+            _state.OnSplit -= state_OnSplit;
+            _state.OnReset -= state_OnReset;
+            _state.OnStart -= state_OnStart;
+
+            _state.IsGameTimePaused = false; // hack
+            _state.LoadingTimes = TimeSpan.Zero;
+
             if (_gameMemory != null)
                 _gameMemory.Stop();
         }
 
         public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)
         {
-            state.IsGameTimePaused = true; // prevent flicker, doesn't actually pause anything.
+            // TODO: fix 1 frame of wrong time
+            // hack to prevent flicker, doesn't actually pause anything
+            state.IsGameTimePaused = true; 
 
-            if (state.CurrentPhase == TimerPhase.Ended)
-            {
-                state.SetGameTime(_endTime.HasValue ? _endTime.Value : TimeSpan.Zero);
-            }
-            else
+            // Update is called every 25ms, so up to 25ms IGT can be lost if using delay and no auto-start
+            if (_waitingForDelay)
             {
                 if (state.CurrentTime.RealTime >= TimeSpan.Zero)
                 {
-                    // Update is called every 25ms, so up to 25ms can be lost if using delay
-                    if (_waitingForDelay)
-                    {
-                        _removeTime = _mapTime;
-                        _waitingForDelay = false;
-                    }
-
-                    state.SetGameTime(state.CurrentPhase == TimerPhase.Running
-                        || state.CurrentPhase == TimerPhase.Paused
-                        ? this.GameTime : TimeSpan.Zero);
+                    _sessionTimeOffset = _sessionTime;
+                    _waitingForDelay = false;
+                }
+                else
+                {
+                    state.SetGameTime(state.CurrentTime.RealTime);
                 }
             }
+
+            if (!_waitingForDelay)
+                state.SetGameTime(this.GameTime);
 
             if (!this.Settings.ShowGameTime)
                 return;
@@ -154,82 +172,101 @@ namespace LiveSplit.SourceSplit
         {
             _totalTime = 0;
             _mapsVisited.Clear();
-            _mapTimes.Clear();
-            _mapTimesForm.Reset();
+            MapTimesForm.Instance.Reset();
             _splitCount = 0;
-            _quickLoadTime = 0;
+            _totalMapTime = 0;
 
-            _waitingForDelay = _state.PauseTime < TimeSpan.Zero;
-
-            if (_state.PauseTime > TimeSpan.Zero)
-            {
-                // what are they doing?
-            }
-
-            if (!_waitingForDelay)
-            {
-                _removeTime = _mapTime;
-            }
+            if (_state.PauseTime >= TimeSpan.Zero)
+                _sessionTimeOffset = _sessionTime - (float)_state.PauseTime.TotalSeconds;
+            else
+                _waitingForDelay = true;
         }
 
         void state_OnReset(object sender, TimerPhase t)
         {
-            _endTime = null;
-            _mapTimes.Clear();
-            _mapTimesForm.Reset();
+            MapTimesForm.Instance.Reset();
             _waitingForDelay = false;
         }
 
         void state_OnSplit(object sender, EventArgs e)
         {
+            Debug.WriteLine("split at time " + this.GameTime);
+
             if (_state.CurrentPhase == TimerPhase.Ended)
             {
-                _endTime = this.GameTime;
-                this.AddMapTime(new MapTime { Map = _gameMemory.CurrentMap, Time = TimeSpan.FromSeconds(_mapTime + _quickLoadTime) }, true);
-                this.AddMapTime(new MapTime { Map = "-Total-", Time = this.GameTime }, true);
+                this.AddMapTime(_currentMap, TimeSpan.FromSeconds(_totalMapTime + _sessionTime - _sessionTimeOffset));
+                this.AddMapTime("-Total-", this.GameTime);
             }
         }
 
-        // called from thread
-        void gameMemory_OnGameTimeUpdate(object sender, float gameTime)
+        // first tick when player is fully in game
+        void gameMemory_OnSessionStarted(object sender, SessionStartedEventArgs e)
         {
-            _mapTime = gameTime;
+            _currentMap = e.Map;
         }
 
-        void gameMemory_OnSignOnStateChange(object sender, SignOnStateChangeEventArgs e)
+        // called when player is fully in game
+        void gameMemory_OnSessionTimeUpdate(object sender, SessionTimeUpdateEventArgs e)
         {
-            if (_state.CurrentPhase != TimerPhase.Running || _waitingForDelay)
+            _sessionTime = e.SessionTime;
+        }
+
+        // player is no longer fully in the game
+        void gameMemory_OnSessionEnded(object sender, EventArgs e)
+        {
+            Debug.WriteLine("session ended, total time was " + (_sessionTime - _sessionTimeOffset));
+
+            // add up total time and reset session time
+            _totalTime += _sessionTime - _sessionTimeOffset;
+            _totalMapTime += _sessionTime - _sessionTimeOffset;
+            _sessionTime = 0;
+            _sessionTimeOffset = 0;
+        }
+
+        // called immediately after OnSessionEnded if it was a changelevel
+        void gameMemory_OnMapChanged(object sender, MapChangedEventArgs e)
+        {
+            Debug.WriteLine("gameMemory_OnMapChanged " + e.Map + " " + e.PrevMap);
+
+            // this is in case they load a save that was made before current map
+            // fuck time travel
+            if (!_mapsVisited.Contains(e.Map))
+            {
+                _mapsVisited.Add(e.Map);
+                this.AutoSplit(e.Map);
+            }
+
+            // prevent adding map time twice
+            if (_state.CurrentPhase != TimerPhase.Ended)
+                this.AddMapTime(e.PrevMap, TimeSpan.FromSeconds(_totalMapTime));
+            _totalMapTime = 0;
+        }
+
+        void gameMemory_OnPlayerGainedControl(object sender, PlayerControlChangedEventArgs e)
+        {
+            if (!this.Settings.AutoStartEndResetEnabled)
                 return;
 
-            // changelevel command
-            if (e.SignOnState == SignOnState.Connected && e.PrevSignOnState == SignOnState.Full)
-            {
-                // note: e.GameTime is the final map time before starting the next level
-                this.AddMapTime(new MapTime { Map = e.PrevMap, Time = TimeSpan.FromSeconds(e.GameTime + _quickLoadTime) });
-                _totalTime += e.GameTime;
-                _mapTime = 0;
-                _quickLoadTime = 0;
-                _lastChangelevelTime = e.GameTime;
-                Debug.WriteLine("changelevel time add: " + e.GameTime);
+            _timer.Reset(); // make sure to reset for games that start from a quicksave (Aperture Tag)
+            _timer.Start();
+            _sessionTimeOffset += e.TimeOffset;
+        }
 
-                if (!_mapsVisited.Contains(e.PrevMap))
-                {
-                    _mapsVisited.Add(e.PrevMap);
-                    this.AutoSplit(e.PrevMap);
-                }
-            }
-            // new game or quick save loaded
-            else if (e.SignOnState == SignOnState.None)
-            {
-                // Aperture Tag hacky fix
-                if (!e.NewMap.StartsWith("gg_") || (Math.Abs(e.GameTime - _lastChangelevelTime) > 0.0001 && e.GameTime > 0.0))
-                {
-                    Debug.WriteLine("newgame or quick load time add: " + e.GameTime);
-                    _totalTime += e.GameTime;
-                    _quickLoadTime += e.GameTime;
-                    _mapTime = 0;
-                }
-            }
+        void gameMemory_OnPlayerLostControl(object sender, PlayerControlChangedEventArgs e)
+        {
+            if (!this.Settings.AutoStartEndResetEnabled)
+                return;
+            
+            _sessionTimeOffset += e.TimeOffset;
+            this.DoSplit();
+        }
+
+        void gameMemory_OnNewGameStarted(object sender, EventArgs e)
+        {
+            if (!this.Settings.AutoStartEndResetEnabled)
+                return;
+
+            _timer.Reset();
         }
 
         void AutoSplit(string map)
@@ -267,20 +304,20 @@ namespace LiveSplit.SourceSplit
 
         void DoSplit()
         {
+            // make split times accurate
+            _state.SetGameTime(this.GameTime);
+
             bool before = _state.Settings.DoubleTapPrevention;
             _state.Settings.DoubleTapPrevention = false;
             _timer.Split();
             _state.Settings.DoubleTapPrevention = before;
         }
 
-        void AddMapTime(MapTime time, bool end=false)
+        // TODO: asterisk for manual start and splits
+        void AddMapTime(string map, TimeSpan time)
         {
-            string timeStr = time.Time.ToString(time.Time >= TimeSpan.FromHours(1) ? @"hh\:mm\:ss\.fff" : @"mm\:ss\.fff");
-            if (_mapTimes.Count == 0 || end)
-                timeStr += " *";
-            _mapTimesForm.AddMapTime(time.Map, timeStr);
-
-            _mapTimes.Add(time);
+            string timeStr = time.ToString(time >= TimeSpan.FromHours(1) ? @"hh\:mm\:ss\.fff" : @"mm\:ss\.fff");
+            MapTimesForm.Instance.AddMapTime(map, timeStr);
         }
 
         public XmlNode GetSettings(XmlDocument document)
@@ -299,14 +336,13 @@ namespace LiveSplit.SourceSplit
         }
 
         public void RenameComparison(string oldName, string newName) { }
-
-        public float VerticalHeight     { get { return this.Settings.ShowGameTime ? this.InternalComponent.VerticalHeight : 0; } }
-        public float HorizontalWidth    { get { return this.Settings.ShowGameTime ? this.InternalComponent.HorizontalWidth : 0; } }
-        public float MinimumWidth       { get { return this.InternalComponent.MinimumWidth; } }
-        public float MinimumHeight      { get { return this.InternalComponent.MinimumHeight; } }
-        public float PaddingLeft        { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingLeft : 0; } }
-        public float PaddingRight       { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingRight : 0; } }
-        public float PaddingTop         { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingTop : 0; } }
-        public float PaddingBottom      { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingBottom : 0; } }
+        public float MinimumWidth    { get { return this.InternalComponent.MinimumWidth; } }
+        public float MinimumHeight   { get { return this.InternalComponent.MinimumHeight; } }
+        public float VerticalHeight  { get { return this.Settings.ShowGameTime ? this.InternalComponent.VerticalHeight : 0; } }
+        public float HorizontalWidth { get { return this.Settings.ShowGameTime ? this.InternalComponent.HorizontalWidth : 0; } }
+        public float PaddingLeft     { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingLeft : 0; } }
+        public float PaddingRight    { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingRight : 0; } }
+        public float PaddingTop      { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingTop : 0; } }
+        public float PaddingBottom   { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingBottom : 0; } }
     }
 }

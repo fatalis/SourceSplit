@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Xml;
@@ -18,8 +19,15 @@ namespace LiveSplit.SourceSplit
         public int SplitInterval { get; set; }
         public AutoSplitType AutoSplitType { get; private set; }
         public bool ShowGameTime { get; set; }
+        public bool AutoStartEndResetEnabled { get; set; }
 
         private readonly object _lock = new object();
+
+        private const int DEFAULT_SPLITINTERVAL = 1;
+        private const bool DEFAULT_SHOWGAMETIME = true;
+        private const bool DEFAULT_AUTOSPLIT_ENABLED = true;
+        private const bool DEFAULT_AUTOSTARTENDRESET_ENABLED = true;
+        private const AutoSplitType DEFAULT_AUTOSPLITYPE = AutoSplitType.Interval;
 
         public string[] MapWhitelist
         {
@@ -46,6 +54,7 @@ namespace LiveSplit.SourceSplit
             this.chkAutoSplitEnabled.DataBindings.Add("Checked", this, "AutoSplitEnabled", false, DataSourceUpdateMode.OnPropertyChanged);
             this.dmnSplitInterval.DataBindings.Add("Value", this, "SplitInterval", false, DataSourceUpdateMode.OnPropertyChanged);
             this.chkShowGameTime.DataBindings.Add("Checked", this, "ShowGameTime", false, DataSourceUpdateMode.OnPropertyChanged);
+            this.chkAutoStartEndReset.DataBindings.Add("Checked", this, "AutoStartEndResetEnabled", false, DataSourceUpdateMode.OnPropertyChanged);
 
             this.rdoWhitelist.CheckedChanged += rdoAutoSplitType_CheckedChanged;
             this.rdoInterval.CheckedChanged += rdoAutoSplitType_CheckedChanged;
@@ -57,11 +66,24 @@ namespace LiveSplit.SourceSplit
             this.lbGameProcesses.Rows.Add("dearesther.exe");
             this.lbGameProcesses.Rows.Add("mm.exe");
             this.lbGameProcesses.Rows.Add("EYE.exe");
-            this.SplitInterval = 1;
-            this.AutoSplitType = AutoSplitType.Interval;
-            this.ShowGameTime = true;
+            this.SplitInterval = DEFAULT_SPLITINTERVAL;
+            this.AutoSplitType = DEFAULT_AUTOSPLITYPE;
+            this.ShowGameTime = DEFAULT_SHOWGAMETIME;
+            this.AutoSplitEnabled = DEFAULT_AUTOSPLIT_ENABLED;
+            this.AutoStartEndResetEnabled = DEFAULT_AUTOSTARTENDRESET_ENABLED;
 
             this.UpdateDisabledControls(this, EventArgs.Empty);
+        }
+
+        protected override void OnParentChanged(EventArgs e)
+        {
+            base.OnParentChanged(e);
+
+            Version version = Assembly.GetExecutingAssembly().GetName().Version;
+
+            if (this.Parent != null && this.Parent.Parent != null && this.Parent.Parent.Parent != null
+                && this.Parent.Parent.Parent.GetType().ToString() == "LiveSplit.View.ComponentSettingsDialog")
+                this.Parent.Parent.Parent.Text = String.Format("SourceSplit v{0} - Settings", version.ToString(3));
         }
 
         public XmlNode GetSettings(XmlDocument doc)
@@ -86,6 +108,8 @@ namespace LiveSplit.SourceSplit
 
             settingsNode.AppendChild(ToElement(doc, "ShowGameTime", this.ShowGameTime));
 
+            settingsNode.AppendChild(ToElement(doc, "AutoStartEndResetEnabled", this.AutoStartEndResetEnabled));
+
             return settingsNode;
         }
 
@@ -95,20 +119,24 @@ namespace LiveSplit.SourceSplit
             int ival;
 
             this.AutoSplitEnabled = settings["AutoSplitEnabled"] != null ?
-                (Boolean.TryParse(settings["AutoSplitEnabled"].InnerText, out bval) ? bval : false)
+                (Boolean.TryParse(settings["AutoSplitEnabled"].InnerText, out bval) ? bval : DEFAULT_AUTOSPLIT_ENABLED)
+                : false;
+
+            this.AutoStartEndResetEnabled = settings["AutoStartEndResetEnabled"] != null ?
+                (Boolean.TryParse(settings["AutoStartEndResetEnabled"].InnerText, out bval) ? bval : DEFAULT_AUTOSTARTENDRESET_ENABLED)
                 : false;
 
             this.SplitInterval = settings["SplitInterval"] != null ?
-                (Int32.TryParse(settings["SplitInterval"].InnerText, out ival) ? ival : 1)
+                (Int32.TryParse(settings["SplitInterval"].InnerText, out ival) ? ival : DEFAULT_SPLITINTERVAL)
                 : 1;
 
             this.ShowGameTime = settings["ShowGameTime"] != null ?
-                (Boolean.TryParse(settings["ShowGameTime"].InnerText, out bval) ? bval : true)
+                (Boolean.TryParse(settings["ShowGameTime"].InnerText, out bval) ? bval : DEFAULT_SHOWGAMETIME)
                 : true;
 
             AutoSplitType splitType;
             this.AutoSplitType = settings["AutoSplitType"] != null ?
-                (Enum.TryParse(settings["AutoSplitType"].InnerText, out splitType) ? splitType : AutoSplitType.Interval)
+                (Enum.TryParse(settings["AutoSplitType"].InnerText, out splitType) ? splitType : DEFAULT_AUTOSPLITYPE)
                 : AutoSplitType.Interval;
             this.rdoInterval.Checked = this.AutoSplitType == AutoSplitType.Interval;
             this.rdoWhitelist.Checked = this.AutoSplitType == AutoSplitType.Whitelist;
@@ -174,6 +202,23 @@ namespace LiveSplit.SourceSplit
                     ret.Add(value);
             }
             return ret.ToArray();
+        }
+
+        void btnShowMapTimes_Click(object sender, EventArgs e)
+        {
+            MapTimesForm.Instance.Show();
+        }
+
+        void btnOpenDocs_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start("https://github.com/fatalis/sourcesplit/blob/master/readme.txt");
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(ex.ToString());
+            }
         }
     }
 }

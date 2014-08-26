@@ -28,36 +28,58 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             this.chkAutoSplitEnabled = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.lbMapBlacklist = new LiveSplit.SourceSplit.EditableListBox();
+            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
             this.rdoWhitelist = new System.Windows.Forms.RadioButton();
             this.lblMaps = new System.Windows.Forms.Label();
             this.rdoInterval = new System.Windows.Forms.RadioButton();
             this.dmnSplitInterval = new System.Windows.Forms.NumericUpDown();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.lbMapBlacklist = new LiveSplit.SourceSplit.EditableListBox();
-            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lbMapWhitelist = new LiveSplit.SourceSplit.EditableListBox();
             this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.lbGameProcesses = new LiveSplit.SourceSplit.EditableListBox();
             this.dataGridViewTextBoxColumn2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.tlpAutoStartEndReset = new System.Windows.Forms.TableLayoutPanel();
+            this.gbMisc = new System.Windows.Forms.GroupBox();
+            this.tlpMisc = new System.Windows.Forms.TableLayoutPanel();
             this.chkShowGameTime = new System.Windows.Forms.CheckBox();
+            this.gbAutoStartEndReset = new System.Windows.Forms.GroupBox();
+            this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
+            this.chkAutoStartEndReset = new System.Windows.Forms.CheckBox();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.btnOpenDocs = new System.Windows.Forms.Button();
+            this.btnShowMapTimes = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.tableLayoutPanel3.SuspendLayout();
             this.groupBox4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.lbMapBlacklist)).BeginInit();
             this.tableLayoutPanel4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dmnSplitInterval)).BeginInit();
             this.groupBox3.SuspendLayout();
-            this.groupBox2.SuspendLayout();
-            this.tableLayoutPanel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.lbMapBlacklist)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.lbMapWhitelist)).BeginInit();
+            this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.lbGameProcesses)).BeginInit();
+            this.tlpAutoStartEndReset.SuspendLayout();
+            this.gbMisc.SuspendLayout();
+            this.tlpMisc.SuspendLayout();
+            this.gbAutoStartEndReset.SuspendLayout();
+            this.tableLayoutPanel2.SuspendLayout();
+            this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // chkAutoSplitEnabled
@@ -73,7 +95,7 @@
             // 
             // groupBox1
             // 
-            this.tableLayoutPanel1.SetColumnSpan(this.groupBox1, 2);
+            this.tlpAutoStartEndReset.SetColumnSpan(this.groupBox1, 2);
             this.groupBox1.Controls.Add(this.tableLayoutPanel3);
             this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox1.Location = new System.Drawing.Point(3, 3);
@@ -111,6 +133,55 @@
             this.groupBox4.TabIndex = 16;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Map Blacklist";
+            // 
+            // lbMapBlacklist
+            // 
+            this.lbMapBlacklist.AllowUserToResizeRows = false;
+            this.lbMapBlacklist.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.lbMapBlacklist.BackgroundColor = System.Drawing.SystemColors.Window;
+            this.lbMapBlacklist.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.lbMapBlacklist.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.lbMapBlacklist.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            this.lbMapBlacklist.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.lbMapBlacklist.ColumnHeadersVisible = false;
+            this.lbMapBlacklist.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Column1});
+            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.lbMapBlacklist.DefaultCellStyle = dataGridViewCellStyle5;
+            this.lbMapBlacklist.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lbMapBlacklist.Location = new System.Drawing.Point(3, 16);
+            this.lbMapBlacklist.Name = "lbMapBlacklist";
+            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.lbMapBlacklist.RowHeadersDefaultCellStyle = dataGridViewCellStyle6;
+            this.lbMapBlacklist.RowHeadersVisible = false;
+            this.lbMapBlacklist.RowTemplate.Height = 14;
+            this.lbMapBlacklist.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.lbMapBlacklist.Size = new System.Drawing.Size(210, 83);
+            this.lbMapBlacklist.TabIndex = 15;
+            // 
+            // Column1
+            // 
+            this.Column1.HeaderText = "Column1";
+            this.Column1.Name = "Column1";
             // 
             // tableLayoutPanel4
             // 
@@ -200,70 +271,6 @@
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Map Whitelist";
             // 
-            // groupBox2
-            // 
-            this.groupBox2.Controls.Add(this.lbGameProcesses);
-            this.groupBox2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBox2.Location = new System.Drawing.Point(3, 166);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(222, 105);
-            this.groupBox2.TabIndex = 11;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Game Processes";
-            // 
-            // tableLayoutPanel1
-            // 
-            this.tableLayoutPanel1.ColumnCount = 2;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.Controls.Add(this.groupBox2, 0, 1);
-            this.tableLayoutPanel1.Controls.Add(this.groupBox1, 0, 0);
-            this.tableLayoutPanel1.Controls.Add(this.chkShowGameTime, 1, 1);
-            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(7, 7);
-            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 3;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 163F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 111F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 37F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(456, 435);
-            this.tableLayoutPanel1.TabIndex = 13;
-            // 
-            // chkShowGameTime
-            // 
-            this.chkShowGameTime.AutoSize = true;
-            this.chkShowGameTime.Location = new System.Drawing.Point(231, 166);
-            this.chkShowGameTime.Name = "chkShowGameTime";
-            this.chkShowGameTime.Size = new System.Drawing.Size(110, 17);
-            this.chkShowGameTime.TabIndex = 12;
-            this.chkShowGameTime.Text = "Show Alternate Timing Time";
-            this.chkShowGameTime.UseVisualStyleBackColor = true;
-            // 
-            // lbMapBlacklist
-            // 
-            this.lbMapBlacklist.AllowUserToResizeRows = false;
-            this.lbMapBlacklist.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.lbMapBlacklist.BackgroundColor = System.Drawing.SystemColors.Window;
-            this.lbMapBlacklist.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.lbMapBlacklist.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            this.lbMapBlacklist.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.lbMapBlacklist.ColumnHeadersVisible = false;
-            this.lbMapBlacklist.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.Column1});
-            this.lbMapBlacklist.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lbMapBlacklist.Location = new System.Drawing.Point(3, 16);
-            this.lbMapBlacklist.Name = "lbMapBlacklist";
-            this.lbMapBlacklist.RowHeadersVisible = false;
-            this.lbMapBlacklist.RowTemplate.Height = 14;
-            this.lbMapBlacklist.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.lbMapBlacklist.Size = new System.Drawing.Size(210, 83);
-            this.lbMapBlacklist.TabIndex = 15;
-            // 
-            // Column1
-            // 
-            this.Column1.HeaderText = "Column1";
-            this.Column1.Name = "Column1";
-            // 
             // lbMapWhitelist
             // 
             this.lbMapWhitelist.AllowUserToResizeRows = false;
@@ -271,13 +278,37 @@
             this.lbMapWhitelist.BackgroundColor = System.Drawing.SystemColors.Window;
             this.lbMapWhitelist.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.lbMapWhitelist.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
+            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle7.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle7.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle7.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.lbMapWhitelist.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle7;
             this.lbMapWhitelist.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.lbMapWhitelist.ColumnHeadersVisible = false;
             this.lbMapWhitelist.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn1});
+            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle8.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle8.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle8.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle8.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle8.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.lbMapWhitelist.DefaultCellStyle = dataGridViewCellStyle8;
             this.lbMapWhitelist.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lbMapWhitelist.Location = new System.Drawing.Point(3, 16);
             this.lbMapWhitelist.Name = "lbMapWhitelist";
+            dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle9.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle9.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle9.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle9.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle9.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle9.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.lbMapWhitelist.RowHeadersDefaultCellStyle = dataGridViewCellStyle9;
             this.lbMapWhitelist.RowHeadersVisible = false;
             this.lbMapWhitelist.RowTemplate.Height = 14;
             this.lbMapWhitelist.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
@@ -289,6 +320,17 @@
             this.dataGridViewTextBoxColumn1.HeaderText = "Column1";
             this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
             // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.lbGameProcesses);
+            this.groupBox2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBox2.Location = new System.Drawing.Point(231, 166);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(222, 105);
+            this.groupBox2.TabIndex = 11;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Game Processes";
+            // 
             // lbGameProcesses
             // 
             this.lbGameProcesses.AllowUserToResizeRows = false;
@@ -296,13 +338,37 @@
             this.lbGameProcesses.BackgroundColor = System.Drawing.SystemColors.Window;
             this.lbGameProcesses.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.lbGameProcesses.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.lbGameProcesses.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.lbGameProcesses.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.lbGameProcesses.ColumnHeadersVisible = false;
             this.lbGameProcesses.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.dataGridViewTextBoxColumn2});
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.lbGameProcesses.DefaultCellStyle = dataGridViewCellStyle2;
             this.lbGameProcesses.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lbGameProcesses.Location = new System.Drawing.Point(3, 16);
             this.lbGameProcesses.Name = "lbGameProcesses";
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.lbGameProcesses.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.lbGameProcesses.RowHeadersVisible = false;
             this.lbGameProcesses.RowTemplate.Height = 14;
             this.lbGameProcesses.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
@@ -314,11 +380,141 @@
             this.dataGridViewTextBoxColumn2.HeaderText = "Column1";
             this.dataGridViewTextBoxColumn2.Name = "dataGridViewTextBoxColumn2";
             // 
+            // tlpAutoStartEndReset
+            // 
+            this.tlpAutoStartEndReset.ColumnCount = 2;
+            this.tlpAutoStartEndReset.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tlpAutoStartEndReset.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tlpAutoStartEndReset.Controls.Add(this.groupBox1, 0, 0);
+            this.tlpAutoStartEndReset.Controls.Add(this.gbMisc, 0, 2);
+            this.tlpAutoStartEndReset.Controls.Add(this.gbAutoStartEndReset, 0, 1);
+            this.tlpAutoStartEndReset.Controls.Add(this.groupBox2, 1, 1);
+            this.tlpAutoStartEndReset.Controls.Add(this.tableLayoutPanel1, 1, 2);
+            this.tlpAutoStartEndReset.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tlpAutoStartEndReset.Location = new System.Drawing.Point(7, 7);
+            this.tlpAutoStartEndReset.Name = "tlpAutoStartEndReset";
+            this.tlpAutoStartEndReset.RowCount = 4;
+            this.tlpAutoStartEndReset.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 163F));
+            this.tlpAutoStartEndReset.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 111F));
+            this.tlpAutoStartEndReset.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 111F));
+            this.tlpAutoStartEndReset.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 8F));
+            this.tlpAutoStartEndReset.Size = new System.Drawing.Size(456, 435);
+            this.tlpAutoStartEndReset.TabIndex = 13;
+            // 
+            // gbMisc
+            // 
+            this.gbMisc.Controls.Add(this.tlpMisc);
+            this.gbMisc.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.gbMisc.Location = new System.Drawing.Point(3, 277);
+            this.gbMisc.Name = "gbMisc";
+            this.gbMisc.Size = new System.Drawing.Size(222, 105);
+            this.gbMisc.TabIndex = 14;
+            this.gbMisc.TabStop = false;
+            this.gbMisc.Text = "Misc.";
+            // 
+            // tlpMisc
+            // 
+            this.tlpMisc.ColumnCount = 1;
+            this.tlpMisc.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tlpMisc.Controls.Add(this.chkShowGameTime, 0, 0);
+            this.tlpMisc.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tlpMisc.Location = new System.Drawing.Point(3, 16);
+            this.tlpMisc.Name = "tlpMisc";
+            this.tlpMisc.RowCount = 3;
+            this.tlpMisc.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tlpMisc.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tlpMisc.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tlpMisc.Size = new System.Drawing.Size(216, 86);
+            this.tlpMisc.TabIndex = 0;
+            // 
+            // chkShowGameTime
+            // 
+            this.chkShowGameTime.AutoSize = true;
+            this.chkShowGameTime.Location = new System.Drawing.Point(3, 3);
+            this.chkShowGameTime.Name = "chkShowGameTime";
+            this.chkShowGameTime.Size = new System.Drawing.Size(197, 17);
+            this.chkShowGameTime.TabIndex = 12;
+            this.chkShowGameTime.Text = "Show Alternate Timing Method Time";
+            this.chkShowGameTime.UseVisualStyleBackColor = true;
+            // 
+            // gbAutoStartEndReset
+            // 
+            this.gbAutoStartEndReset.Controls.Add(this.tableLayoutPanel2);
+            this.gbAutoStartEndReset.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.gbAutoStartEndReset.Location = new System.Drawing.Point(3, 166);
+            this.gbAutoStartEndReset.Name = "gbAutoStartEndReset";
+            this.gbAutoStartEndReset.Size = new System.Drawing.Size(222, 105);
+            this.gbAutoStartEndReset.TabIndex = 13;
+            this.gbAutoStartEndReset.TabStop = false;
+            this.gbAutoStartEndReset.Text = "Auto Start / End / Reset";
+            // 
+            // tableLayoutPanel2
+            // 
+            this.tableLayoutPanel2.ColumnCount = 1;
+            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel2.Controls.Add(this.chkAutoStartEndReset, 0, 0);
+            this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 16);
+            this.tableLayoutPanel2.Name = "tableLayoutPanel2";
+            this.tableLayoutPanel2.RowCount = 2;
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(216, 86);
+            this.tableLayoutPanel2.TabIndex = 0;
+            // 
+            // chkAutoStartEndReset
+            // 
+            this.chkAutoStartEndReset.AutoSize = true;
+            this.chkAutoStartEndReset.Location = new System.Drawing.Point(3, 3);
+            this.chkAutoStartEndReset.Name = "chkAutoStartEndReset";
+            this.chkAutoStartEndReset.Size = new System.Drawing.Size(177, 17);
+            this.chkAutoStartEndReset.TabIndex = 0;
+            this.chkAutoStartEndReset.Text = "Enabled (supported games only)";
+            this.chkAutoStartEndReset.UseVisualStyleBackColor = true;
+            // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.ColumnCount = 1;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.Controls.Add(this.btnOpenDocs, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.btnShowMapTimes, 0, 1);
+            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(231, 277);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 3;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(222, 105);
+            this.tableLayoutPanel1.TabIndex = 15;
+            // 
+            // btnOpenDocs
+            // 
+            this.btnOpenDocs.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btnOpenDocs.Location = new System.Drawing.Point(3, 3);
+            this.btnOpenDocs.Name = "btnOpenDocs";
+            this.btnOpenDocs.Size = new System.Drawing.Size(216, 23);
+            this.btnOpenDocs.TabIndex = 15;
+            this.btnOpenDocs.Text = "Open Instructions";
+            this.btnOpenDocs.UseVisualStyleBackColor = true;
+            this.btnOpenDocs.Click += new System.EventHandler(this.btnOpenDocs_Click);
+            // 
+            // btnShowMapTimes
+            // 
+            this.btnShowMapTimes.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btnShowMapTimes.Location = new System.Drawing.Point(3, 32);
+            this.btnShowMapTimes.Name = "btnShowMapTimes";
+            this.btnShowMapTimes.Size = new System.Drawing.Size(216, 23);
+            this.btnShowMapTimes.TabIndex = 13;
+            this.btnShowMapTimes.Text = "Show Map Times";
+            this.btnShowMapTimes.UseVisualStyleBackColor = true;
+            this.btnShowMapTimes.Click += new System.EventHandler(this.btnShowMapTimes_Click);
+            // 
             // SourceSplitSettings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.tableLayoutPanel1);
+            this.Controls.Add(this.tlpAutoStartEndReset);
             this.Name = "SourceSplitSettings";
             this.Padding = new System.Windows.Forms.Padding(7);
             this.Size = new System.Drawing.Size(470, 449);
@@ -326,15 +522,22 @@
             this.tableLayoutPanel3.ResumeLayout(false);
             this.tableLayoutPanel3.PerformLayout();
             this.groupBox4.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.lbMapBlacklist)).EndInit();
             this.tableLayoutPanel4.ResumeLayout(false);
             this.tableLayoutPanel4.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dmnSplitInterval)).EndInit();
             this.groupBox3.ResumeLayout(false);
-            this.groupBox2.ResumeLayout(false);
-            this.tableLayoutPanel1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.lbMapBlacklist)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.lbMapWhitelist)).EndInit();
+            this.groupBox2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.lbGameProcesses)).EndInit();
+            this.tlpAutoStartEndReset.ResumeLayout(false);
+            this.gbMisc.ResumeLayout(false);
+            this.tlpMisc.ResumeLayout(false);
+            this.tlpMisc.PerformLayout();
+            this.gbAutoStartEndReset.ResumeLayout(false);
+            this.tableLayoutPanel2.ResumeLayout(false);
+            this.tableLayoutPanel2.PerformLayout();
+            this.tableLayoutPanel1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -352,7 +555,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
         private System.Windows.Forms.RadioButton rdoWhitelist;
         private System.Windows.Forms.RadioButton rdoInterval;
-        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.TableLayoutPanel tlpAutoStartEndReset;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel4;
         private System.Windows.Forms.GroupBox groupBox4;
@@ -360,5 +563,13 @@
         private EditableListBox lbGameProcesses;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
         private System.Windows.Forms.CheckBox chkShowGameTime;
+        private System.Windows.Forms.GroupBox gbAutoStartEndReset;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
+        private System.Windows.Forms.CheckBox chkAutoStartEndReset;
+        private System.Windows.Forms.GroupBox gbMisc;
+        private System.Windows.Forms.TableLayoutPanel tlpMisc;
+        private System.Windows.Forms.Button btnShowMapTimes;
+        private System.Windows.Forms.Button btnOpenDocs;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
     }
 }
