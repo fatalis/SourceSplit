@@ -1,4 +1,4 @@
-﻿SourceSplit
+﻿SourceSplit v2.0
 ===========
 
 SourceSplit is a [LiveSplit] component for Source engine games. It aims to support every game and engine version, but some features are only available on games where support has been added.
@@ -15,9 +15,9 @@ Starting with LiveSplit 1.4, you can download and install SourceSplit automatica
 
 Configure
 ---------
-Due to bugs in LiveSplit 1.4.0, it's recommended to deactivate SourceSplit in the Splits Editor after activating (downloading) it the first time. Instead, you should activate it in the Layout Editor, under the "Control" category.
+Due to bugs in LiveSplit 1.4.0, it's recommended to deactivate SourceSplit in the Splits Editor after activating (downloading) it the first time. Instead, you should activate it in the Layout Editor, under the "Control" category. Double-click "SourceSplit" after adding it to your layout to bring up the settings.
 
-Double-click "SourceSplit" after adding it to your layout to bring up the settings. After configuring everything you'll most likely want to turn on game time as primary timing, so that your splits will run off game time. You can do this by right-clicking LiveSplit and going to Compare Against->Game Time.
+After configuring everything you'll most likely want to turn on game time as primary timing, so that your splits will run off game time. You can do this by right-clicking LiveSplit and going to Compare Against->Game Time.
 
 #### Auto Split
 The default settings are fine unless you feel it's splitting too often. In that case you can use the whitelist and add maps you think it should split on completion. Note to those unfamiliar with LiveSplit: you must add a split in the Splits Editor for every map it's going to auto-split on.
@@ -25,8 +25,8 @@ The default settings are fine unless you feel it's splitting too often. In that 
 #### Game Processes
 You don't need to mess with this unless your game's process isn't listed. All of the fully supported games (and a few others) are added by default.
 
-#### Alternate Timing Method Time
-This shows makes it show Real Time when comparing against Game Time, and vice versa. Doesn't work when SourceSplit is activated in the Splits Editor.
+#### Alternate Timing Method
+This shows makes it show Real Time when comparing against Game Time, and vice versa. Doesn't work when SourceSplit is activated via the Splits Editor.
 
 Fully Supported Games
 ---------------------

@@ -112,7 +112,6 @@ namespace LiveSplit.SourceSplit
 
         public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)
         {
-            // TODO: fix 1 frame of wrong time
             // hack to prevent flicker, doesn't actually pause anything
             state.IsGameTimePaused = true; 
 
@@ -131,7 +130,8 @@ namespace LiveSplit.SourceSplit
             }
 
             if (!_waitingForDelay)
-                state.SetGameTime(this.GameTime);
+                // update game time, don't show negative time due to tick adjusting
+                state.SetGameTime(this.GameTime >= TimeSpan.Zero ? this.GameTime : TimeSpan.Zero);
 
             if (!this.Settings.ShowGameTime)
                 return;
