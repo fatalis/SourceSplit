@@ -17,7 +17,7 @@ Configure
 ---------
 Due to bugs in LiveSplit 1.4.0, it's recommended to deactivate SourceSplit in the Splits Editor after activating (downloading) it the first time. Instead, you should activate it in the Layout Editor, under the "Control" category.
 
-Double-click "SourceSplit" after adding it to your layout to bring up the settings.
+Double-click "SourceSplit" after adding it to your layout to bring up the settings. After configuring everything you'll most likely want to turn on game time as primary timing, so that your splits will run off game time. You can do this by right-clicking LiveSplit and going to Compare Against->Game Time.
 
 #### Auto Split
 The default settings are fine unless you feel it's splitting too often. In that case you can use the whitelist and add maps you think it should split on completion. Note to those unfamiliar with LiveSplit: you must add a split in the Splits Editor for every map it's going to auto-split on.
@@ -56,6 +56,10 @@ There are some situations where the timing can be off by a few ticks:
 However, these cases are rare. While I was making sure the timing is accurate, I actually discovered bugs (much more severe relative to these rare cases) in several other timers and demo tools. If you notice that the timing is different from another timer, it's most likely because the other one isn't as accurate as SourceSplit.
 
 tl;dr I'm confident with the timing and you can and should use it for ~official~ purposes.
+
+Change Log
+----------
+https://github.com/fatalis/sourcesplit/releases
 
 Contact
 -------
