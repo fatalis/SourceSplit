@@ -213,7 +213,7 @@ namespace LiveSplit.SourceSplit
         {
             try
             {
-                Process.Start("https://github.com/fatalis/sourcesplit/blob/master/readme.txt");
+                Process.Start("https://github.com/fatalis/sourcesplit/blob/master/README.md");
             }
             catch (Exception ex)
             {

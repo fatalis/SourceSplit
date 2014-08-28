@@ -40,9 +40,7 @@ namespace LiveSplit.SourceSplit
             {
                 // "autosplit components" can't throw exceptions for some reason, so return a dummy component
                 if (callercaller == "CreateAutoSplitter")
-                {
                     return new DummyComponent();
-                }
 
                 MessageBox.Show(
                     "SourceSplit is already loaded in the " +
