@@ -26,7 +26,7 @@ The default settings are fine unless you feel it's splitting too often. In that 
 You don't need to mess with this unless your game's process isn't listed. All of the fully supported games (and a few others) are added by default.
 
 #### Alternate Timing Method
-This shows makes it show Real Time when comparing against Game Time, and vice versa. Doesn't work when SourceSplit is activated via the Splits Editor.
+This makes it show Real Time when comparing against Game Time, and vice versa. Doesn't work when SourceSplit is activated via the Splits Editor.
 
 Fully Supported Games
 ---------------------
