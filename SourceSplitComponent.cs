@@ -237,7 +237,7 @@ namespace LiveSplit.SourceSplit
             }
 
             // prevent adding map time twice
-            if (_state.CurrentPhase != TimerPhase.Ended)
+            if (_state.CurrentPhase != TimerPhase.Ended && _state.CurrentPhase != TimerPhase.NotRunning)
                 this.AddMapTime(e.PrevMap, TimeSpan.FromSeconds(_totalMapTime));
             _totalMapTime = 0;
         }
