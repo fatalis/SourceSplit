@@ -197,6 +197,9 @@ namespace LiveSplit.SourceSplit
                     continue;
 
                 string value = (string)row.Cells[0].Value;
+                if (value == null)
+                    continue;
+
                 value = value.Trim().Replace("|", String.Empty);
                 if (value.Length > 0)
                     ret.Add(value);

@@ -1,4 +1,4 @@
-﻿SourceSplit v2.0
+﻿SourceSplit v2.0.1
 ===========
 
 SourceSplit is a [LiveSplit] component for Source engine games. It aims to support every game and engine version, but some features are only available on games where support has been added.
@@ -20,7 +20,7 @@ Due to bugs in LiveSplit 1.4.0, it's recommended to deactivate SourceSplit in th
 After configuring everything you'll most likely want to turn on game time as primary timing, so that your splits will run off game time. You can do this by right-clicking LiveSplit and going to Compare Against->Game Time.
 
 #### Auto Split
-The default settings are fine unless you feel it's splitting too often. In that case you can use the whitelist and add maps you think it should split on completion. Note to those unfamiliar with LiveSplit: you must add a split in the Splits Editor for every map it's going to auto-split on.
+The default settings are fine unless you feel it's splitting too often. In that case you can use the whitelist and add maps you think it should split on completion. Use the delete key to delete items from the list. Note to those unfamiliar with LiveSplit: you must add a split in the Splits Editor for every map it's going to auto-split on.
 
 #### Game Processes
 You don't need to mess with this unless your game's process isn't listed. All of the fully supported games (and a few others) are added by default.
