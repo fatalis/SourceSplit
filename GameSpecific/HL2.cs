@@ -69,7 +69,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 int activeWeapon;
                 state.GameProcess.ReadInt32(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out activeWeapon);
 
-                if (activeWeapon == -1 && _prevActiveWeapon != -1)
+                if (activeWeapon == -1 && _prevActiveWeapon != -1
+                    && state.TickTime >= 10.0f) // ignore the initial strip that happens at around 2.19 seconds, 10 for safe measure)
                 {
                     Debug.WriteLine("hl2 end");
                     _onceFlag = true;
