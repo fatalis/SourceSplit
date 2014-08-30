@@ -22,6 +22,9 @@ After configuring everything you'll most likely want to turn on game time as pri
 #### Auto Split
 The default settings are fine unless you feel it's splitting too often. In that case you can use the whitelist and add maps you think it should split on completion. Use the delete key to delete items from the list. Note to those unfamiliar with LiveSplit: you must add a split in the Splits Editor for every map it's going to auto-split on.
 
+#### Auto Start/End/Reset
+Auto-reset updates your best times without asking, so reset manually if you don't want them updated.
+
 #### Game Processes
 You don't need to mess with this unless your game's process isn't listed. All of the fully supported games (and a few others) are added by default.
 
