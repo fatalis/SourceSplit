@@ -11,13 +11,13 @@ Features
 
 Install
 -------
-Starting with LiveSplit 1.4, you can download and install SourceSplit automatically from within the Splits Editor with just one click. Just type in the name of one of the fully supported games (see below) and click Activate. This downloads SourceSplit to the Components folder.
+Starting with LiveSplit 1.4, you can download and install SourceSplit automatically from within the Splits Editor with just one click. Just type in the name of one of the fully supported games (see below) and click Activate.
 
 Configure
 ---------
-Due to bugs in LiveSplit 1.4.0, it's recommended to deactivate SourceSplit in the Splits Editor after activating (downloading) it the first time. Instead, you should activate it in the Layout Editor, under the "Control" category. Double-click "SourceSplit" after adding it to your layout to bring up the settings.
+Click "Settings" and see below. After configuring everything you'll most likely want to turn on game time as primary timing, so that your splits will run off game time. You can do this by right-clicking LiveSplit and going to Compare Against->Game Time.
 
-After configuring everything you'll most likely want to turn on game time as primary timing, so that your splits will run off game time. You can do this by right-clicking LiveSplit and going to Compare Against->Game Time.
+***Note:*** There's a bug in LiveSplit 1.4.4 (current version) where settings fail to load, usually on startup. To fix this just deactivate and activate SourceSplit. LiveSplit 1.4.4 also blocks SourceSplit from being loaded via the Layout Editor, so if you're wanting to use SourceSplit with an obscure game / HL2 mod, you're out of luck until they fix it.
 
 #### Auto Split
 The default settings are fine unless you feel it's splitting too often. In that case you can use the whitelist and add maps you think it should split on completion. Use the delete key to delete items from the list. Note to those unfamiliar with LiveSplit: you must add a split in the Splits Editor for every map it's going to auto-split on.
