@@ -14,6 +14,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private Vector3f _startPos = new Vector3f(-9419f, -2483f, 22f);
         private int _baseCombatCharacaterActiveWeaponOffset = -1;
+        private int _baseEntityHealthOffset = -1;
         private int _prevActiveWeapon;
 
         public HL2()
@@ -32,6 +33,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (GameMemory.GetBaseEntityMemberOffset("m_hActiveWeapon", state.GameProcess, scanner, out _baseCombatCharacaterActiveWeaponOffset))
                 Debug.WriteLine("CBaseCombatCharacater::m_hActiveWeapon offset = 0x" + _baseCombatCharacaterActiveWeaponOffset.ToString("X"));
+            if (GameMemory.GetBaseEntityMemberOffset("m_iHealth", state.GameProcess, scanner, out _baseEntityHealthOffset));
+                Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
 
         public override void OnSessionStart(GameState state)
@@ -61,7 +64,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-            else if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
+            else if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero
+                && _baseEntityHealthOffset != -1)
             {
                 // "OnTrigger2" "weaponstrip_end_game,Strip,,0,-1"
                 // "OnTrigger2" "fade_blast_1,Fade,,0,-1"
@@ -70,11 +74,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 state.GameProcess.ReadInt32(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out activeWeapon);
 
                 if (activeWeapon == -1 && _prevActiveWeapon != -1
-                    && state.TickTime >= 10.0f) // ignore the initial strip that happens at around 2.19 seconds, 10 for safe measure)
+                    && state.PlayerPosition.Distance(new Vector3f(-2449.5f, -1380.2f, -446.0f)) > 256f) // ignore the initial strip that happens at around 2.19 seconds
                 {
-                    Debug.WriteLine("hl2 end");
-                    _onceFlag = true;
-                    return GameSupportResult.PlayerLostControl;
+                    int health;
+                    state.GameProcess.ReadInt32(state.PlayerEntInfo.EntityPtr + _baseEntityHealthOffset, out health);
+
+                    if (health > 0)
+                    {
+                        Debug.WriteLine("hl2 end");
+                        _onceFlag = true;
+                        return GameSupportResult.PlayerLostControl;
+                    }
                 }
 
                 _prevActiveWeapon = activeWeapon;

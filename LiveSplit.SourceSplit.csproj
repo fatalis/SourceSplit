@@ -46,8 +46,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="UpdateManager, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="UpdateManager">
       <HintPath>C:\Files\Apps\Gaming\LiveSplit 1.4\UpdateManager.dll</HintPath>
       <Private>False</Private>
     </Reference>
