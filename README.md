@@ -1,4 +1,4 @@
-﻿SourceSplit v2.0.1
+﻿SourceSplit
 ===========
 
 SourceSplit is a [LiveSplit] component for Source engine games. It aims to support every game and engine version, but some features are only available on games where support has been added.
