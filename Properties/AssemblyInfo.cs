@@ -1,6 +1,4 @@
-﻿using LiveSplit.SourceSplit;
-using LiveSplit.UI.Components;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
@@ -35,6 +33,3 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("2.0.2")]
 [assembly: AssemblyFileVersion("2.0.2")]
-
-
-[assembly: ComponentFactory(typeof(SourceSplitFactory))]

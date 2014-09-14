@@ -1,9 +1,12 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
 using System.Windows.Forms;
+using LiveSplit.SourceSplit;
 using LiveSplit.UI.Components;
 using System;
 using LiveSplit.Model;
+
+[assembly: ComponentFactory(typeof(SourceSplitFactory))]
 
 namespace LiveSplit.SourceSplit
 {
