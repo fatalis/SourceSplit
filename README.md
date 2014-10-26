@@ -70,7 +70,7 @@ Contact
   * [fatalis.twitch@gmail.com](mailto:fatalis.twitch@gmail.com)
   * [twitch.tv/fatalis_](http://www.twitch.tv/fatalis_)
 
-[PayPal Donate](http://fatalis.hive.ai/donate)
+[PayPal Donate](http://fatalis.pw/donate)
 
 [LiveSplit]:http://livesplit.org/
 [signature scanning]:https://wiki.alliedmods.net/Signature_scanning

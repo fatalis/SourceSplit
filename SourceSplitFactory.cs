@@ -58,7 +58,7 @@ namespace LiveSplit.SourceSplit
 
         public string UpdateURL
         {
-            get { return "http://fatalis.hive.ai/livesplit/update/"; }
+            get { return "http://fatalis.pw/livesplit/update/"; }
         }
 
         public Version Version
