@@ -39,6 +39,7 @@ Fully Supported Games
   * Portal
   * Portal 2
   * Aperture Tag
+  * Portal Stories: Mel
   * (more soon)
 
 Technical Information

@@ -59,6 +59,7 @@
     <Compile Include="GameSpecific\HL2Ep2.cs" />
     <Compile Include="GameSpecific\Portal.cs" />
     <Compile Include="GameSpecific\Portal2.cs" />
+    <Compile Include="GameSpecific\PortalStoriesMel.cs" />
     <Compile Include="GameState.cs" />
     <Compile Include="MapTimesForm.cs">
       <SubType>Form</SubType>
