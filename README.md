@@ -11,13 +11,11 @@ Features
 
 Install
 -------
-Starting with LiveSplit 1.4, you can download and install SourceSplit automatically from within the Splits Editor with just one click. Just type in the name of one of the fully supported games (see below) and click Activate.
+Starting with LiveSplit 1.4, you can download and install SourceSplit automatically from within the Splits Editor with just one click. Just type in the name of one of the fully supported games (see below) and click Activate. If your game isn't on the list, try entering "Half-Life 2 Mods". If you want to use your game's real name, you'll have to add SourceSplit to your layout via the Layout Editor instead.
 
 Configure
 ---------
 Click "Settings" and see below. After configuring everything you'll most likely want to turn on game time as primary timing, so that your splits will run off game time. You can do this by right-clicking LiveSplit and going to Compare Against->Game Time.
-
-***Note:*** There's a bug in LiveSplit 1.4.4 (current version) where settings fail to load, usually on startup. To fix this just deactivate and activate SourceSplit. LiveSplit 1.4.4 also blocks SourceSplit from being loaded via the Layout Editor, so if you're wanting to use SourceSplit with an obscure game / HL2 mod, you're out of luck until they fix it.
 
 #### Auto Split
 The default settings are fine unless you feel it's splitting too often. In that case you can use the whitelist and add maps you think it should split on completion. Use the delete key to delete items from the list. Note to those unfamiliar with LiveSplit: you must add a split in the Splits Editor for every map it's going to auto-split on.
@@ -29,7 +27,7 @@ Auto-reset updates your best times without asking, so reset manually if you don'
 You don't need to mess with this unless your game's process isn't listed. All of the fully supported games (and a few others) are added by default.
 
 #### Alternate Timing Method
-This makes it show Real Time when comparing against Game Time, and vice versa. Doesn't work when SourceSplit is activated via the Splits Editor.
+This makes it show Real Time when comparing against Game Time, and vice versa. Doesn't work when SourceSplit is activated via the Splits Editor. Use [Alternate Timing Method by Dalet] as an alternative.
 
 Fully Supported Games
 ---------------------
@@ -75,3 +73,4 @@ Contact
 
 [LiveSplit]:http://livesplit.org/
 [signature scanning]:https://wiki.alliedmods.net/Signature_scanning
+[Alternate Timing Method by Dalet]:http://livesplit.org/components/
