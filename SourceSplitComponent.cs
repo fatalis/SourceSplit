@@ -14,10 +14,7 @@ namespace LiveSplit.SourceSplit
 {
     class SourceSplitComponent : IComponent
     {
-        public string ComponentName
-        {
-            get { return "SourceSplit"; }
-        }
+        public string ComponentName => "SourceSplit";
 
         public SourceSplitSettings Settings { get; set; }
         public IDictionary<string, Action> ContextMenuControls { get; protected set; }
@@ -43,10 +40,7 @@ namespace LiveSplit.SourceSplit
         private int _splitCount;
         private List<string> _mapsVisited;
 
-        private TimeSpan GameTime
-        {
-            get { return TimeSpan.FromSeconds(_totalTime + _sessionTime - _sessionTimeOffset); }
-        }
+        private TimeSpan GameTime => TimeSpan.FromSeconds(_totalTime + _sessionTime - _sessionTimeOffset);
 
         public SourceSplitComponent(LiveSplitState state, bool isLayoutComponent)
         {
@@ -106,8 +100,7 @@ namespace LiveSplit.SourceSplit
             _state.IsGameTimePaused = false; // hack
             _state.LoadingTimes = TimeSpan.Zero;
 
-            if (_gameMemory != null)
-                _gameMemory.Stop();
+            _gameMemory?.Stop();
         }
 
         public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)
@@ -334,17 +327,18 @@ namespace LiveSplit.SourceSplit
 
         public void SetSettings(XmlNode settings)
         {
+            Trace.WriteLine("setsettings called");
             this.Settings.SetSettings(settings);
         }
 
         public void RenameComparison(string oldName, string newName) { }
-        public float MinimumWidth    { get { return this.InternalComponent.MinimumWidth; } }
-        public float MinimumHeight   { get { return this.InternalComponent.MinimumHeight; } }
-        public float VerticalHeight  { get { return this.Settings.ShowGameTime ? this.InternalComponent.VerticalHeight : 0; } }
-        public float HorizontalWidth { get { return this.Settings.ShowGameTime ? this.InternalComponent.HorizontalWidth : 0; } }
-        public float PaddingLeft     { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingLeft : 0; } }
-        public float PaddingRight    { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingRight : 0; } }
-        public float PaddingTop      { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingTop : 0; } }
-        public float PaddingBottom   { get { return this.Settings.ShowGameTime ? this.InternalComponent.PaddingBottom : 0; } }
+        public float MinimumWidth =>    this.InternalComponent.MinimumWidth;
+        public float MinimumHeight =>   this.InternalComponent.MinimumHeight;
+        public float VerticalHeight =>  this.Settings.ShowGameTime ? this.InternalComponent.VerticalHeight : 0;
+        public float HorizontalWidth => this.Settings.ShowGameTime ? this.InternalComponent.HorizontalWidth : 0;
+        public float PaddingLeft =>     this.Settings.ShowGameTime ? this.InternalComponent.PaddingLeft : 0;
+        public float PaddingRight =>    this.Settings.ShowGameTime ? this.InternalComponent.PaddingRight : 0;
+        public float PaddingTop =>      this.Settings.ShowGameTime ? this.InternalComponent.PaddingTop : 0;
+        public float PaddingBottom =>   this.Settings.ShowGameTime ? this.InternalComponent.PaddingBottom : 0;
     }
 }

@@ -201,9 +201,9 @@ namespace LiveSplit.SourceSplit
         public float Y { get; set; }
         public float Z { get; set; }
 
-        public int IX { get { return (int)this.X; } }
-        public int IY { get { return (int)this.Y; } }
-        public int IZ { get { return (int)this.Z; } }
+        public int IX => (int)this.X;
+        public int IY => (int)this.Y;
+        public int IZ => (int)this.Z;
 
         // public Vector3f() {}
 
@@ -259,10 +259,7 @@ namespace LiveSplit.SourceSplit
     public class TimedTraceListener : DefaultTraceListener
     {
         private static TimedTraceListener _instance;
-        public static TimedTraceListener Instance
-        {
-            get { return _instance ?? (_instance = new TimedTraceListener()); }
-        }
+        public static TimedTraceListener Instance => _instance ?? (_instance = new TimedTraceListener());
 
         private TimedTraceListener() { }
 

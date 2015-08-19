@@ -14,20 +14,9 @@ namespace LiveSplit.SourceSplit
     {
         private SourceSplitComponent _instance;
 
-        public string ComponentName
-        {
-            get { return "SourceSplit"; }
-        }
-
-        public string Description
-        {
-            get { return "Game Time / Auto-splitting for Source engine games.";  }
-        }
-
-        public ComponentCategory Category
-        {
-            get { return ComponentCategory.Control; }
-        }
+        public string ComponentName => "SourceSplit";
+        public string Description => "Game Time / Auto-splitting for Source engine games.";
+        public ComponentCategory Category => ComponentCategory.Control;
 
         public IComponent Create(LiveSplitState state)
         {
@@ -51,24 +40,9 @@ namespace LiveSplit.SourceSplit
             return (_instance = new SourceSplitComponent(state, createAsLayoutComponent));
         }
 
-        public string UpdateName
-        {
-            get { return this.ComponentName; }
-        }
-
-        public string UpdateURL
-        {
-            get { return "http://fatalis.pw/livesplit/update/"; }
-        }
-
-        public Version Version
-        {
-            get { return Assembly.GetExecutingAssembly().GetName().Version; }
-        }
-
-        public string XMLURL
-        {
-            get { return this.UpdateURL + "Components/update.LiveSplit.SourceSplit.xml"; }
-        }
+        public string UpdateName => this.ComponentName;
+        public string UpdateURL => "http://fatalis.pw/livesplit/update/";
+        public Version Version => Assembly.GetExecutingAssembly().GetName().Version;
+        public string XMLURL => this.UpdateURL + "Components/update.LiveSplit.SourceSplit.xml";
     }
 }

@@ -130,7 +130,7 @@ namespace LiveSplit.SourceSplit
         public OnFoundCallback OnFound { get; set; }
 
         private List<Signature> _sigs;
-        public ReadOnlyCollection<Signature> Signatures { get { return _sigs.AsReadOnly(); } }
+        public ReadOnlyCollection<Signature> Signatures => _sigs.AsReadOnly();
 
         public SigScanTarget()
         {

@@ -100,20 +100,20 @@ namespace LiveSplit.SourceSplit
     struct GameOffsets
     {
         public IntPtr CurTimePtr;
-        public IntPtr TickCountPtr { get { return this.CurTimePtr + 12; } }
-        public IntPtr IntervalPerTickPtr { get { return this.TickCountPtr + 4; } }
+        public IntPtr TickCountPtr => this.CurTimePtr + 12;
+        public IntPtr IntervalPerTickPtr => this.TickCountPtr + 4;
         public IntPtr SignOnStatePtr;
         public IntPtr CurMapPtr;
         public IntPtr GlobalEntityListPtr;
         public IntPtr GameDirPtr;
         public IntPtr HostStatePtr;
         // note: only valid during host states: NewGame, ChangeLevelSP, ChangeLevelMP
-        public IntPtr HostStateLevelNamePtr { get { return this.HostStatePtr + (4*8); } } // note: this may not work pre-ep1 (ancient engine)
+        public IntPtr HostStateLevelNamePtr => this.HostStatePtr + (4*8); // note: this may not work pre-ep1 (ancient engine)
 
         public CEntInfoSize EntInfoSize;
 
         public int BaseEntityFlagsOffset;
-        public int BaseEntityEFlagsOffset { get {  return this.BaseEntityFlagsOffset > 0 ? this.BaseEntityFlagsOffset - 4 : -1; } }
+        public int BaseEntityEFlagsOffset => this.BaseEntityFlagsOffset > 0 ? this.BaseEntityFlagsOffset - 4 : -1;
         public int BaseEntityAbsOriginOffset;
         public int BaseEntityTargetNameOffset;
         public int BaseEntityParentHandleOffset;
@@ -139,7 +139,7 @@ namespace LiveSplit.SourceSplit
         public int m_targetname;
         public int m_classname;
 
-        public IntPtr EntityPtr { get { return (IntPtr)this.m_pEntity; } }
+        public IntPtr EntityPtr => (IntPtr)this.m_pEntity;
 
         public static CEntInfoV2 FromV1(CEntInfoV1 v1)
         {

@@ -191,7 +191,7 @@ namespace LiveSplit.SourceSplit
                 byte[] b = BitConverter.GetBytes(ptr.ToInt32());
                 var target = new SigScanTarget(-4,
                     // push    offset aSMapsS_sav
-                    String.Format("68 {0:X02} {1:X02} {2:X02} {3:X02}", b[0], b[1], b[2], b[3]));
+                    $"68 {b[0]:X02} {b[1]:X02} {b[2]:X02} {b[3]:X02}");
                 IntPtr ptrPtr = scanner.Scan(target);
                 if (ptrPtr == IntPtr.Zero)
                     return IntPtr.Zero;
@@ -360,7 +360,7 @@ namespace LiveSplit.SourceSplit
             var b = BitConverter.GetBytes(stringPtr.ToInt32());
 
             var target = new SigScanTarget(10,
-                String.Format("C7 05 ?? ?? ?? ?? {0:X02} {1:X02} {2:X02} {3:X02}", b[0], b[1], b[2], b[3])); // mov     dword_15E2BF1C, offset aM_fflags ; "m_fFlags"
+                $"C7 05 ?? ?? ?? ?? {b[0]:X02} {b[1]:X02} {b[2]:X02} {b[3]:X02}"); // mov     dword_15E2BF1C, offset aM_fflags ; "m_fFlags"
             target.OnFound = (proc, s, ptr) => {
                 // this instruction is almost always directly after above one, but there are a few cases where it isn't
                 // so we have to scan down and find it
@@ -534,8 +534,7 @@ namespace LiveSplit.SourceSplit
                     Debug.WriteLine("session started");
                     this.SendSessionStartedEvent(state.CurrentMap);
 
-                    if (state.GameSupport != null)
-                        state.GameSupport.OnSessionStart(state);
+                    state.GameSupport?.OnSessionStart(state);
                 }
 
                 if (state.GameSupport != null)
@@ -557,8 +556,7 @@ namespace LiveSplit.SourceSplit
                     // the map changed or a save was loaded
                     this.SendSessionEndedEvent();
 
-                    if (state.GameSupport != null)
-                        state.GameSupport.OnSessionEnd(state);
+                    state.GameSupport?.OnSessionEnd(state);
                 }
 
                 Debug.WriteLine("host state changed to " + state.HostState);
@@ -606,8 +604,7 @@ namespace LiveSplit.SourceSplit
         public void SendMapChangedEvent(string mapName, string prevMapName)
         {
             _uiThread.Post(d => {
-                if (this.OnMapChanged != null)
-                    this.OnMapChanged(this, new MapChangedEventArgs(mapName, prevMapName));
+                this.OnMapChanged?.Invoke(this, new MapChangedEventArgs(mapName, prevMapName));
             }, null);
         }
 
@@ -615,48 +612,42 @@ namespace LiveSplit.SourceSplit
         {
             // note: sometimes this takes a few ms
             _uiThread.Post(d => {
-                if (this.OnSessionTimeUpdate != null)
-                    this.OnSessionTimeUpdate(this, new SessionTimeUpdateEventArgs(sessionTime));
+                this.OnSessionTimeUpdate?.Invoke(this, new SessionTimeUpdateEventArgs(sessionTime));
             }, null);
         }
 
         public void SendGainedControlEvent(float timeOffset)
         {
             _uiThread.Post(d => {
-                if (this.OnPlayerGainedControl != null)
-                    this.OnPlayerGainedControl(this, new PlayerControlChangedEventArgs(timeOffset));
+                this.OnPlayerGainedControl?.Invoke(this, new PlayerControlChangedEventArgs(timeOffset));
             }, null);
         }
 
         public void SendLostControlEvent(float timeOffset)
         {
             _uiThread.Post(d => {
-                if (this.OnPlayerLostControl != null)
-                    this.OnPlayerLostControl(this, new PlayerControlChangedEventArgs(timeOffset));
+                this.OnPlayerLostControl?.Invoke(this, new PlayerControlChangedEventArgs(timeOffset));
             }, null);
         }
 
         public void SendSessionStartedEvent(string map)
         {
             _uiThread.Post(d => {
-                if (this.OnSessionStarted != null)
-                    this.OnSessionStarted(this, new SessionStartedEventArgs(map));
+                this.OnSessionStarted?.Invoke(this, new SessionStartedEventArgs(map));
             }, null);
         }
 
         public void SendSessionEndedEvent()
         {
             _uiThread.Post(d => {
-                if (this.OnSessionEnded != null)
-                    this.OnSessionEnded(this, EventArgs.Empty);
+                this.OnSessionEnded?.Invoke(this, EventArgs.Empty);
             }, null);
         }
 
         public void SendNewGameStartedEvent(string map)
         {
             _uiThread.Post(d => {
-                if (this.OnNewGameStarted != null)
-                    this.OnNewGameStarted(this, EventArgs.Empty);
+                this.OnNewGameStarted?.Invoke(this, EventArgs.Empty);
             }, null);
         }
 

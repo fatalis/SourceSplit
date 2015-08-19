@@ -10,10 +10,7 @@ namespace LiveSplit.SourceSplit
     {
         private static MapTimesForm _instance;
 
-        public static MapTimesForm Instance
-        {
-            get { return _instance ?? (_instance = new MapTimesForm()); }
-        }
+        public static MapTimesForm Instance => _instance ?? (_instance = new MapTimesForm());
 
         private MapTimesForm()
         {

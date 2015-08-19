@@ -29,15 +29,9 @@ namespace LiveSplit.SourceSplit
         private const bool DEFAULT_AUTOSTARTENDRESET_ENABLED = true;
         private const AutoSplitType DEFAULT_AUTOSPLITYPE = AutoSplitType.Interval;
 
-        public string[] MapWhitelist
-        {
-            get { return GetListboxValues(this.lbMapWhitelist); }
-        }
+        public string[] MapWhitelist => GetListboxValues(this.lbMapWhitelist);
 
-        public string[] MapBlacklist
-        {
-            get { return GetListboxValues(this.lbMapBlacklist); }
-        }
+        public string[] MapBlacklist => GetListboxValues(this.lbMapBlacklist);
 
         public string[] GameProcesses
         {
@@ -81,9 +75,8 @@ namespace LiveSplit.SourceSplit
 
             Version version = Assembly.GetExecutingAssembly().GetName().Version;
 
-            if (this.Parent != null && this.Parent.Parent != null && this.Parent.Parent.Parent != null
-                && this.Parent.Parent.Parent.GetType().ToString() == "LiveSplit.View.ComponentSettingsDialog")
-                this.Parent.Parent.Parent.Text = String.Format("SourceSplit v{0} - Settings", version.ToString(3));
+            if (this.Parent?.Parent?.Parent != null && this.Parent.Parent.Parent.GetType().ToString() == "LiveSplit.View.ComponentSettingsDialog")
+                this.Parent.Parent.Parent.Text = $"SourceSplit v{version.ToString(3)} - Settings";
         }
 
         public XmlNode GetSettings(XmlDocument doc)
@@ -142,19 +135,19 @@ namespace LiveSplit.SourceSplit
             this.rdoWhitelist.Checked = this.AutoSplitType == AutoSplitType.Whitelist;
 
             this.lbMapWhitelist.Rows.Clear();
-            string whitelist = settings["MapWhitelist"] != null ? settings["MapWhitelist"].InnerText : String.Empty;
+            string whitelist = settings["MapWhitelist"]?.InnerText ?? String.Empty;
             foreach (string map in whitelist.Split('|'))
                 this.lbMapWhitelist.Rows.Add(map);
 
             this.lbMapBlacklist.Rows.Clear();
-            string blacklist = settings["MapBlacklist"] != null ? settings["MapBlacklist"].InnerText : String.Empty;
+            string blacklist = settings["MapBlacklist"]?.InnerText ?? String.Empty;
             foreach (string map in blacklist.Split('|'))
                 this.lbMapBlacklist.Rows.Add(map);
 
             lock (_lock)
             {
                 this.lbGameProcesses.Rows.Clear();
-                string gameProcesses = settings["GameProcesses"] != null ? settings["GameProcesses"].InnerText : String.Empty;
+                string gameProcesses = settings["GameProcesses"]?.InnerText ?? String.Empty;
                 foreach (string process in gameProcesses.Split('|'))
                     this.lbGameProcesses.Rows.Add(process);
             }
