@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.IO;
 using System.Windows.Forms;
+using LiveSplit.ComponentUtil;
 using LiveSplit.SourceSplit.GameSpecific;
 
 namespace LiveSplit.SourceSplit
@@ -285,8 +286,8 @@ namespace LiveSplit.SourceSplit
                 return false;
 
             // process is up, check if engine and server are both loaded yet
-            ProcessModule engine = p.Modules.Cast<ProcessModule>().FirstOrDefault(x => x.ModuleName.ToLower() == "engine.dll");
-            ProcessModule server = p.Modules.Cast<ProcessModule>().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
+            ProcessModuleWow64Safe engine = p.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "engine.dll");
+            ProcessModuleWow64Safe server = p.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
 
             if (engine == null || server == null)
                 return false;
