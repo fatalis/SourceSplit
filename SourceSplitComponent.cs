@@ -163,6 +163,7 @@ namespace LiveSplit.SourceSplit
 
         void state_OnStart(object sender, EventArgs e)
         {
+            _timer.InitializeGameTime();
             _totalTime = 0;
             _mapsVisited.Clear();
             MapTimesForm.Instance.Reset();
