@@ -65,6 +65,8 @@ namespace LiveSplit.SourceSplit
             _cache = new GraphicsCache();
 
             _timer = new TimerModel { CurrentState = state };
+            _timer.InitializeGameTime();
+
             state.OnSplit += state_OnSplit;
             state.OnReset += state_OnReset;
             state.OnStart += state_OnStart;
@@ -163,7 +165,6 @@ namespace LiveSplit.SourceSplit
 
         void state_OnStart(object sender, EventArgs e)
         {
-            _timer.InitializeGameTime();
             _totalTime = 0;
             _mapsVisited.Clear();
             MapTimesForm.Instance.Reset();
