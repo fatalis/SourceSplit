@@ -45,7 +45,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             _onceFlag = false;
 
             if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
-                state.GameProcess.ReadInt32(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out _prevActiveWeapon);
+                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out _prevActiveWeapon);
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -72,13 +72,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 // "OnTrigger2" "fade_blast_1,Fade,,0,-1"
 
                 int activeWeapon;
-                state.GameProcess.ReadInt32(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out activeWeapon);
+                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out activeWeapon);
 
                 if (activeWeapon == -1 && _prevActiveWeapon != -1
                     && state.PlayerPosition.Distance(new Vector3f(-2449.5f, -1380.2f, -446.0f)) > 256f) // ignore the initial strip that happens at around 2.19 seconds
                 {
                     int health;
-                    state.GameProcess.ReadInt32(state.PlayerEntInfo.EntityPtr + _baseEntityHealthOffset, out health);
+                    state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseEntityHealthOffset, out health);
 
                     if (health > 0)
                     {

@@ -54,7 +54,7 @@ namespace LiveSplit.SourceSplit
 
             // CGlobalVarsBase::curtime (g_ClientGlobalVariables aka gpGlobals)
             _curTimeTarget = new SigScanTarget();
-            _curTimeTarget.OnFound = (proc, scanner, ptr) => proc.ReadPtr32(ptr, out ptr) ? ptr : IntPtr.Zero;
+            _curTimeTarget.OnFound = (proc, scanner, ptr) => proc.ReadPointer(ptr, out ptr) ? ptr : IntPtr.Zero;
             // orange box and older
             // \xa3....\xb9....\xa3....\xe8....\xd9\x1d(....)\xb9....\xe8....\xd9\x1d
             _curTimeTarget.AddSignature(22,
@@ -108,7 +108,7 @@ namespace LiveSplit.SourceSplit
 
             // CBaseClientState::m_nSignOnState (older engines)
             _signOnStateTarget1 = new SigScanTarget();
-            _signOnStateTarget1.OnFound = (proc, scanner, ptr) => proc.ReadPtr32(ptr, out ptr) ? ptr : IntPtr.Zero;
+            _signOnStateTarget1.OnFound = (proc, scanner, ptr) => proc.ReadPointer(ptr, out ptr) ? ptr : IntPtr.Zero;
             // orange box and older
             // \x80\x3d....\x00\x74\x06\xb8....\xc3\x83\x3d(....)\x02\xb8
             _signOnStateTarget1.AddSignature(17,
@@ -122,9 +122,9 @@ namespace LiveSplit.SourceSplit
             // CBaseClientState::m_nSignOnState
             _signOnStateTarget2 = new SigScanTarget();
             _signOnStateTarget2.OnFound = (proc, scanner, ptr) => {
-                if (!proc.ReadPtr32(ptr, out ptr)) // deref instruction
+                if (!proc.ReadPointer(ptr, out ptr)) // deref instruction
                     return IntPtr.Zero;
-                if (!proc.ReadPtr32(ptr, out ptr)) // deref ptr
+                if (!proc.ReadPointer(ptr, out ptr)) // deref ptr
                     return IntPtr.Zero;
                 return IntPtr.Add(ptr, 0x70); // this+0x70 = m_nSignOnState
             };
@@ -140,7 +140,7 @@ namespace LiveSplit.SourceSplit
 
             // CBaseServer::m_szMapname[64]
             _curMapTarget = new SigScanTarget();
-            _curMapTarget.OnFound = (proc, scanner, ptr) => proc.ReadPtr32(ptr, out ptr) ? ptr : IntPtr.Zero;
+            _curMapTarget.OnFound = (proc, scanner, ptr) => proc.ReadPointer(ptr, out ptr) ? ptr : IntPtr.Zero;
             // \x68(....).\xe8...\x00\x83\xc4\x08\x85\xc0\x0f\x84..\x00\x00\x83\xc7\x01\x83.\x50\x3b\x7e\x18\x7c
             // source 2006 and older
             _curMapTarget.AddSignature(1,
@@ -168,7 +168,7 @@ namespace LiveSplit.SourceSplit
             _globalEntityListTarget = new SigScanTarget();
             // \x6a\x00\x6a\x00\x50\x6a\x00\xb9(....)\xe8
             // deref to get vtable ptr, add 4 to get start of entity list
-            _globalEntityListTarget.OnFound = (proc, scanner, ptr) => proc.ReadPtr32(ptr, out ptr) ? ptr + 4 : IntPtr.Zero;
+            _globalEntityListTarget.OnFound = (proc, scanner, ptr) => proc.ReadPointer(ptr, out ptr) ? ptr + 4 : IntPtr.Zero;
             _globalEntityListTarget.AddSignature(8,
                 "6A 00",                   // push    0
                 "6A 00",                   // push    0
@@ -180,7 +180,7 @@ namespace LiveSplit.SourceSplit
             // CHostState::m_currentState
             _hostStateTarget = new SigScanTarget();
             // subtract 4 to get m_currentState
-            _hostStateTarget.OnFound = (proc, scanner, ptr) => proc.ReadPtr32(ptr, out ptr) ? ptr - 4 : IntPtr.Zero;
+            _hostStateTarget.OnFound = (proc, scanner, ptr) => proc.ReadPointer(ptr, out ptr) ? ptr - 4 : IntPtr.Zero;
             // \xc7\x05....\x07\x00\x00\x00\xc3
             _hostStateTarget.AddSignature(2,
                 "C7 05 ?? ?? ?? ?? 07 00 00 00", // mov     g_HostState_m_nextState, 7
@@ -197,7 +197,7 @@ namespace LiveSplit.SourceSplit
                 if (ptrPtr == IntPtr.Zero)
                     return IntPtr.Zero;
                 IntPtr ret;
-                proc.ReadPtr32(ptrPtr, out ret);
+                proc.ReadPointer(ptrPtr, out ret);
                 return ret;
             };
         }
@@ -373,7 +373,7 @@ namespace LiveSplit.SourceSplit
             if (addr == IntPtr.Zero)
                 return false;
 
-            return game.ReadInt32(addr, out offset);
+            return game.ReadValue(addr, out offset);
         }
 
         void HandleProcess(Process game, GameOffsets offsets, CancellationTokenSource cts)
@@ -408,7 +408,7 @@ namespace LiveSplit.SourceSplit
         void InitGameState(GameState state)
         {
             string absoluteGameDir;
-            state.GameProcess.ReadASCIIString(state.GameOffsets.GameDirPtr, out absoluteGameDir, 260);
+            state.GameProcess.ReadString(state.GameOffsets.GameDirPtr, ReadStringType.ASCII, 260, out absoluteGameDir);
             state.GameDir = new DirectoryInfo(absoluteGameDir).Name.ToLower();
             Debug.WriteLine("gameDir = " + state.GameDir);
 
@@ -417,7 +417,7 @@ namespace LiveSplit.SourceSplit
             // inspect memory layout to determine CEntInfo's version
             const int SERIAL_MASK = 0x7FFF;
             int serial;
-            state.GameProcess.ReadInt32(state.GameOffsets.GlobalEntityListPtr + (4 * 7), out serial);
+            state.GameProcess.ReadValue(state.GameOffsets.GlobalEntityListPtr + (4 * 7), out serial);
             state.GameOffsets.EntInfoSize = (serial > 0 && serial < SERIAL_MASK) ? CEntInfoSize.Portal2 : CEntInfoSize.HL2;
 
             state.GameSupport = GameSupport.FromGameDir(state.GameDir);
@@ -434,14 +434,14 @@ namespace LiveSplit.SourceSplit
             GameOffsets offsets = state.GameOffsets;
 
             // update all the stuff that doesn't depend on the signon state
-            game.ReadInt32(offsets.TickCountPtr, out state.RawTickCount);
-            game.ReadFloat(offsets.IntervalPerTickPtr, out state.IntervalPerTick);
+            game.ReadValue(offsets.TickCountPtr, out state.RawTickCount);
+            game.ReadValue(offsets.IntervalPerTickPtr, out state.IntervalPerTick);
 
             state.PrevSignOnState = state.SignOnState;
-            game.ReadEnum32(offsets.SignOnStatePtr, out state.SignOnState);
+            game.ReadValue(offsets.SignOnStatePtr, out state.SignOnState);
 
             state.PrevHostState = state.HostState;
-            game.ReadEnum32(offsets.HostStatePtr, out state.HostState);
+            game.ReadValue(offsets.HostStatePtr, out state.HostState);
 
             bool firstTick = false;
 
@@ -461,7 +461,7 @@ namespace LiveSplit.SourceSplit
                     state.PlayerEntInfo = state.GetEntInfoByIndex(GameState.ENT_INDEX_PLAYER);
 
                     // update map name
-                    state.GameProcess.ReadASCIIString(state.GameOffsets.CurMapPtr, out state.CurrentMap, 64);
+                    state.GameProcess.ReadString(state.GameOffsets.CurMapPtr, ReadStringType.ASCII, 64, out state.CurrentMap);
                 }
 
                 // update time and rebase it against the first signon state full tick
@@ -476,14 +476,14 @@ namespace LiveSplit.SourceSplit
                     if (state.GameSupport.RequiredProperties.HasFlag(PlayerProperties.Flags))
                     {
                         state.PrevPlayerFlags = state.PlayerFlags;
-                        game.ReadEnum32(state.PlayerEntInfo.EntityPtr + offsets.BaseEntityFlagsOffset, out state.PlayerFlags);
+                        game.ReadValue(state.PlayerEntInfo.EntityPtr + offsets.BaseEntityFlagsOffset, out state.PlayerFlags);
                     }
 
                     // position
                     if (state.GameSupport.RequiredProperties.HasFlag(PlayerProperties.Position))
                     {
                         state.PrevPlayerPosition = state.PlayerPosition;
-                        game.ReadVector3f(state.PlayerEntInfo.EntityPtr + offsets.BaseEntityAbsOriginOffset, out state.PlayerPosition);
+                        game.ReadValue(state.PlayerEntInfo.EntityPtr + offsets.BaseEntityAbsOriginOffset, out state.PlayerPosition);
                     }
 
                     // view entity
@@ -493,7 +493,7 @@ namespace LiveSplit.SourceSplit
 
                         state.PrevPlayerViewEntityIndex = state.PlayerViewEntityIndex;
                         int viewEntityHandle; // EHANDLE
-                        game.ReadInt32(state.PlayerEntInfo.EntityPtr + offsets.BasePlayerViewEntity, out viewEntityHandle);
+                        game.ReadValue(state.PlayerEntInfo.EntityPtr + offsets.BasePlayerViewEntity, out viewEntityHandle);
                         state.PlayerViewEntityIndex = viewEntityHandle == -1
                             ? GameState.ENT_INDEX_PLAYER
                             : viewEntityHandle & ENT_ENTRY_MASK;
@@ -503,7 +503,7 @@ namespace LiveSplit.SourceSplit
                     if (state.GameSupport.RequiredProperties.HasFlag(PlayerProperties.ParentEntity))
                     {
                         state.PrevPlayerParentEntityHandle = state.PlayerParentEntityHandle; // EHANDLE
-                        game.ReadInt32(state.PlayerEntInfo.EntityPtr + offsets.BaseEntityParentHandleOffset, out state.PlayerParentEntityHandle);
+                        game.ReadValue(state.PlayerEntInfo.EntityPtr + offsets.BaseEntityParentHandleOffset, out state.PlayerParentEntityHandle);
                     }
 
                     // if it's the first tick, don't use stuff from the previous map
@@ -568,7 +568,7 @@ namespace LiveSplit.SourceSplit
                     || state.HostState == HostState.NewGame)
                 {
                     string levelName;
-                    state.GameProcess.ReadASCIIString(state.GameOffsets.HostStateLevelNamePtr, out levelName, 256-1);
+                    state.GameProcess.ReadString(state.GameOffsets.HostStateLevelNamePtr, ReadStringType.ASCII, 256-1, out levelName);
                     Debug.WriteLine("host state m_levelName changed to " + levelName);
 
                     if (state.HostState == HostState.NewGame)

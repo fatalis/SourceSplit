@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -53,7 +54,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 if (_endDetectEntity != IntPtr.Zero)
                 {
                     Debug.WriteLine("_endDetectEntity = 0x" + _endDetectEntity.ToString("X"));
-                    state.GameProcess.ReadBool(_endDetectEntity + CPropVehicleChoreoGenericPlayerCanShootOffset, out _prevCanShoot);
+                    state.GameProcess.ReadValue(_endDetectEntity + CPropVehicleChoreoGenericPlayerCanShootOffset, out _prevCanShoot);
                 }
             }
 
@@ -61,7 +62,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_endDetectEntity != IntPtr.Zero)
             {
                 bool canShoot;
-                state.GameProcess.ReadBool(_endDetectEntity + CPropVehicleChoreoGenericPlayerCanShootOffset, out canShoot);
+                state.GameProcess.ReadValue(_endDetectEntity + CPropVehicleChoreoGenericPlayerCanShootOffset, out canShoot);
 
                 if (!canShoot && _prevCanShoot)
                 {

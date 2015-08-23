@@ -1,4 +1,6 @@
-﻿namespace LiveSplit.SourceSplit.GameSpecific
+﻿using LiveSplit.ComponentUtil;
+
+namespace LiveSplit.SourceSplit.GameSpecific
 {
     class PortalStoriesMel : GameSupport
     {

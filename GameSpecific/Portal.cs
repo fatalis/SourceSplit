@@ -41,7 +41,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
 
             if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _playerSuppressingCrosshairOffset != -1)
-                state.GameProcess.ReadBool(state.PlayerEntInfo.EntityPtr + _playerSuppressingCrosshairOffset, out _prevCrosshairSuppressed);
+                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _playerSuppressingCrosshairOffset, out _prevCrosshairSuppressed);
 
             _onceFlag = false;
         }
@@ -56,7 +56,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _playerSuppressingCrosshairOffset != -1)
             {
                 bool crosshairSuppressed;
-                state.GameProcess.ReadBool(state.PlayerEntInfo.EntityPtr + _playerSuppressingCrosshairOffset, out crosshairSuppressed);
+                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _playerSuppressingCrosshairOffset, out crosshairSuppressed);
 
                 if (crosshairSuppressed && !_prevCrosshairSuppressed)
                 {

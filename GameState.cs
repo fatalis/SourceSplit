@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using LiveSplit.ComponentUtil;
 using LiveSplit.SourceSplit.GameSpecific;
 
 namespace LiveSplit.SourceSplit
@@ -59,12 +60,12 @@ namespace LiveSplit.SourceSplit
             if (this.GameOffsets.EntInfoSize == CEntInfoSize.HL2)
             {
                 CEntInfoV1 v1;
-                this.GameProcess.ReadStruct(addr, out v1);
+                this.GameProcess.ReadValue(addr, out v1);
                 ret = CEntInfoV2.FromV1(v1);
             }
             else
             {
-                this.GameProcess.ReadStruct(addr, out ret);
+                this.GameProcess.ReadValue(addr, out ret);
             }
 
             return ret;
@@ -83,12 +84,12 @@ namespace LiveSplit.SourceSplit
                     continue;
 
                 IntPtr namePtr;
-                this.GameProcess.ReadPtr32(info.EntityPtr + this.GameOffsets.BaseEntityTargetNameOffset, out namePtr);
+                this.GameProcess.ReadValue(info.EntityPtr + this.GameOffsets.BaseEntityTargetNameOffset, out namePtr);
                 if (namePtr == IntPtr.Zero)
                     continue;
 
                 string n;
-                this.GameProcess.ReadASCIIString(namePtr, out n, 32);  // TODO: find real max len
+                this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
                 if (n == name)
                     return info.EntityPtr;
             }

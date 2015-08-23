@@ -38,7 +38,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
 
             if (state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _basePlayerLaggedMovementOffset != -1)
-                state.GameProcess.ReadFloat(state.PlayerEntInfo.EntityPtr + _basePlayerLaggedMovementOffset, out _prevLaggedMovementValue);
+                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _basePlayerLaggedMovementOffset, out _prevLaggedMovementValue);
 
             _onceFlag = false;
         }
@@ -54,7 +54,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 // "OnMapSpawn" "startcar_speedmod,ModifySpeed,1,12.5,-1"
 
                 float laggedMovementValue;
-                state.GameProcess.ReadFloat(state.PlayerEntInfo.EntityPtr + _basePlayerLaggedMovementOffset, out laggedMovementValue);
+                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _basePlayerLaggedMovementOffset, out laggedMovementValue);
 
                 if (laggedMovementValue.BitEquals(1.0f) && !_prevLaggedMovementValue.BitEquals(1.0f))
                 {

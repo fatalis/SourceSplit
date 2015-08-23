@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -58,7 +59,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             else if (this.IsLastMap && _endDetectEntityPtr != IntPtr.Zero)
             {
                 int volume;
-                if (!state.GameProcess.ReadInt32(_endDetectEntityPtr + CAmbientGenericVolumeOffset, out volume))
+                if (!state.GameProcess.ReadValue(_endDetectEntityPtr + CAmbientGenericVolumeOffset, out volume))
                     return GameSupportResult.DoNothing;
                 if (volume == 0)
                 {

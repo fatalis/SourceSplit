@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -46,7 +47,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 // "PlayerOff" "ghostanim_DogIntro,Kill,,0,-1"
 
                 FL flags;
-                state.GameProcess.ReadEnum32(_startDetectEntity + state.GameOffsets.BaseEntityFlagsOffset, out flags);
+                state.GameProcess.ReadValue(_startDetectEntity + state.GameOffsets.BaseEntityFlagsOffset, out flags);
                 if (flags.HasFlag(FL.KILLME))
                 {
                     Debug.WriteLine("ep1 start");
@@ -61,7 +62,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 // "OnTrigger" "outro_train_1,SetParent,razortrain3,0,-1"
 
                 Vector3f trainPos;
-                if (!state.GameProcess.ReadVector3f(_endDetectEntity + state.GameOffsets.BaseEntityAbsOriginOffset, out trainPos))
+                if (!state.GameProcess.ReadValue(_endDetectEntity + state.GameOffsets.BaseEntityAbsOriginOffset, out trainPos))
                     return GameSupportResult.DoNothing;
 
                 // if the train started moving, stop timing
