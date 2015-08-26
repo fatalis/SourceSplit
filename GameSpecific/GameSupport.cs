@@ -12,6 +12,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public int StartOffsetTicks { get; protected set;  }
         public int EndOffsetTicks { get; protected set; }
 
+        public GameTimingMethod GameTimingMethod { get; protected set; } = GameTimingMethod.EngineTicks;
+
         // which player properties should be updated
         private PlayerProperties _requiredProperties;
         public PlayerProperties RequiredProperties

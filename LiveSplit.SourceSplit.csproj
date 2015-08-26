@@ -72,7 +72,6 @@
     <Compile Include="EditableListBox.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="SafeNativeMethods.cs" />
     <Compile Include="SourceSplitComponent.cs" />
     <Compile Include="SourceSplitSettings.cs">
       <SubType>UserControl</SubType>

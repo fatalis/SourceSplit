@@ -21,6 +21,9 @@ namespace LiveSplit.SourceSplit
         public SignOnState SignOnState;
         public SignOnState PrevSignOnState;
 
+        public ServerState ServerState;
+        public ServerState PrevServerState;
+
         public string CurrentMap;
         public string GameDir;
 
@@ -110,6 +113,7 @@ namespace LiveSplit.SourceSplit
         public IntPtr HostStatePtr;
         // note: only valid during host states: NewGame, ChangeLevelSP, ChangeLevelMP
         public IntPtr HostStateLevelNamePtr => this.HostStatePtr + (4*8); // note: this may not work pre-ep1 (ancient engine)
+        public IntPtr ServerStatePtr;
 
         public CEntInfoSize EntInfoSize;
 

@@ -20,6 +20,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public HL2()
         {
+            this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "d1_trainstation_01";
             this.LastMap = "d3_breen_01";
             this.RequiredProperties = PlayerProperties.Position;

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Threading;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using LiveSplit.ComponentUtil;
 using LiveSplit.SourceSplit.GameSpecific;
@@ -13,11 +14,19 @@ namespace LiveSplit.SourceSplit
 {
     class GameMemory
     {
-        public event EventHandler<SessionTimeUpdateEventArgs> OnSessionTimeUpdate;
+        [DllImport("winmm.dll")]
+        static extern uint timeBeginPeriod(uint uMilliseconds);
+        [DllImport("winmm.dll")]
+        static extern uint timeEndPeriod(uint uMilliseconds);
+
+        public event EventHandler<SetTimingMethodEventArgs> OnSetTimingMethod;
+        public event EventHandler<SetTickRateEventArgs> OnSetTickRate;
+        public event EventHandler<SessionTicksUpdateEventArgs> OnSessionTimeUpdate;
         public event EventHandler<PlayerControlChangedEventArgs> OnPlayerGainedControl;
         public event EventHandler<PlayerControlChangedEventArgs> OnPlayerLostControl;
         public event EventHandler<MapChangedEventArgs> OnMapChanged;
         public event EventHandler<SessionStartedEventArgs> OnSessionStarted;
+        public event EventHandler<GamePausedEventArgs> OnGamePaused;
         public event EventHandler OnSessionEnded;
         public event EventHandler OnNewGameStarted;
 
@@ -32,6 +41,9 @@ namespace LiveSplit.SourceSplit
         private SigScanTarget _globalEntityListTarget;
         private SigScanTarget _gameDirTarget;
         private SigScanTarget _hostStateTarget;
+        private SigScanTarget _serverStateTarget;
+
+        private bool _gotTickRate;
 
         private SourceSplitSettings _settings;
 
@@ -47,6 +59,19 @@ namespace LiveSplit.SourceSplit
             // detect game offsets in a game/version-independent way by scanning for code signatures
 
             // TODO: refine hl2 2014 signatures once an update after the may 29th one is released
+
+            // CBaseServer::(server_state_t)m_State
+            _serverStateTarget = new SigScanTarget();
+            _serverStateTarget.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
+            // works for every engine.dll
+            // \x83\xf8\x01\x0f\x8c..\x00\x00\x3d\x00\x02\x00\x00\x0f\x8f..\x00\x00\x83\x3d(....)\x02\x7d
+            _serverStateTarget.AddSignature(22,
+                "83 F8 01",                // cmp     eax, 1
+                "0F 8C ?? ?? 00 00",       // jl      loc_200087FB
+                "3D 00 02 00 00",          // cmp     eax, 200h
+                "0F 8F ?? ?? 00 00",       // jg      loc_200087FB
+                "83 3d ?? ?? ?? ?? 02",    // cmp     m_State, 2
+                "7D");                     // jge     short loc_200085FD
 
             // TODO: find a generic curTime signature
             // frameTime->curtime WIP sig, 76% success
@@ -233,7 +258,7 @@ namespace LiveSplit.SourceSplit
         void MemoryReadThread(CancellationTokenSource cts)
         {
             // force windows timer resolution to 1ms. it probably already is though, from the game.
-            SafeNativeMethods.timeBeginPeriod(1);
+            timeBeginPeriod(1);
             // we do a lot of timing critical stuff so this may help out
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
 
@@ -268,7 +293,7 @@ namespace LiveSplit.SourceSplit
         ret:
 
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Normal;
-            SafeNativeMethods.timeEndPeriod(1);
+            timeEndPeriod(1);
         }
 
         // TODO: log fails
@@ -298,7 +323,8 @@ namespace LiveSplit.SourceSplit
             if ((offsets.CurMapPtr = scanner.Scan(_curMapTarget)) == IntPtr.Zero
                 || (offsets.CurTimePtr = scanner.Scan(_curTimeTarget)) == IntPtr.Zero
                 || (offsets.GameDirPtr = scanner.Scan(_gameDirTarget)) == IntPtr.Zero
-                || (offsets.HostStatePtr = scanner.Scan(_hostStateTarget)) == IntPtr.Zero)
+                || (offsets.HostStatePtr = scanner.Scan(_hostStateTarget)) == IntPtr.Zero
+                || (offsets.ServerStatePtr = scanner.Scan(_serverStateTarget)) == IntPtr.Zero)
                 return false;
 
             if ((offsets.SignOnStatePtr = scanner.Scan(_signOnStateTarget1)) == IntPtr.Zero
@@ -382,6 +408,7 @@ namespace LiveSplit.SourceSplit
 
             var state = new GameState(game, offsets);
             this.InitGameState(state);
+            _gotTickRate = false;
 
             var profiler = Stopwatch.StartNew();
             while (!game.HasExited && !cts.IsCancellationRequested)
@@ -389,7 +416,6 @@ namespace LiveSplit.SourceSplit
                 // iteration must never take longer than 1 tick
 
                 this.UpdateGameState(state);
-
                 this.CheckGameState(state);
 
                 state.UpdateCount++;
@@ -403,6 +429,10 @@ namespace LiveSplit.SourceSplit
                 //MapTimesForm.Instance.Text = sleep.Elapsed.ToString();
                 profiler.Restart();
             }
+
+            // if the game crashed, make sure session ends
+            if (state.HostState == HostState.Run)
+                this.SendSessionEndedEvent();
         }
 
         void InitGameState(GameState state)
@@ -426,6 +456,7 @@ namespace LiveSplit.SourceSplit
                 Debug.WriteLine("running game-specific code for: " + state.GameDir);
                 state.GameSupport.OnGameAttached(state);
             }
+            this.SendSetTimingMethodEvent(state.GameSupport?.GameTimingMethod ?? GameTimingMethod.EngineTicks);
         }
 
         void UpdateGameState(GameState state)
@@ -442,6 +473,9 @@ namespace LiveSplit.SourceSplit
 
             state.PrevHostState = state.HostState;
             game.ReadValue(offsets.HostStatePtr, out state.HostState);
+
+            state.PrevServerState = state.ServerState;
+            game.ReadValue(offsets.ServerStatePtr, out state.ServerState);
 
             bool firstTick = false;
 
@@ -520,6 +554,12 @@ namespace LiveSplit.SourceSplit
 
         void CheckGameState(GameState state)
         {
+            if (state.IntervalPerTick > 0 && !_gotTickRate)
+            {
+                _gotTickRate = true;
+                this.SendSetTickRateEvent(state.IntervalPerTick);
+            }
+
             if (state.SignOnState != state.PrevSignOnState)
                 Debug.WriteLine("SignOnState changed to " + state.SignOnState);
 
@@ -527,7 +567,7 @@ namespace LiveSplit.SourceSplit
             if (state.SignOnState == SignOnState.Full && state.HostState == HostState.Run)
             {
                 // note: seems to be slow sometimes. ~3ms
-                this.SendSessionTimeUpdateEvent(state.TickTime);
+                this.SendSessionTimeUpdateEvent(state.TickCount);
 
                 // first tick when player is fully in game
                 if (state.SignOnState != state.PrevSignOnState)
@@ -537,6 +577,11 @@ namespace LiveSplit.SourceSplit
 
                     state.GameSupport?.OnSessionStart(state);
                 }
+
+                if (state.ServerState == ServerState.Paused && state.PrevServerState == ServerState.Active)
+                    this.SendGamePausedEvent(true);
+                else if (state.ServerState == ServerState.Active && state.PrevServerState == ServerState.Paused)
+                    this.SendGamePausedEvent(false);
 
                 if (state.GameSupport != null)
                     this.HandleGameSupportResult(state.GameSupport.OnUpdate(state), state);
@@ -593,10 +638,10 @@ namespace LiveSplit.SourceSplit
             switch (result)
             {
                 case GameSupportResult.PlayerGainedControl:
-                    this.SendGainedControlEvent(state.GameSupport.StartOffsetTicks * state.IntervalPerTick);
+                    this.SendGainedControlEvent(state.GameSupport.StartOffsetTicks);
                     break;
                 case GameSupportResult.PlayerLostControl:
-                    this.SendLostControlEvent(state.GameSupport.EndOffsetTicks * state.IntervalPerTick);
+                    this.SendLostControlEvent(state.GameSupport.EndOffsetTicks);
                     break;
             }
         }
@@ -609,25 +654,25 @@ namespace LiveSplit.SourceSplit
             }, null);
         }
 
-        public void SendSessionTimeUpdateEvent(float sessionTime)
+        public void SendSessionTimeUpdateEvent(int sessionTicks)
         {
             // note: sometimes this takes a few ms
             _uiThread.Post(d => {
-                this.OnSessionTimeUpdate?.Invoke(this, new SessionTimeUpdateEventArgs(sessionTime));
+                this.OnSessionTimeUpdate?.Invoke(this, new SessionTicksUpdateEventArgs(sessionTicks));
             }, null);
         }
 
-        public void SendGainedControlEvent(float timeOffset)
+        public void SendGainedControlEvent(int ticksOffset)
         {
             _uiThread.Post(d => {
-                this.OnPlayerGainedControl?.Invoke(this, new PlayerControlChangedEventArgs(timeOffset));
+                this.OnPlayerGainedControl?.Invoke(this, new PlayerControlChangedEventArgs(ticksOffset));
             }, null);
         }
 
-        public void SendLostControlEvent(float timeOffset)
+        public void SendLostControlEvent(int ticksOffset)
         {
             _uiThread.Post(d => {
-                this.OnPlayerLostControl?.Invoke(this, new PlayerControlChangedEventArgs(timeOffset));
+                this.OnPlayerLostControl?.Invoke(this, new PlayerControlChangedEventArgs(ticksOffset));
             }, null);
         }
 
@@ -649,6 +694,27 @@ namespace LiveSplit.SourceSplit
         {
             _uiThread.Post(d => {
                 this.OnNewGameStarted?.Invoke(this, EventArgs.Empty);
+            }, null);
+        }
+
+        public void SendGamePausedEvent(bool paused)
+        {
+            _uiThread.Post(d => {
+                this.OnGamePaused?.Invoke(this, new GamePausedEventArgs(paused));
+            }, null);
+        }
+
+        public void SendSetTickRateEvent(float intervalPerTick)
+        {
+            _uiThread.Post(d => {
+                this.OnSetTickRate?.Invoke(this, new SetTickRateEventArgs(intervalPerTick));
+            }, null);
+        }
+
+        public void SendSetTimingMethodEvent(GameTimingMethod gameTimingMethod)
+        {
+            _uiThread.Post(d => {
+                this.OnSetTimingMethod?.Invoke(this, new SetTimingMethodEventArgs(gameTimingMethod));
             }, null);
         }
 
@@ -705,19 +771,19 @@ namespace LiveSplit.SourceSplit
 
     class PlayerControlChangedEventArgs : EventArgs
     {
-        public float TimeOffset { get; private set; }
-        public PlayerControlChangedEventArgs(float timeOffset)
+        public int TicksOffset { get; private set; }
+        public PlayerControlChangedEventArgs(int ticksOffset)
         {
-            this.TimeOffset = timeOffset;
+            this.TicksOffset = ticksOffset;
         }
     }
 
-    class SessionTimeUpdateEventArgs : EventArgs
+    class SessionTicksUpdateEventArgs : EventArgs
     {
-        public float SessionTime { get; private set; }
-        public SessionTimeUpdateEventArgs(float sessionTime)
+        public int SessionTicks { get; private set; }
+        public SessionTicksUpdateEventArgs(int sessionTicks)
         {
-            this.SessionTime = sessionTime;
+            this.SessionTicks = sessionTicks;
         }
     }
 
@@ -728,6 +794,40 @@ namespace LiveSplit.SourceSplit
         {
             this.Map = map;
         }
+    }
+
+    class GamePausedEventArgs : EventArgs
+    {
+        public bool Paused { get; private set; }
+        public GamePausedEventArgs(bool paused)
+        {
+            this.Paused = paused;
+        }
+    }
+
+    class SetTickRateEventArgs : EventArgs
+    {
+        public float IntervalPerTick { get; private set; }
+        public SetTickRateEventArgs(float intervalPerTick)
+        {
+            this.IntervalPerTick = intervalPerTick;
+        }
+    }
+
+    class SetTimingMethodEventArgs : EventArgs
+    {
+        public GameTimingMethod GameTimingMethod { get; private set; }
+        public SetTimingMethodEventArgs(GameTimingMethod gameTimingMethod)
+        {
+            this.GameTimingMethod = gameTimingMethod;
+        }
+    }
+
+    public enum GameTimingMethod
+    {
+        EngineTicks,
+        EngineTicksWithPauses,
+        //RealTimeWithoutLoads
     }
 
     enum SignOnState
@@ -753,6 +853,15 @@ namespace LiveSplit.SourceSplit
         GameShutdown = 5,
         Shutdown = 6,
         Restart = 7
+    }
+
+    // server_state_t
+    enum ServerState
+    {
+        Dead,
+        Loading,
+        Active,
+        Paused
     }
 
     // MapLoadType_t

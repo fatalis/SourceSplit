@@ -19,6 +19,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public HL2Ep1()
         {
+            this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "ep1_citadel_00";
             this.LastMap = "ep1_c17_06";
         }

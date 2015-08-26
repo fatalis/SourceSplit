@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Xml;
@@ -11,7 +10,15 @@ namespace LiveSplit.SourceSplit
     {
         Whitelist,
         Interval
-    };
+    }
+
+    public enum GameTimingMethodSetting
+    {
+        Automatic,
+        EngineTicks,
+        EngineTicksWithPauses,
+        //RealTimeWithoutLoads
+    }
 
     public partial class SourceSplitSettings : UserControl
     {
@@ -21,16 +28,7 @@ namespace LiveSplit.SourceSplit
         public bool ShowGameTime { get; set; }
         public bool AutoStartEndResetEnabled { get; set; }
 
-        private readonly object _lock = new object();
-
-        private const int DEFAULT_SPLITINTERVAL = 1;
-        private const bool DEFAULT_SHOWGAMETIME = true;
-        private const bool DEFAULT_AUTOSPLIT_ENABLED = true;
-        private const bool DEFAULT_AUTOSTARTENDRESET_ENABLED = true;
-        private const AutoSplitType DEFAULT_AUTOSPLITYPE = AutoSplitType.Interval;
-
         public string[] MapWhitelist => GetListboxValues(this.lbMapWhitelist);
-
         public string[] MapBlacklist => GetListboxValues(this.lbMapBlacklist);
 
         public string[] GameProcesses
@@ -41,14 +39,54 @@ namespace LiveSplit.SourceSplit
             }
         }
 
+        public GameTimingMethodSetting GameTimingMethod
+        {
+            get
+            {
+                switch ((string)this.cmbTimingMethod.SelectedItem)
+                {
+                    case "Engine Ticks":
+                        return GameTimingMethodSetting.EngineTicks;
+                    case "Engine Ticks with Pauses":
+                        return GameTimingMethodSetting.EngineTicksWithPauses;
+                    default:
+                        return GameTimingMethodSetting.Automatic;
+                }
+            }
+            set
+            {
+                switch (value)
+                {
+                    case GameTimingMethodSetting.EngineTicks:
+                        this.cmbTimingMethod.SelectedItem = "Engine Ticks";
+                        break;
+                    case GameTimingMethodSetting.EngineTicksWithPauses:
+                        this.cmbTimingMethod.SelectedItem = "Engine Ticks with Pauses";
+                        break;
+                    default:
+                        this.cmbTimingMethod.SelectedItem = "Automatic";
+                        break;
+                }
+            }
+        }
+
+        private readonly object _lock = new object();
+
+        private const int DEFAULT_SPLITINTERVAL = 1;
+        private const bool DEFAULT_SHOWGAMETIME = true;
+        private const bool DEFAULT_AUTOSPLIT_ENABLED = true;
+        private const bool DEFAULT_AUTOSTARTENDRESET_ENABLED = true;
+        private const AutoSplitType DEFAULT_AUTOSPLITYPE = AutoSplitType.Interval;
+        private const GameTimingMethodSetting DEFAULT_GAME_TIMING_METHOD = GameTimingMethodSetting.Automatic;
+
         public SourceSplitSettings()
         {
             this.InitializeComponent();
             
-            this.chkAutoSplitEnabled.DataBindings.Add("Checked", this, "AutoSplitEnabled", false, DataSourceUpdateMode.OnPropertyChanged);
-            this.dmnSplitInterval.DataBindings.Add("Value", this, "SplitInterval", false, DataSourceUpdateMode.OnPropertyChanged);
-            this.chkShowGameTime.DataBindings.Add("Checked", this, "ShowGameTime", false, DataSourceUpdateMode.OnPropertyChanged);
-            this.chkAutoStartEndReset.DataBindings.Add("Checked", this, "AutoStartEndResetEnabled", false, DataSourceUpdateMode.OnPropertyChanged);
+            this.chkAutoSplitEnabled.DataBindings.Add("Checked", this, nameof(this.AutoSplitEnabled), false, DataSourceUpdateMode.OnPropertyChanged);
+            this.dmnSplitInterval.DataBindings.Add("Value", this, nameof(this.SplitInterval), false, DataSourceUpdateMode.OnPropertyChanged);
+            this.chkShowGameTime.DataBindings.Add("Checked", this, nameof(this.ShowGameTime), false, DataSourceUpdateMode.OnPropertyChanged);
+            this.chkAutoStartEndReset.DataBindings.Add("Checked", this, nameof(this.AutoStartEndResetEnabled), false, DataSourceUpdateMode.OnPropertyChanged);
 
             this.rdoWhitelist.CheckedChanged += rdoAutoSplitType_CheckedChanged;
             this.rdoInterval.CheckedChanged += rdoAutoSplitType_CheckedChanged;
@@ -65,6 +103,7 @@ namespace LiveSplit.SourceSplit
             this.ShowGameTime = DEFAULT_SHOWGAMETIME;
             this.AutoSplitEnabled = DEFAULT_AUTOSPLIT_ENABLED;
             this.AutoStartEndResetEnabled = DEFAULT_AUTOSTARTENDRESET_ENABLED;
+            this.GameTimingMethod = DEFAULT_GAME_TIMING_METHOD;
 
             this.UpdateDisabledControls(this, EventArgs.Empty);
         }
@@ -85,23 +124,25 @@ namespace LiveSplit.SourceSplit
 
             settingsNode.AppendChild(ToElement(doc, "Version", Assembly.GetExecutingAssembly().GetName().Version.ToString(3)));
 
-            settingsNode.AppendChild(ToElement(doc, "AutoSplitEnabled", this.AutoSplitEnabled));
-            settingsNode.AppendChild(ToElement(doc, "SplitInterval", this.SplitInterval));
+            settingsNode.AppendChild(ToElement(doc, nameof(this.AutoSplitEnabled), this.AutoSplitEnabled));
+            settingsNode.AppendChild(ToElement(doc, nameof(this.SplitInterval), this.SplitInterval));
 
             string whitelist = String.Join("|", this.MapWhitelist);
-            settingsNode.AppendChild(ToElement(doc, "MapWhitelist", whitelist));
+            settingsNode.AppendChild(ToElement(doc, nameof(this.MapWhitelist), whitelist));
 
             string blacklist = String.Join("|", this.MapBlacklist);
-            settingsNode.AppendChild(ToElement(doc, "MapBlacklist", blacklist));
+            settingsNode.AppendChild(ToElement(doc, nameof(this.MapBlacklist), blacklist));
 
             string gameProcesses = String.Join("|", this.GameProcesses);
-            settingsNode.AppendChild(ToElement(doc, "GameProcesses", gameProcesses));
+            settingsNode.AppendChild(ToElement(doc, nameof(this.GameProcesses), gameProcesses));
 
-            settingsNode.AppendChild(ToElement(doc, "AutoSplitType", this.AutoSplitType));
+            settingsNode.AppendChild(ToElement(doc, nameof(this.AutoSplitType), this.AutoSplitType));
 
-            settingsNode.AppendChild(ToElement(doc, "ShowGameTime", this.ShowGameTime));
+            settingsNode.AppendChild(ToElement(doc, nameof(this.ShowGameTime), this.ShowGameTime));
 
-            settingsNode.AppendChild(ToElement(doc, "AutoStartEndResetEnabled", this.AutoStartEndResetEnabled));
+            settingsNode.AppendChild(ToElement(doc, nameof(this.GameTimingMethod), this.GameTimingMethod));
+
+            settingsNode.AppendChild(ToElement(doc, nameof(this.AutoStartEndResetEnabled), this.AutoStartEndResetEnabled));
 
             return settingsNode;
         }
@@ -111,43 +152,48 @@ namespace LiveSplit.SourceSplit
             bool bval;
             int ival;
 
-            this.AutoSplitEnabled = settings["AutoSplitEnabled"] != null ?
-                (Boolean.TryParse(settings["AutoSplitEnabled"].InnerText, out bval) ? bval : DEFAULT_AUTOSPLIT_ENABLED)
-                : false;
+            this.AutoSplitEnabled = settings[nameof(this.AutoSplitEnabled)] != null ?
+                (Boolean.TryParse(settings[nameof(this.AutoSplitEnabled)].InnerText, out bval) ? bval : DEFAULT_AUTOSPLIT_ENABLED)
+                : DEFAULT_AUTOSPLIT_ENABLED;
 
-            this.AutoStartEndResetEnabled = settings["AutoStartEndResetEnabled"] != null ?
-                (Boolean.TryParse(settings["AutoStartEndResetEnabled"].InnerText, out bval) ? bval : DEFAULT_AUTOSTARTENDRESET_ENABLED)
-                : false;
+            this.AutoStartEndResetEnabled = settings[nameof(this.AutoStartEndResetEnabled)] != null ?
+                (Boolean.TryParse(settings[nameof(this.AutoStartEndResetEnabled)].InnerText, out bval) ? bval : DEFAULT_AUTOSTARTENDRESET_ENABLED)
+                : DEFAULT_AUTOSTARTENDRESET_ENABLED;
 
-            this.SplitInterval = settings["SplitInterval"] != null ?
-                (Int32.TryParse(settings["SplitInterval"].InnerText, out ival) ? ival : DEFAULT_SPLITINTERVAL)
-                : 1;
+            this.SplitInterval = settings[nameof(this.SplitInterval)] != null ?
+                (Int32.TryParse(settings[nameof(this.SplitInterval)].InnerText, out ival) ? ival : DEFAULT_SPLITINTERVAL)
+                : DEFAULT_SPLITINTERVAL;
 
-            this.ShowGameTime = settings["ShowGameTime"] != null ?
-                (Boolean.TryParse(settings["ShowGameTime"].InnerText, out bval) ? bval : DEFAULT_SHOWGAMETIME)
-                : true;
+            this.ShowGameTime = settings[nameof(this.ShowGameTime)] != null ?
+                (Boolean.TryParse(settings[nameof(this.ShowGameTime)].InnerText, out bval) ? bval : DEFAULT_SHOWGAMETIME)
+                : DEFAULT_SHOWGAMETIME;
+
+            GameTimingMethodSetting gtm;
+            this.GameTimingMethod = settings[nameof(this.GameTimingMethod)] != null ?
+                Enum.TryParse(settings[nameof(this.GameTimingMethod)].InnerText, out gtm) ? gtm : DEFAULT_GAME_TIMING_METHOD
+                : DEFAULT_GAME_TIMING_METHOD;
 
             AutoSplitType splitType;
-            this.AutoSplitType = settings["AutoSplitType"] != null ?
-                (Enum.TryParse(settings["AutoSplitType"].InnerText, out splitType) ? splitType : DEFAULT_AUTOSPLITYPE)
+            this.AutoSplitType = settings[nameof(this.AutoSplitType)] != null ?
+                (Enum.TryParse(settings[nameof(this.AutoSplitType)].InnerText, out splitType) ? splitType : DEFAULT_AUTOSPLITYPE)
                 : AutoSplitType.Interval;
             this.rdoInterval.Checked = this.AutoSplitType == AutoSplitType.Interval;
             this.rdoWhitelist.Checked = this.AutoSplitType == AutoSplitType.Whitelist;
 
             this.lbMapWhitelist.Rows.Clear();
-            string whitelist = settings["MapWhitelist"]?.InnerText ?? String.Empty;
+            string whitelist = settings[nameof(this.MapWhitelist)]?.InnerText ?? String.Empty;
             foreach (string map in whitelist.Split('|'))
                 this.lbMapWhitelist.Rows.Add(map);
 
             this.lbMapBlacklist.Rows.Clear();
-            string blacklist = settings["MapBlacklist"]?.InnerText ?? String.Empty;
+            string blacklist = settings[nameof(this.MapBlacklist)]?.InnerText ?? String.Empty;
             foreach (string map in blacklist.Split('|'))
                 this.lbMapBlacklist.Rows.Add(map);
 
             lock (_lock)
             {
                 this.lbGameProcesses.Rows.Clear();
-                string gameProcesses = settings["GameProcesses"]?.InnerText ?? String.Empty;
+                string gameProcesses = settings[nameof(this.GameProcesses)]?.InnerText ?? String.Empty;
                 foreach (string process in gameProcesses.Split('|'))
                     this.lbGameProcesses.Rows.Add(process);
             }
@@ -203,18 +249,6 @@ namespace LiveSplit.SourceSplit
         void btnShowMapTimes_Click(object sender, EventArgs e)
         {
             MapTimesForm.Instance.Show();
-        }
-
-        void btnOpenDocs_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                Process.Start("https://github.com/fatalis/sourcesplit/blob/master/README.md");
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine(ex.ToString());
-            }
         }
     }
 }

@@ -17,6 +17,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public HL2Ep2()
         {
+            this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "ep2_outland_01";
             this.LastMap = "ep2_outland_12a";
             this.RequiredProperties = PlayerProperties.ParentEntity;
