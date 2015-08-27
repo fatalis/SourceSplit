@@ -57,7 +57,7 @@ There are some situations where the timing can be off by a few ticks:
 
 However, these cases are rare. While I was making sure the timing is accurate, I actually discovered bugs (much more severe relative to these rare cases) in several other timers and demo tools. If you notice that the timing is different from another timer, it's most likely because the other one isn't as accurate as SourceSplit.
 
-tl;dr I'm confident with the timing and you can and should use it for ~official~ purposes.
+tl;dr I'm confident with the timing and you can and should use it for ~official~ purposes. But probably not Individual Levels.
 
 Change Log
 ----------
