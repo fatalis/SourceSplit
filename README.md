@@ -46,18 +46,16 @@ Technical Information
 Reading game memory and [signature scanning]. This method is used in order to try to support every game and engine version, including ones I've never tested at all. The code would be a lot simpler if it were targetting just one game. A ton of reverse engineering was required to do this. Tools used: IDA Pro, OllyDbg, Source SDK.
 
 #### Timing Accuracy
-Note: 1 tick is 15 or 16.6666 milliseconds. You can think of it as around the same as one frame at 60FPS. The timing emulates what the engine does when recording a demo.
+Note: 1 tick is 15 or 16.666... milliseconds. You can think of it as around the same as one frame at 60FPS. The timing emulates what the engine does when recording a demo.
 
 Many hours were put into making sure the timer is as accurate as possible. For games with auto-start/end support, timing has tick-perfect accuracy >99% of the time. Otherwise timing accuracy depends on the user (start, end), just like RTA.
 
 There are some situations where the timing can be off by a few ticks:
 
   * If your frame rate is lower than the tick rate, a few ticks can be lost on auto-start/end. 
-  * Due to the nature of how SourceSplit reads game memory on a time interval, a few ticks can be lost if it misses the interval. This should almost never happen, unless you have a truly ancient computer.
+  * Due to the nature of how SourceSplit reads game memory on a time interval, a few ticks can be lost if it misses the interval.
 
-However, these cases are rare. While I was making sure the timing is accurate, I actually discovered bugs (much more severe relative to these rare cases) in several other timers and demo tools. If you notice that the timing is different from another timer, it's most likely because the other one isn't as accurate as SourceSplit.
-
-tl;dr I'm confident with the timing and you can and should use it for ~official~ purposes. But probably not Individual Levels.
+tl;dr The timing is very accurate and should never be more than half of a second off.
 
 Change Log
 ----------
