@@ -76,14 +76,13 @@ namespace LiveSplit.SourceSplit
             
         public SourceSplitComponent(LiveSplitState state, bool isLayoutComponent)
         {
+#if DEBUG
             // make Debug.WriteLine prepend update count and tick count
-            while (Debug.Listeners.Count > 0)
-                Debug.Listeners.RemoveAt(0);
+            Debug.Listeners.Clear();
             Debug.Listeners.Add(TimedTraceListener.Instance);
-            while (Trace.Listeners.Count > 0)
-                Trace.Listeners.RemoveAt(0);
-            Trace.Listeners.Add(TimedTraceListener.Instance); // is it okay to use the same instance?
-            //Debug.AutoFlush = Trace.AutoFlush = true;
+            Trace.Listeners.Clear();
+            Trace.Listeners.Add(TimedTraceListener.Instance);
+#endif
 
             this.IsLayoutComponent = isLayoutComponent;
 
