@@ -87,7 +87,7 @@ namespace LiveSplit.SourceSplit
                     continue;
 
                 IntPtr namePtr;
-                this.GameProcess.ReadValue(info.EntityPtr + this.GameOffsets.BaseEntityTargetNameOffset, out namePtr);
+                this.GameProcess.ReadPointer(info.EntityPtr + this.GameOffsets.BaseEntityTargetNameOffset, false, out namePtr);
                 if (namePtr == IntPtr.Zero)
                     continue;
 
