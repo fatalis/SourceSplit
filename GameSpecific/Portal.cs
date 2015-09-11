@@ -49,7 +49,18 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (this.IsFirstMap)
+            {
+                // vault save
+                if (state.TickBase == 4261 && !_onceFlag)
+                {
+                    _onceFlag = true;
+                    this.StartOffsetTicks = -3534; // 53.01 seconds
+                    return GameSupportResult.PlayerGainedControl;
+                }
+
+                this.StartOffsetTicks = 1;
                 return base.OnUpdate(state);
+            }
             else if (!this.IsLastMap || _onceFlag)
                 return GameSupportResult.DoNothing;
 

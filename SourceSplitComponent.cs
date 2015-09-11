@@ -208,6 +208,14 @@ namespace LiveSplit.SourceSplit
             _totalMapTicks = 0;
             _gamePauseTime = null;
 
+            // hack to make sure Portal players aren't using manual offset. we handle offset automatically now.
+            // remove this eventually
+            if (_timer.CurrentState.PauseTime.Seconds == 53 && _timer.CurrentState.PauseTime.Milliseconds == 10)
+            {
+                _timer.CurrentState.PauseTime = TimeSpan.Zero;
+                _timer.CurrentState.Run.Offset = TimeSpan.Zero;
+            }
+
             if (_timer.CurrentState.PauseTime >= TimeSpan.Zero)
                 _sessionTicksOffset = _sessionTicks - (int)(_timer.CurrentState.PauseTime.TotalSeconds / _intervalPerTick);
             else
