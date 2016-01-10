@@ -397,7 +397,16 @@ namespace LiveSplit.SourceSplit
 
             IntPtr addr = scanner.Scan(target);
             if (addr == IntPtr.Zero)
-                return false;
+            {
+                // seen in Black Mesa Source (legacy version)
+                var target2 = new SigScanTarget(1,
+                 "68 ?? ?? ?? ??",                                  // push    256
+                $"68 {b[0]:X02} {b[1]:X02} {b[2]:X02} {b[3]:X02}"); // push    offset aM_fflags ; "m_fFlags"
+                addr = scanner.Scan(target2);
+
+                if (addr == IntPtr.Zero)
+                    return false;
+            }
 
             return game.ReadValue(addr, out offset);
         }
