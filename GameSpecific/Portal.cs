@@ -18,6 +18,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public Portal()
         {
+            this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.AutoStartType = AutoStart.ViewEntityChanged;
             this.FirstMap = "testchmb_a_00";
             this.LastMap = "escape_02";
