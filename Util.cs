@@ -18,7 +18,7 @@ namespace LiveSplit.SourceSplit
             // http://forums.steampowered.com/forums/showthread.php?t=2465755
             // http://en.wikipedia.org/wiki/Valve_Anti-Cheat#Games_that_support_VAC
             string[] badExes = { "csgo", "dota2", "swarm", "left4dead",
-                "left4dead2", "dinodday", "insurgency", "nucleardawn", "ship" };
+                "dinodday", "insurgency", "nucleardawn", "ship" };
             string[] badMods = { "cstrike", "dods", "hl2mp", "insurgency", "tf", "zps" };
             string[] badRootDirs = { "Dark Messiah of Might and Magic Multi-Player" };
 
