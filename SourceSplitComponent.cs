@@ -210,14 +210,14 @@ namespace LiveSplit.SourceSplit
 
             // hack to make sure Portal players aren't using manual offset. we handle offset automatically now.
             // remove this eventually
-            if (_timer.CurrentState.PauseTime.Seconds == 53 && _timer.CurrentState.PauseTime.Milliseconds == 10)
+            if (_timer.CurrentState.TimePausedAt.Seconds == 53 && _timer.CurrentState.TimePausedAt.Milliseconds == 10)
             {
-                _timer.CurrentState.PauseTime = TimeSpan.Zero;
+                _timer.CurrentState.TimePausedAt = TimeSpan.Zero;
                 _timer.CurrentState.Run.Offset = TimeSpan.Zero;
             }
 
-            if (_timer.CurrentState.PauseTime >= TimeSpan.Zero)
-                _sessionTicksOffset = _sessionTicks - (int)(_timer.CurrentState.PauseTime.TotalSeconds / _intervalPerTick);
+            if (_timer.CurrentState.TimePausedAt >= TimeSpan.Zero)
+                _sessionTicksOffset = _sessionTicks - (int)(_timer.CurrentState.TimePausedAt.TotalSeconds / _intervalPerTick);
             else
                 _waitingForDelay = true;
         }
