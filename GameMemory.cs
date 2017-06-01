@@ -447,7 +447,7 @@ namespace LiveSplit.SourceSplit
         void InitGameState(GameState state)
         {
             string absoluteGameDir;
-            state.GameProcess.ReadString(state.GameOffsets.GameDirPtr, ReadStringType.ASCII, 260, out absoluteGameDir);
+            state.GameProcess.ReadString(state.GameOffsets.GameDirPtr, ReadStringType.UTF8, 260, out absoluteGameDir);
             state.GameDir = new DirectoryInfo(absoluteGameDir).Name.ToLower();
             Debug.WriteLine("gameDir = " + state.GameDir);
 
