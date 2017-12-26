@@ -105,6 +105,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             switch (gameDir.ToLower())
             {
+				case "hl2oe":
                 case "hl2":
                 case "ghosting":
                 case "ghostingmod":
