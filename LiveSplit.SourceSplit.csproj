@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GameSpecific\ApertureTag.cs" />
+    <Compile Include="GameSpecific\BMSRetail.cs" />
     <Compile Include="GameSpecific\GameSupport.cs" />
     <Compile Include="GameSpecific\HL2.cs" />
     <Compile Include="GameSpecific\HL2Ep1.cs" />
