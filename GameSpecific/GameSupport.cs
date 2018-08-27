@@ -123,6 +123,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new ApertureTag();
                 case "portal_stories":
                     return new PortalStoriesMel();
+                case "bms":
+                    return new BMSRetail();
             }
 
             return null;

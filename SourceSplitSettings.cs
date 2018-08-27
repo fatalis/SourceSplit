@@ -98,6 +98,7 @@ namespace LiveSplit.SourceSplit
             this.lbGameProcesses.Rows.Add("dearesther.exe");
             this.lbGameProcesses.Rows.Add("mm.exe");
             this.lbGameProcesses.Rows.Add("EYE.exe");
+            this.lbGameProcesses.Rows.Add("bms.exe");
             this.SplitInterval = DEFAULT_SPLITINTERVAL;
             this.AutoSplitType = DEFAULT_AUTOSPLITYPE;
             this.ShowGameTime = DEFAULT_SHOWGAMETIME;

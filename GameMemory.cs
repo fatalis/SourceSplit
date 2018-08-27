@@ -130,11 +130,22 @@ namespace LiveSplit.SourceSplit
                 "E8 ?? ?? ?? ??",          // call    sub_100CE390
                 "8B 0D ?? ?? ?? ??",       // mov     ecx, dword_1043686C
                 "D9 1D");                  // fstp    frametime
+            // bms retail
+            // \xa3....\x89\x15....\xe8....\xd9\x1d....\xb9....\xe8....\x8b\x0d....\xd9\x1d
+            _curTimeTarget.AddSignature(18,
+                "A3 ?? ?? ?? ??",          // mov     dword_103B4AC8, eax
+                "89 15 ?? ?? ?? ??",       // mov     dword_10452F38, edx
+                "E8 ?? ?? ?? ??",          // call    sub_100CE610
+                "D9 1D ?? ?? ?? ??",       // fstp    curTime
+                "B9 ?? ?? ?? ??",          // mov     ecx, offset unk_10452D98
+                "E8 ?? ?? ?? ??",          // call    sub_100CE390
+                "8B 0D ?? ?? ?? ??",       // mov     ecx, dword_1043686C
+                "D9 1D");                  // fstp    frametime
 
             // CBaseClientState::m_nSignOnState (older engines)
             _signOnStateTarget1 = new SigScanTarget();
             _signOnStateTarget1.OnFound = (proc, scanner, ptr) => proc.ReadPointer(ptr, out ptr) ? ptr : IntPtr.Zero;
-            // orange box and older
+            // orange box and older (and bms retail)
             // \x80\x3d....\x00\x74\x06\xb8....\xc3\x83\x3d(....)\x02\xb8
             _signOnStateTarget1.AddSignature(17,
                 "80 3D ?? ?? ?? ?? 00",    // cmp     byte_698EE114, 0
@@ -187,6 +198,15 @@ namespace LiveSplit.SourceSplit
                 "DF F1",                   // fcomip  st, st(1)
                 "DD D8",                   // fstp    st
                 "76 ??",                   // jbe     short loc_6946F651
+                "80 ?? ?? ?? ?? ?? 00");   // cmp     map, 0
+            // bms retail
+            // \xdd.....\xdc.....\xdf\xf1\xdd\xd8\x76.\x80.....\x00
+            _curMapTarget.AddSignature(20,
+                "DD ?? ?? ?? ?? ??",       // fld     [ebp+var_144]
+                "DC ?? ?? ?? ?? ??",       // fsub    dbl_103F36D8
+                "DF F1",                   // fcomip  st, st(1)
+                "DD D8",                   // fstp    st
+                "76 ??",                   // jbe     short loc_101B8F6F
                 "80 ?? ?? ?? ?? ?? 00");   // cmp     map, 0
 
             // CBaseEntityList::(CEntInfo)m_EntPtrArray
