@@ -9,21 +9,19 @@ namespace LiveSplit.SourceSplit.GameSpecific
     {
         // how to match with demos:
         // start: first tick when your position is at 113 -1225 582 (cl_showpos 1)
-        // ending: first tick when view is locked to 0 0 1 (cl_showpos 1)
+        // ending: first tick nihilanth's health is zero
 
         private bool _onceFlag;
         private Vector3f _startPos = new Vector3f(113f, -1225f, 582f);
-        private int _baseCombatCharacaterActiveWeaponOffset = -1;
+        private IntPtr _nihiPtr;
         private int _baseEntityHealthOffset = -1;
-        private int _prevActiveWeapon;
-        private int _prevViewEntity;
 
         public BMSRetail()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "bm_c1a0a";
-            this.LastMap = "bm_c3a2i";
-            this.RequiredProperties = PlayerProperties.Position | PlayerProperties.ViewEntity;
+            this.LastMap = "bm_c4a4a";
+            this.RequiredProperties = PlayerProperties.Position;
         }
 
         public override void OnGameAttached(GameState state)
@@ -33,8 +31,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
 
-            if (GameMemory.GetBaseEntityMemberOffset("m_hActiveWeapon", state.GameProcess, scanner, out _baseCombatCharacaterActiveWeaponOffset))
-                Debug.WriteLine("CBaseCombatCharacater::m_hActiveWeapon offset = 0x" + _baseCombatCharacaterActiveWeaponOffset.ToString("X"));
             if (GameMemory.GetBaseEntityMemberOffset("m_iHealth", state.GameProcess, scanner, out _baseEntityHealthOffset))
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
@@ -45,10 +41,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             _onceFlag = false;
 
-            if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
-                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out _prevActiveWeapon);
+            if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
+            {
+                _nihiPtr = state.GetEntityByName("nihilanth");
+                Debug.WriteLine("Nihilanth pointer = 0x" + _nihiPtr.ToString("X"));
+            }
         }
-        
+
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (_onceFlag)
@@ -64,18 +63,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-            else if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero
-                && _baseEntityHealthOffset != -1)
+            else if (this.IsLastMap && _nihiPtr != IntPtr.Zero)
             {
-                // "OnTrigger" "stripper,StripWeaponsAndSuit,,0,-1"
-                // "OnTrigger" "locked_in,Enable,,0,-1"
-
-                int activeWeapon;
-                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out activeWeapon);
-                int viewEntity;
-                viewEntity = state.PlayerViewEntityIndex;
-                if (activeWeapon == -1 && _prevActiveWeapon == -1
-                    && viewEntity != _prevViewEntity)
+                int nihiHealth;
+                state.GameProcess.ReadValue(_nihiPtr + _baseEntityHealthOffset, out nihiHealth);
+                if (nihiHealth == 0)
                 {
                     int health;
                     state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseEntityHealthOffset, out health);
@@ -87,8 +79,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         return GameSupportResult.PlayerLostControl;
                     }
                 }
-                _prevActiveWeapon = activeWeapon;
-                _prevViewEntity = viewEntity;
             }
             return GameSupportResult.DoNothing;
         }
