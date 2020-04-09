@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using LiveSplit.Model;
+using LiveSplit.Options;
 using LiveSplit.TimeFormatters;
 using LiveSplit.UI.Components;
 using LiveSplit.UI;
@@ -392,10 +393,11 @@ namespace LiveSplit.SourceSplit
             // make split times accurate
             _timer.CurrentState.SetGameTime(this.GameTime);
 
-            bool before = _timer.CurrentState.Settings.DoubleTapPrevention;
-            _timer.CurrentState.Settings.DoubleTapPrevention = false;
+            HotkeyProfile profile = _timer.CurrentState.Settings.HotkeyProfiles[_timer.CurrentState.CurrentHotkeyProfile];
+            bool before = profile.DoubleTapPrevention;
+            profile.DoubleTapPrevention = false;
             _timer.Split();
-            _timer.CurrentState.Settings.DoubleTapPrevention = before;
+            profile.DoubleTapPrevention = before;
         }
 
         // TODO: asterisk for manual start and splits
