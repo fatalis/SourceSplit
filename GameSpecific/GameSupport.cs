@@ -9,7 +9,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public string LastMap { get; protected set; }
 
         // ticks to subtract
-        public int StartOffsetTicks { get; protected set;  }
+        public int StartOffsetTicks { get; protected set; }
         public int EndOffsetTicks { get; protected set; }
 
         public GameTimingMethod GameTimingMethod { get; protected set; } = GameTimingMethod.EngineTicks;
@@ -36,7 +36,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         protected AutoStart AutoStartType
         {
             get { return _autoStartType; }
-            set {
+            set
+            {
                 if (value == AutoStart.Unfrozen)
                     this.RequiredProperties |= PlayerProperties.Flags;
                 else if (value == AutoStart.ViewEntityChanged)
@@ -75,7 +76,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.AutoStartType == AutoStart.Unfrozen
                 && !state.PlayerFlags.HasFlag(FL.FROZEN)
-                &&  state.PrevPlayerFlags.HasFlag(FL.FROZEN))
+                && state.PrevPlayerFlags.HasFlag(FL.FROZEN))
             {
                 Debug.WriteLine("FL_FROZEN removed from player");
                 _onceFlag = true;
@@ -125,6 +126,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new PortalStoriesMel();
                 case "bms":
                     return new BMSRetail();
+                case "lostcoast":
+                    return new lostcoast();
+                case "ptsd":
+                    return new hl2mods_ptsd1();
+                case "missionimprobable":
+                    return new hl2mods_mimp();
+                case "downfall":
+                    return new hl2mods_downfall();
             }
 
             return null;

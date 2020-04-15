@@ -10,6 +10,7 @@ using System.Drawing;
 using System.Linq;
 using System.Xml;
 using System.Windows.Forms;
+using LiveSplit.SourceSplit.GameSpecific;
 
 namespace LiveSplit.SourceSplit
 {
@@ -57,7 +58,7 @@ namespace LiveSplit.SourceSplit
                     default:
                         return _gameRecommendedTimingMethod;
                 }
-            } 
+            }
         }
 
         private TimeSpan GameTime
@@ -74,7 +75,7 @@ namespace LiveSplit.SourceSplit
                 }
             }
         }
-            
+
         public SourceSplitComponent(LiveSplitState state, bool isLayoutComponent)
         {
 #if DEBUG
@@ -89,7 +90,7 @@ namespace LiveSplit.SourceSplit
 
             this.Settings = new SourceSplitSettings();
             this.InternalComponent = new InfoTimeComponent("Game Time", null, new RegularTimeFormatter(TimeAccuracy.Hundredths));
-            
+
             this.ContextMenuControls = new Dictionary<String, Action>();
             this.ContextMenuControls.Add("SourceSplit: Map Times", () => MapTimesForm.Instance.Show());
 
@@ -144,7 +145,7 @@ namespace LiveSplit.SourceSplit
         public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)
         {
             // hack to prevent flicker, doesn't actually pause anything
-            state.IsGameTimePaused = true; 
+            state.IsGameTimePaused = true;
 
             // Update is called every 25ms, so up to 25ms IGT can be lost if using delay and no auto-start
             if (_waitingForDelay)
@@ -227,6 +228,7 @@ namespace LiveSplit.SourceSplit
         {
             MapTimesForm.Instance.Reset();
             _waitingForDelay = false;
+            hl2mods_ptsd1.workaround();  //reset when livesplit resets
         }
 
         void state_OnSplit(object sender, EventArgs e)
@@ -314,7 +316,7 @@ namespace LiveSplit.SourceSplit
         {
             if (!this.Settings.AutoStartEndResetEnabled)
                 return;
-            
+
             _sessionTicksOffset += e.TicksOffset;
             this.DoSplit();
         }
@@ -350,7 +352,7 @@ namespace LiveSplit.SourceSplit
 
         int FakeTicks(DateTime start, DateTime end)
         {
-            return (int)((end-start).TotalSeconds / _intervalPerTick);
+            return (int)((end - start).TotalSeconds / _intervalPerTick);
         }
 
         void AutoSplit(string map)
@@ -422,13 +424,13 @@ namespace LiveSplit.SourceSplit
             this.Settings.SetSettings(settings);
         }
 
-        public float MinimumWidth =>    this.InternalComponent.MinimumWidth;
-        public float MinimumHeight =>   this.InternalComponent.MinimumHeight;
-        public float VerticalHeight =>  this.Settings.ShowGameTime ? this.InternalComponent.VerticalHeight : 0;
+        public float MinimumWidth => this.InternalComponent.MinimumWidth;
+        public float MinimumHeight => this.InternalComponent.MinimumHeight;
+        public float VerticalHeight => this.Settings.ShowGameTime ? this.InternalComponent.VerticalHeight : 0;
         public float HorizontalWidth => this.Settings.ShowGameTime ? this.InternalComponent.HorizontalWidth : 0;
-        public float PaddingLeft =>     this.Settings.ShowGameTime ? this.InternalComponent.PaddingLeft : 0;
-        public float PaddingRight =>    this.Settings.ShowGameTime ? this.InternalComponent.PaddingRight : 0;
-        public float PaddingTop =>      this.Settings.ShowGameTime ? this.InternalComponent.PaddingTop : 0;
-        public float PaddingBottom =>   this.Settings.ShowGameTime ? this.InternalComponent.PaddingBottom : 0;
+        public float PaddingLeft => this.Settings.ShowGameTime ? this.InternalComponent.PaddingLeft : 0;
+        public float PaddingRight => this.Settings.ShowGameTime ? this.InternalComponent.PaddingRight : 0;
+        public float PaddingTop => this.Settings.ShowGameTime ? this.InternalComponent.PaddingTop : 0;
+        public float PaddingBottom => this.Settings.ShowGameTime ? this.InternalComponent.PaddingBottom : 0;
     }
 }

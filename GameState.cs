@@ -80,7 +80,7 @@ namespace LiveSplit.SourceSplit
         {
             const int MAX_ENTS = 2048; // TODO: is portal2's max higher?
 
-            for (int i = 0; i < MAX_ENTS; i++) 
+            for (int i = 0; i < MAX_ENTS; i++)
             {
                 CEntInfoV2 info = this.GetEntInfoByIndex(i);
                 if (info.EntityPtr == IntPtr.Zero)
@@ -99,6 +99,53 @@ namespace LiveSplit.SourceSplit
 
             return IntPtr.Zero;
         }
+
+        public int GetEntIndexByName(string name)
+        {
+            const int MAX_ENTS = 2048; // TODO: is portal2's max higher?
+
+            for (int i = 0; i < MAX_ENTS; i++)
+            {
+                CEntInfoV2 info = this.GetEntInfoByIndex(i);
+                if (info.EntityPtr == IntPtr.Zero)
+                    continue;
+
+                IntPtr namePtr;
+                this.GameProcess.ReadPointer(info.EntityPtr + this.GameOffsets.BaseEntityTargetNameOffset, false, out namePtr);
+                if (namePtr == IntPtr.Zero)
+                    continue;
+
+                string n;
+                this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
+                if (n == name)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        public int GetEntIndexByPos(float x, float y, float z)
+        {
+            Vector3f pos = new Vector3f(x, y, z);
+            const int MAX_ENTS = 2048; // TODO: is portal2's max higher?
+
+            for (int i = 0; i < MAX_ENTS; i++)
+            {
+                CEntInfoV2 info = this.GetEntInfoByIndex(i);
+                if (info.EntityPtr == IntPtr.Zero)
+                    continue;
+
+                Vector3f newpos;
+                if (!this.GameProcess.ReadValue(info.EntityPtr + this.GameOffsets.BaseEntityAbsOriginOffset, out newpos))
+                    continue;
+
+                if (newpos.BitEquals(pos) && i != 1) //not equal 1 becase the player might be in the same exact position
+                    return i;
+            }
+
+            return -1;
+        }
+
     }
 
     struct GameOffsets
@@ -112,7 +159,7 @@ namespace LiveSplit.SourceSplit
         public IntPtr GameDirPtr;
         public IntPtr HostStatePtr;
         // note: only valid during host states: NewGame, ChangeLevelSP, ChangeLevelMP
-        public IntPtr HostStateLevelNamePtr => this.HostStatePtr + (4*8); // note: this may not work pre-ep1 (ancient engine)
+        public IntPtr HostStateLevelNamePtr => this.HostStatePtr + (4 * 8); // note: this may not work pre-ep1 (ancient engine)
         public IntPtr ServerStatePtr;
 
         public CEntInfoSize EntInfoSize;
