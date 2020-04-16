@@ -21,7 +21,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public lostcoast()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "";
+            this.FirstMap = "hdrtest"; //beta%
             this.LastMap = "d2_lostcoast";
             this.RequiredProperties = PlayerProperties.Position;
         }
@@ -42,7 +42,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
-            if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
+            if (this.IsFirstMap || this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
                 this._black_index = state.GetEntIndexByName("blackout");
                 Debug.WriteLine("blackout index is " + this._black_index);
