@@ -72,7 +72,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                 if (this.IsFirstMap)
             {
-                if (state.PlayerViewEntityIndex != state.PrevPlayerViewEntityIndex && startcount == 0)
+                if (state.PrevPlayerViewEntityIndex != GameState.ENT_INDEX_PLAYER
+                    && state.PlayerViewEntityIndex == GameState.ENT_INDEX_PLAYER && startcount == 0)
                 {
                     Debug.WriteLine("ptsd start");
                     _onceFlag = true;

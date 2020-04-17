@@ -134,6 +134,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new hl2mods_mimp();
                 case "downfall":
                     return new hl2mods_downfall();
+                case "uncertaintyprinciple":
+                    return new hl2mods_uncertaintyprinciple();
             }
 
             return null;

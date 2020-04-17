@@ -2,26 +2,33 @@
 using System.Diagnostics;
 using System.Linq;
 using LiveSplit.ComponentUtil;
+using LiveSplit.Model;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class hl2mods_downfall : GameSupport
+    class hl2mods_uncertaintyprinciple : GameSupport
     {
-        // start: when player view entity changes
-        // ending: when elevator button is pressed
+        // start: 2 seconds after the camera's parent entity gets within 8 units of the final path_track
+        // ending: when player is frozen by the camera entity
 
         private const int ENT_INDEX_PLAYER = 1;
         private bool _onceFlag;
 
         private int _baseCombatCharacaterActiveWeaponOffset = -1;
         private int _baseEntityHealthOffset = -1;
-        private int _sprite_index;
 
-        public hl2mods_downfall()
+        private IntPtr _track_index;
+        private IntPtr _cam_index;
+        private CEntInfoV2 player;
+
+        Vector3f trackpos;
+        Vector3f campos;
+
+        public hl2mods_uncertaintyprinciple()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "dwn01";
-            this.LastMap = "dwn01a";
+            this.FirstMap = "up_retreat_a";
+            this.LastMap = "up_night";
         }
 
         public override void OnGameAttached(GameState state)
@@ -42,11 +49,19 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             base.OnSessionStart(state);
 
-            if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
+            if (this.IsFirstMap)
             {
-                this._sprite_index = state.GetEntIndexByName("elevator02_button_sprite");
-                Debug.WriteLine("elevator02_button_sprite index is " + this._sprite_index);
+                this._track_index = state.GetEntityByName("start_cam_corner2");
+                state.GameProcess.ReadValue(_track_index + state.GameOffsets.BaseEntityAbsOriginOffset, out trackpos);
+                Debug.WriteLine("trackpos pos is " + trackpos);
             }
+
+            if (this.IsLastMap)
+            { 
+                this.player = state.GetEntInfoByIndex(ENT_INDEX_PLAYER);
+
+            }
+
             _onceFlag = false;
         }
 
@@ -60,25 +75,29 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                if (state.PrevPlayerViewEntityIndex != GameState.ENT_INDEX_PLAYER
-                    && state.PlayerViewEntityIndex == GameState.ENT_INDEX_PLAYER)
+                this._cam_index = state.GetEntityByName("camera1_train");
+                state.GameProcess.ReadValue(_cam_index + state.GameOffsets.BaseEntityAbsOriginOffset, out campos);
+                Debug.WriteLine("campos is " + campos);
+
+                if (campos.DistanceXY(trackpos) <= 8)
                 {
-                    Debug.WriteLine("downfall start");
+                    Debug.WriteLine("up start");
+                    this.StartOffsetTicks = 134;
                     _onceFlag = true;
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
 
-            else if (this.IsLastMap && _sprite_index != 1)
+            else if (this.IsLastMap)
             {
-                var newblack = state.GetEntInfoByIndex(_sprite_index);
+                FL playerflags;
+                state.GameProcess.ReadValue(player.EntityPtr + state.GameOffsets.BaseEntityFlagsOffset, out playerflags);
 
-                if (newblack.EntityPtr == IntPtr.Zero)
+                if (playerflags.HasFlag(FL.FROZEN))
                 {
-                    _sprite_index = -1;
-                    Debug.WriteLine("mimp end");
+                    Debug.WriteLine("up end");
                     _onceFlag = true;
-                    return GameSupportResult.PlayerLostControl;
+                   return GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;
