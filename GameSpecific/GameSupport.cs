@@ -7,6 +7,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
     {
         public string FirstMap { get; protected set; }
         public string LastMap { get; protected set; }
+        public string FirstMap2 { get; internal set; }
 
         // ticks to subtract
         public int StartOffsetTicks { get; protected set; }
@@ -49,7 +50,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         }
 
         protected bool IsFirstMap { get; private set; }
+        protected bool IsFirstMap2 { get; private set; }
         protected bool IsLastMap { get; private set; }
+
 
         private bool _onceFlag;
 
@@ -62,7 +65,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
             _onceFlag = false;
 
             this.IsFirstMap = state.CurrentMap == this.FirstMap;
-            this.IsLastMap = !this.IsFirstMap && state.CurrentMap == this.LastMap;
+            this.IsFirstMap2 = state.CurrentMap == this.FirstMap2;
+            this.IsLastMap = (!this.IsFirstMap || !this.IsFirstMap2) && state.CurrentMap == this.LastMap;
         }
 
         // called when player no longer fully in the game (map changed, load started)
@@ -136,6 +140,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new hl2mods_downfall();
                 case "uncertaintyprinciple":
                     return new hl2mods_uncertaintyprinciple();
+                case "watchingpaintdry":
+                    return new hl2mods_watchingpaintdry();
+                case "watchingpaintdry2":
+                    return new hl2mods_watchingpaintdry(); //some might rename the folder to this because there are 2 versions
             }
 
             return null;

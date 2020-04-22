@@ -58,6 +58,7 @@
     <Compile Include="GameSpecific\HL2.cs" />
     <Compile Include="GameSpecific\HL2Ep1.cs" />
     <Compile Include="GameSpecific\HL2Ep2.cs" />
+    <Compile Include="GameSpecific\hl2mods_watchingpaintdry.cs" />
     <Compile Include="GameSpecific\hl2mods_uncertaintyprinciple.cs" />
     <Compile Include="GameSpecific\hl2mods_downfall.cs" />
     <Compile Include="GameSpecific\hl2mods_mimp.cs" />
@@ -101,6 +102,9 @@
     <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy "D:\Speedrun\~sourcesplit\own code\SourceSplit\bin\LiveSplit.SourceSplit.dll" "D:\Speedrun\~Livesplits\LiveSplit_1.7.6\Components\LiveSplit.SourceSplit.dll" /y</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

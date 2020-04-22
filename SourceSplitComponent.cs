@@ -229,6 +229,7 @@ namespace LiveSplit.SourceSplit
             MapTimesForm.Instance.Reset();
             _waitingForDelay = false;
             hl2mods_ptsd1.workaround();  //reset when livesplit resets
+            hl2mods_watchingpaintdry.workaround();
         }
 
         void state_OnSplit(object sender, EventArgs e)

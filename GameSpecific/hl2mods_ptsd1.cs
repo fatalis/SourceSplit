@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Linq;
 using LiveSplit.ComponentUtil;
-using LiveSplit.Model;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -61,7 +60,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 Debug.WriteLine("banana2 index is " + this._breen_index);
             }
         
-                _onceFlag = false;
+             _onceFlag = false;
         }
 
 
@@ -70,7 +69,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-                if (this.IsFirstMap)
+            if (this.IsFirstMap)
             {
                 if (state.PrevPlayerViewEntityIndex != GameState.ENT_INDEX_PLAYER
                     && state.PlayerViewEntityIndex == GameState.ENT_INDEX_PLAYER && startcount == 0)

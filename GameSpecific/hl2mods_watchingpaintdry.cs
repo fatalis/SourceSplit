@@ -5,27 +5,31 @@ using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class hl2mods_uncertaintyprinciple : GameSupport
+    class hl2mods_watchingpaintdry : GameSupport
     {
-        // start: 2 seconds after the camera's parent entity gets within 8 units of the final path_track
-        // ending: when player is frozen by the camera entity
+        // start (all categories): on chapter select (only activates on timer reset)
+        // ending (ice): 0.225 seconds (15 ticks) after button moves after it is pressed
+        // ending (ee): 0.2 seconds (~ 14 ticks) after player is frozen by credits camera
 
         private bool _onceFlag;
 
         private int _baseCombatCharacaterActiveWeaponOffset = -1;
         private int _baseEntityHealthOffset = -1;
 
-        private IntPtr _track_index;
-        private IntPtr _cam_index;
+        private Vector3f _crashbutton_newpos = new Vector3f(142.5f, 62f, 251f);
+        private Vector3f _crashbutton_pos;
+        private IntPtr _crashbutton_index;
 
-        Vector3f trackpos;
-        Vector3f campos;
+        private Vector3f _start_pos = new Vector3f(192f, -24f, 1.96845f);
 
-        public hl2mods_uncertaintyprinciple()
+        public static int wpd_counter;
+
+        public hl2mods_watchingpaintdry()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "up_retreat_a";
-            this.LastMap = "up_night";
+            this.FirstMap = "wpd_st";
+            this.FirstMap2 = "watchingpaintdry"; // the mod has 2 versions and for some reason the modder decided to start the 2nd with a completely different set of map names
+            this.LastMap = "wpd_uni";
         }
 
         public override void OnGameAttached(GameState state)
@@ -41,21 +45,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
 
+        public static void workaround()
+        {
+            wpd_counter = 0;
+        }
+
 
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
-
-            if (this.IsFirstMap)
-            {
-                this._track_index = state.GetEntityByName("start_cam_corner2");
-                state.GameProcess.ReadValue(_track_index + state.GameOffsets.BaseEntityAbsOriginOffset, out trackpos);
-                Debug.WriteLine("trackpos pos is " + trackpos);
-            }
-
             _onceFlag = false;
         }
-
 
         public override GameSupportResult OnUpdate(GameState state)
         {
@@ -64,18 +64,24 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 return GameSupportResult.DoNothing;
             }
 
-            if (this.IsFirstMap)
+            if (this.IsFirstMap || this.IsFirstMap2)
             {
-                this._cam_index = state.GetEntityByName("camera1_train");
-                state.GameProcess.ReadValue(_cam_index + state.GameOffsets.BaseEntityAbsOriginOffset, out campos);
-                Debug.WriteLine("campos is " + campos);
+                this._crashbutton_index = state.GetEntityByName("bonzibutton");
+                state.GameProcess.ReadValue(_crashbutton_index + state.GameOffsets.BaseEntityAbsOriginOffset, out _crashbutton_pos);
+                //Debug.WriteLine("_crashbutton_index pos is " + _crashbutton_pos);
 
-                if (campos.DistanceXY(trackpos) <= 8)
+                if (wpd_counter == 0 && state.PlayerPosition.Distance(_start_pos)<=0.001)
                 {
-                    Debug.WriteLine("up start");
-                    this.StartOffsetTicks = 134;
-                    _onceFlag = true;
+                    wpd_counter += 1;
                     return GameSupportResult.PlayerGainedControl;
+                }
+
+                if (_crashbutton_pos.BitEquals(_crashbutton_newpos))
+                {
+                    Debug.WriteLine("wpd ice end");
+                    _onceFlag = true;
+                    this.EndOffsetTicks = 15;
+                    return GameSupportResult.PlayerLostControl;
                 }
             }
 
@@ -83,9 +89,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
             {
                 if (state.PlayerFlags.HasFlag(FL.FROZEN))
                 {
-                    Debug.WriteLine("up end");
+                    Debug.WriteLine("wpd ee end");
                     _onceFlag = true;
-                   return GameSupportResult.PlayerLostControl;
+                    this.EndOffsetTicks = 134;
+                    return GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;
