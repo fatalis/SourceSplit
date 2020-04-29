@@ -114,6 +114,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "hl2":
                 case "ghosting":
                 case "ghostingmod":
+                case "ghostingmod2": //hl2 category extensions, NOTE: these are only guesses for the folder name
+                case "ghostingmod3":
+                case "ghostingmod4":
+                case "cutsceneless":
                     return new HL2();
                 case "episodic":
                     return new HL2Ep1();
@@ -141,9 +145,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "uncertaintyprinciple":
                     return new hl2mods_uncertaintyprinciple();
                 case "watchingpaintdry":
-                    return new hl2mods_watchingpaintdry();
                 case "watchingpaintdry2":
-                    return new hl2mods_watchingpaintdry(); //some might rename the folder to this because there are 2 versions
+                    return new hl2mods_watchingpaintdry();
+                case "mod_episodic":
+                    return new hl2mods_snipersep();
             }
 
             return null;

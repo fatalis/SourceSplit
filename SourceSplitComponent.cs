@@ -228,8 +228,13 @@ namespace LiveSplit.SourceSplit
         {
             MapTimesForm.Instance.Reset();
             _waitingForDelay = false;
-            hl2mods_ptsd1.workaround();  //reset when livesplit resets
+
+            //what is this?
+            //a bodge job to add an "onceflag" that gets reset on timer reset
+            //TODO: find a better method
+            hl2mods_ptsd1.workaround();  
             hl2mods_watchingpaintdry.workaround();
+            hl2mods_snipersep.workaround();
         }
 
         void state_OnSplit(object sender, EventArgs e)

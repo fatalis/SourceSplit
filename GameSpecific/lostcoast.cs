@@ -13,8 +13,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag = false;
 
-        private int _baseCombatCharacaterActiveWeaponOffset = -1;
-        private int _baseEntityHealthOffset = -1;
         private int _black_index;
         private int _trig_index;
 
@@ -24,19 +22,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.FirstMap = "hdrtest"; //beta%
             this.LastMap = "d2_lostcoast";
             this.RequiredProperties = PlayerProperties.Position;
-        }
-
-        public override void OnGameAttached(GameState state)
-        {
-            ProcessModuleWow64Safe server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
-            Trace.Assert(server != null);
-
-            var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
-
-            if (GameMemory.GetBaseEntityMemberOffset("m_hActiveWeapon", state.GameProcess, scanner, out _baseCombatCharacaterActiveWeaponOffset))
-                Debug.WriteLine("CBaseCombatCharacater::m_hActiveWeapon offset = 0x" + _baseCombatCharacaterActiveWeaponOffset.ToString("X"));
-            if (GameMemory.GetBaseEntityMemberOffset("m_iHealth", state.GameProcess, scanner, out _baseEntityHealthOffset))
-                Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
 
         public override void OnSessionStart(GameState state)

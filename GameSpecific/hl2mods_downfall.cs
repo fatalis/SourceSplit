@@ -13,8 +13,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private const int ENT_INDEX_PLAYER = 1;
         private bool _onceFlag;
 
-        private int _baseCombatCharacaterActiveWeaponOffset = -1;
-        private int _baseEntityHealthOffset = -1;
         private int _sprite_index;
 
         public hl2mods_downfall()
@@ -23,20 +21,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.FirstMap = "dwn01";
             this.LastMap = "dwn01a";
         }
-
-        public override void OnGameAttached(GameState state)
-        {
-            ProcessModuleWow64Safe server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
-            Trace.Assert(server != null);
-
-            var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
-
-            if (GameMemory.GetBaseEntityMemberOffset("m_hActiveWeapon", state.GameProcess, scanner, out _baseCombatCharacaterActiveWeaponOffset))
-                Debug.WriteLine("CBaseCombatCharacater::m_hActiveWeapon offset = 0x" + _baseCombatCharacaterActiveWeaponOffset.ToString("X"));
-            if (GameMemory.GetBaseEntityMemberOffset("m_iHealth", state.GameProcess, scanner, out _baseEntityHealthOffset))
-                Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
-        }
-
 
         public override void OnSessionStart(GameState state)
         {

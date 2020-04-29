@@ -13,9 +13,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag;
 
-        private int _baseCombatCharacaterActiveWeaponOffset = -1;
-        private int _baseEntityHealthOffset = -1;
-
         private Vector3f _crashbutton_newpos = new Vector3f(142.5f, 62f, 251f);
         private Vector3f _crashbutton_pos;
         private IntPtr _crashbutton_index;
@@ -32,18 +29,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.LastMap = "wpd_uni";
         }
 
-        public override void OnGameAttached(GameState state)
-        {
-            ProcessModuleWow64Safe server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
-            Trace.Assert(server != null);
-
-            var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
-
-            if (GameMemory.GetBaseEntityMemberOffset("m_hActiveWeapon", state.GameProcess, scanner, out _baseCombatCharacaterActiveWeaponOffset))
-                Debug.WriteLine("CBaseCombatCharacater::m_hActiveWeapon offset = 0x" + _baseCombatCharacaterActiveWeaponOffset.ToString("X"));
-            if (GameMemory.GetBaseEntityMemberOffset("m_iHealth", state.GameProcess, scanner, out _baseEntityHealthOffset))
-                Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
-        }
 
         public static void workaround()
         {
