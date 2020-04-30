@@ -47,7 +47,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsFirstMap)
             {
                 _freeman = state.GetEntityByName("bar");
-                Debug.Write("freeman ptr is 0x" + _freeman.ToString("X"));
+                Debug.WriteLine("freeman ptr is 0x" + _freeman.ToString("X"));
             }
         }
 
@@ -70,7 +70,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 state.GameProcess.ReadValue(_freeman + _baseEntityHealthOffset, out hp);
                 if (hp <= 0)
                 {
-                    Debug.Write("snipersep end");
+                    Debug.WriteLine("snipersep end");
                     _onceFlag = true;
                     return GameSupportResult.PlayerLostControl;
                 }

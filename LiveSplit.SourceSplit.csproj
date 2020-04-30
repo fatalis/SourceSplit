@@ -64,6 +64,7 @@
     <Compile Include="GameSpecific\hl2mods_downfall.cs" />
     <Compile Include="GameSpecific\hl2mods_mimp.cs" />
     <Compile Include="GameSpecific\hl2mods_ptsd1.cs" />
+    <Compile Include="GameSpecific\hl2mods_DeepDown.cs" />
     <Compile Include="GameSpecific\lostcoast.cs" />
     <Compile Include="GameSpecific\Portal.cs" />
     <Compile Include="GameSpecific\Portal2.cs" />

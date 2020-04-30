@@ -235,6 +235,7 @@ namespace LiveSplit.SourceSplit
             hl2mods_ptsd1.workaround();  
             hl2mods_watchingpaintdry.workaround();
             hl2mods_snipersep.workaround();
+            HL2.expfuelworkaround();
         }
 
         void state_OnSplit(object sender, EventArgs e)

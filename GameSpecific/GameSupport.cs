@@ -149,6 +149,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new hl2mods_watchingpaintdry();
                 case "mod_episodic":
                     return new hl2mods_snipersep();
+                case "deepdown":
+                    return new hl2mods_DeepDown();
             }
 
             return null;
