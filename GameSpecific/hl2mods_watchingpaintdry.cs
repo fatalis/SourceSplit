@@ -18,7 +18,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private Vector3f _start_pos = new Vector3f(192f, -24f, 1.96845f);
 
-        public static int wpd_counter;
+        public static bool reserflag;
 
         public hl2mods_watchingpaintdry()
         {
@@ -31,7 +31,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public static void workaround()
         {
-            wpd_counter = 0;
+            reserflag = false;
         }
 
 
@@ -54,9 +54,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 state.GameProcess.ReadValue(_crashbutton_index + state.GameOffsets.BaseEntityAbsOriginOffset, out _crashbutton_pos);
                 //Debug.WriteLine("_crashbutton_index pos is " + _crashbutton_pos);
 
-                if (wpd_counter == 0 && state.PlayerPosition.Distance(_start_pos)<=0.001)
+                if (reserflag == false && state.PlayerPosition.Distance(_start_pos)<=0.001)
                 {
-                    wpd_counter += 1;
+                    reserflag =true;
                     return GameSupportResult.PlayerGainedControl;
                 }
 

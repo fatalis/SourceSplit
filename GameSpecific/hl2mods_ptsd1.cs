@@ -14,7 +14,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
 
         private int _breen_index;
-        public static int startcount;
+        public static bool resetflag;
 
         public hl2mods_ptsd1()
         {
@@ -26,12 +26,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         //this is a check so that the game doesn't split every time the player view entity changes. 
         //normally this isn't needed but for this mod we need to do this
-        //the game will only start if startcount is 0, on every change this counter is increased so the game won't split on another change
+        //the game will only start if resetflag is 0, on every change this counter is increased so the game won't split on another change
         //this will be reset when the timer is reset
 
         public static void workaround() 
         {
-            startcount = 0;
+            resetflag = false;
         }
 
 
@@ -57,11 +57,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsFirstMap)
             {
                 if (state.PrevPlayerViewEntityIndex != GameState.ENT_INDEX_PLAYER
-                    && state.PlayerViewEntityIndex == GameState.ENT_INDEX_PLAYER && startcount == 0)
+                    && state.PlayerViewEntityIndex == GameState.ENT_INDEX_PLAYER && resetflag == false)
                 {
                     Debug.WriteLine("ptsd start");
                     _onceFlag = true;
-                    startcount += 1;
+                    resetflag = true;
                     return GameSupportResult.PlayerGainedControl;
                 }
             }

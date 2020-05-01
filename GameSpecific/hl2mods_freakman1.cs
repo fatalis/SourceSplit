@@ -1,26 +1,28 @@
-﻿using System;
+﻿using LiveSplit.ComponentUtil;
+using System;
 using System.Diagnostics;
 using System.Linq;
-using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class hl2mods_snipersep : GameSupport
+    class hl2mods_freakman1 : GameSupport
     {
-        //start: when player moves (excluding an on-the-spot jump)
-        //end: when "gordon" is killed
+        // start: when intro text entity is killed
+        // ending: when the trigger for alyx to do her wake up animation is hit
 
         private bool _onceFlag;
+
         private int _baseEntityHealthOffset = -1;
-        public static bool resetflag;
 
-        IntPtr _freeman;
-        Vector3f _startpos = new Vector3f(9928f, 12472f, -180f);
+        private int trig_index;
+        private int _kleiner_index;
 
-        public hl2mods_snipersep()
+        public hl2mods_freakman1()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "bestmod2013";
+            this.FirstMap = "gordon1";
+            this.LastMap = "endbattle";
+            this.RequiredProperties = PlayerProperties.Position;
         }
 
         public override void OnGameAttached(GameState state)
@@ -34,44 +36,52 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
 
-        public static void workaround()
-        {
-            resetflag = false;
-        }
-
-
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
-            _onceFlag = false;
+
             if (this.IsFirstMap)
             {
-                _freeman = state.GetEntityByName("bar");
-                Debug.WriteLine("freeman ptr is 0x" + _freeman.ToString("X"));
+                trig_index = state.GetEntIndexByPos(-1472f, -608f, 544f);
+            }
+            _onceFlag = false;
+
+            if (this.IsLastMap)
+            {
+                _kleiner_index = state.GetEntIndexByPos(0f, 0f, 1888f, 1f);
+                Debug.WriteLine("kleiner index is " + _kleiner_index);
             }
         }
+
 
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (_onceFlag)
-            {
                 return GameSupportResult.DoNothing;
-            }
 
-            if (this.IsFirstMap)
+            if (this.IsFirstMap && trig_index != -1)
             {
-                if (!state.PlayerPosition.BitEqualsXY(_startpos) && resetflag == false)
+                var newtrig = state.GetEntInfoByIndex(trig_index);
+                
+                if (newtrig.EntityPtr == IntPtr.Zero)
                 {
-                    resetflag = true;
+                    trig_index = -1;
+                    _onceFlag = true;
+                    Debug.WriteLine("freakman1 start");
                     return GameSupportResult.PlayerGainedControl;
                 }
+            }
 
+            else if (this.IsLastMap && _kleiner_index != -1)
+            {
+                var kleiner = state.GetEntInfoByIndex(_kleiner_index);
                 int hp;
-                state.GameProcess.ReadValue(_freeman + _baseEntityHealthOffset, out hp);
+                state.GameProcess.ReadValue(kleiner.EntityPtr + _baseEntityHealthOffset, out hp);
+
                 if (hp <= 0)
                 {
-                    Debug.WriteLine("snipersep end");
                     _onceFlag = true;
+                    Debug.WriteLine("freakman1 end");
                     return GameSupportResult.PlayerLostControl;
                 }
             }

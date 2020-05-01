@@ -136,6 +136,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new BMSRetail();
                 case "lostcoast":
                     return new lostcoast();
+                case "estrangedact1":
+                    return new estrangedact1();
                 case "ptsd":
                     return new hl2mods_ptsd1();
                 case "missionimprobable":
@@ -151,6 +153,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new hl2mods_snipersep();
                 case "deepdown":
                     return new hl2mods_DeepDown();
+                case "dank_memes":
+                    return new hl2mods_dankmemes();
+                case "freakman":
+                    return new hl2mods_freakman1();
             }
 
             return null;

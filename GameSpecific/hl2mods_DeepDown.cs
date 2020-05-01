@@ -6,9 +6,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
     class hl2mods_DeepDown : GameSupport
     {
         // start: when intro text entity is killed
-        // ending: 16 seconds after a trigger_once is triggered
+        // ending: when the trigger for alyx to do her wake up animation is hit
 
-        private bool _onceFlag = false;
+        private bool _onceFlag;
 
         private int _intro_index;
         private int _trig_index;
@@ -62,7 +62,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("deepdown end");
                     _onceFlag = true;
-                    this.EndOffsetTicks = -1067;
                     return GameSupportResult.PlayerLostControl;
                 }
             }

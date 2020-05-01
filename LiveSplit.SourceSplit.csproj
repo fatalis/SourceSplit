@@ -58,6 +58,8 @@
     <Compile Include="GameSpecific\HL2.cs" />
     <Compile Include="GameSpecific\HL2Ep1.cs" />
     <Compile Include="GameSpecific\HL2Ep2.cs" />
+    <Compile Include="GameSpecific\hl2mods_freakman1.cs" />
+    <Compile Include="GameSpecific\hl2mods_dankmemes.cs" />
     <Compile Include="GameSpecific\hl2mods_snipersep.cs" />
     <Compile Include="GameSpecific\hl2mods_watchingpaintdry.cs" />
     <Compile Include="GameSpecific\hl2mods_uncertaintyprinciple.cs" />
@@ -65,6 +67,7 @@
     <Compile Include="GameSpecific\hl2mods_mimp.cs" />
     <Compile Include="GameSpecific\hl2mods_ptsd1.cs" />
     <Compile Include="GameSpecific\hl2mods_DeepDown.cs" />
+    <Compile Include="GameSpecific\estrangedact1.cs" />
     <Compile Include="GameSpecific\lostcoast.cs" />
     <Compile Include="GameSpecific\Portal.cs" />
     <Compile Include="GameSpecific\Portal2.cs" />

@@ -124,7 +124,7 @@ namespace LiveSplit.SourceSplit
             return -1;
         }
 
-        public int GetEntIndexByPos(float x, float y, float z)
+        public int GetEntIndexByPos(float x, float y, float z, float d = 0f, bool xy = false)
         {
             Vector3f pos = new Vector3f(x, y, z);
             const int MAX_ENTS = 2048; // TODO: is portal2's max higher?
@@ -139,12 +139,29 @@ namespace LiveSplit.SourceSplit
                 if (!this.GameProcess.ReadValue(info.EntityPtr + this.GameOffsets.BaseEntityAbsOriginOffset, out newpos))
                     continue;
 
-                if (newpos.BitEquals(pos) && i != 1) //not equal 1 becase the player might be in the same exact position
-                    return i;
+                if (d == 0f)
+                {
+                    if (newpos.BitEquals(pos) && i != 1) //not equal 1 becase the player might be in the same exact position
+                        return i;
+                }
+                else
+                {
+                    if (xy == true)
+                    {
+                        if (newpos.DistanceXY(pos) <= d && i != 1) 
+                            return i;
+                    }
+                    else
+                    {
+                        if (newpos.Distance(pos) <= d && i != 1) 
+                            return i;
+                    }
+                }
             }
 
             return -1;
         }
+
 
     }
 
