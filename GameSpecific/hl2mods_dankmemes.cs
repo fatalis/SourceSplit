@@ -7,8 +7,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 {
     class hl2mods_dankmemes : GameSupport
     {
-        // start: when intro text entity is killed
-        // ending: when the trigger for alyx to do her wake up animation is hit
+        // start: on first map
+        // ending: when "John Cena" (final antlion king boss) hp is <= 0 
 
         private bool _onceFlag;
         private static bool _resetflag;

@@ -7,8 +7,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 {
     class hl2mods_freakman1 : GameSupport
     {
-        // start: when intro text entity is killed
-        // ending: when the trigger for alyx to do her wake up animation is hit
+        // start: when the start trigger is hit
+        // ending: when kleiner's hp is <= 0
 
         private bool _onceFlag;
 
