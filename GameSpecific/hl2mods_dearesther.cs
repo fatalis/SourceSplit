@@ -8,7 +8,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
     class hl2mods_dearesther : GameSupport
     {
         // start: on first map
-        // ending: when the end text model's skin code is 10 and player view entity switches to the final camera
+        // ending: when the final trigger is hit
 
         private bool _onceFlag;
         private static bool resetflag;
