@@ -26,6 +26,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.FirstMap = "wpd_st";
             this.FirstMap2 = "watchingpaintdry"; // the mod has 2 versions and for some reason the modder decided to start the 2nd with a completely different set of map names
             this.LastMap = "wpd_uni";
+            this.RequiredProperties = PlayerProperties.Flags & PlayerProperties.Position;
         }
 
 
@@ -69,15 +70,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
             }
 
-            else if (this.IsLastMap)
+            else if (this.IsLastMap && state.PlayerFlags.HasFlag(FL.FROZEN))
             {
-                if (state.PlayerFlags.HasFlag(FL.FROZEN))
-                {
                     Debug.WriteLine("wpd ee end");
                     _onceFlag = true;
                     this.EndOffsetTicks = 134;
                     return GameSupportResult.PlayerLostControl;
-                }
             }
             return GameSupportResult.DoNothing;
         }

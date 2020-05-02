@@ -18,7 +18,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "ep2_deepdown_1";
             this.LastMap = "ep2_deepdown_5";
-            this.RequiredProperties = PlayerProperties.Position;
         }
 
         public override void OnSessionStart(GameState state)

@@ -1,7 +1,5 @@
-﻿using LiveSplit.ComponentUtil;
-using System;
+﻿using System;
 using System.Diagnostics;
-using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -24,6 +22,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "chapter_1";
             this.LastMap = "chapter_4";
+            this.RequiredProperties = PlayerProperties.ViewEntity & PlayerProperties.Flags;
         }
 
         public override void OnSessionStart(GameState state)

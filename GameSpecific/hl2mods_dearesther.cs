@@ -20,7 +20,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "donnelley";
             this.LastMap = "Paul";
-            this.RequiredProperties = PlayerProperties.Position;
         }
 
         public static void _resetflag()

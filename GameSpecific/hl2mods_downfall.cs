@@ -18,6 +18,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "dwn01";
             this.LastMap = "dwn01a";
+            this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
         public override void OnSessionStart(GameState state)

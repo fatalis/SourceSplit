@@ -18,7 +18,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "kleiner0";
             this.LastMap = "thestoryhappyend";
-            this.RequiredProperties = PlayerProperties.Position;
+            this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
         public override void OnSessionStart(GameState state)

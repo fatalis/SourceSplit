@@ -13,13 +13,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
 
         private int _trig_index;
+        private int cam_index;
 
         public hl2mods_mimp()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "mimp1";
             this.LastMap = "mimp3";
-            this.RequiredProperties = PlayerProperties.Position;
+            this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
 
@@ -30,10 +31,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsFirstMap)
             {
                 this._trig_index = state.GetEntIndexByName("cave_giveitems_trig");
-                this.StartOffsetTicks = 62;
                 Debug.WriteLine("cave_giveitems_trig index is " + this._trig_index);
             }
 
+            if (this.IsLastMap)
+            {
+                this.cam_index = state.GetEntIndexByName("outro.camera");
+                Debug.WriteLine("cam_index index is " + this.cam_index);
+            }
                 _onceFlag = false;
         }
 
@@ -53,14 +58,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     _trig_index = -1;
                     Debug.WriteLine("mimp start");
+                    this.StartOffsetTicks = 62;
                     _onceFlag = true;
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
 
-            else if (this.IsLastMap)
+            else if (this.IsLastMap && cam_index != -1)
             {
-                if (state.PlayerViewEntityIndex != ENT_INDEX_PLAYER)
+                if (state.PlayerViewEntityIndex == cam_index)
                 {
                     Debug.WriteLine("mimp end");
                     _onceFlag = true;

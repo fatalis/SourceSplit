@@ -8,7 +8,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
     class hl2mods_snipersep : GameSupport
     {
         //start: when player moves (excluding an on-the-spot jump)
-        //end: when "gordon" is killed
+        //end: when "gordon" is killed (hp is <= 0)
 
         private bool _onceFlag;
         private int _baseEntityHealthOffset = -1;
@@ -43,7 +43,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
+
             _onceFlag = false;
+
             if (this.IsFirstMap)
             {
                 _freeman = state.GetEntityByName("bar");

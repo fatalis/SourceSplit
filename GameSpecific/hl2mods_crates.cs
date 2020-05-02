@@ -20,7 +20,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "cratastrophy";
-            this.RequiredProperties = PlayerProperties.Position;
+            this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
         public static void _resetflag()
@@ -50,6 +50,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             {
                 var crate = state.GetEntInfoByIndex(counter_index);
                 int d;
+
                 state.GameProcess.ReadValue(crate.EntityPtr + skinoffset, out d);
 
                 if (resetflag == false)

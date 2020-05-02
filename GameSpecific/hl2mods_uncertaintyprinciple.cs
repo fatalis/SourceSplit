@@ -22,6 +22,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "up_retreat_a";
             this.LastMap = "up_night";
+            this.RequiredProperties = PlayerProperties.Flags;
         }
 
 
@@ -32,6 +33,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsFirstMap)
             {
                 this._track_index = state.GetEntityByName("start_cam_corner2");
+                this._cam_index = state.GetEntityByName("camera1_train");
                 state.GameProcess.ReadValue(_track_index + state.GameOffsets.BaseEntityAbsOriginOffset, out trackpos);
                 Debug.WriteLine("trackpos pos is " + trackpos);
             }
@@ -49,7 +51,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                this._cam_index = state.GetEntityByName("camera1_train");
                 state.GameProcess.ReadValue(_cam_index + state.GameOffsets.BaseEntityAbsOriginOffset, out campos);
                 Debug.WriteLine("campos is " + campos);
 

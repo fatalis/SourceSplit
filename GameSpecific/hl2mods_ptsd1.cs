@@ -14,30 +14,25 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
 
         private int _breen_index;
-        public static bool resetflag;
+        private int cam_index;
 
         public hl2mods_ptsd1()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "ptsd_1";
             this.LastMap = "ptsd_final";
-            this.RequiredProperties = PlayerProperties.Position;
-        }
-
-        //this is a check so that the game doesn't split every time the player view entity changes. 
-        //normally this isn't needed but for this mod we need to do this
-        //the game will only start if resetflag is 0, on every change this counter is increased so the game won't split on another change
-        //this will be reset when the timer is reset
-
-        public static void workaround() 
-        {
-            resetflag = false;
+            this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
 
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
+
+            if (this.IsFirstMap)
+            {
+                this.cam_index = state.GetEntIndexByName("camera_1");
+            }
 
             if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
@@ -54,14 +49,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap)
+            if (this.IsFirstMap && cam_index != -1)
             {
-                if (state.PrevPlayerViewEntityIndex != GameState.ENT_INDEX_PLAYER
-                    && state.PlayerViewEntityIndex == GameState.ENT_INDEX_PLAYER && resetflag == false)
+                if (state.PrevPlayerViewEntityIndex == cam_index
+                    && state.PlayerViewEntityIndex == GameState.ENT_INDEX_PLAYER)
                 {
                     Debug.WriteLine("ptsd start");
                     _onceFlag = true;
-                    resetflag = true;
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
