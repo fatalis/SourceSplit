@@ -237,6 +237,8 @@ namespace LiveSplit.SourceSplit
             hl2mods_snipersep.workaround();
             HL2.expfuelworkaround();
             hl2mods_dankmemes.resetflag();
+            hl2mods_toomanycrates._resetflag();
+            hl2mods_dearesther._resetflag();
         }
 
         void state_OnSplit(object sender, EventArgs e)

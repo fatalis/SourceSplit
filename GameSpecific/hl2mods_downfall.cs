@@ -58,7 +58,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 if (newblack.EntityPtr == IntPtr.Zero)
                 {
                     _sprite_index = -1;
-                    Debug.WriteLine("mimp end");
+                    Debug.WriteLine("downfall end");
                     _onceFlag = true;
                     return GameSupportResult.PlayerLostControl;
                 }

@@ -157,6 +157,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new hl2mods_dankmemes();
                 case "freakman":
                     return new hl2mods_freakman1();
+                case "freakman-kleinerlife":
+                    return new hl2mods_freakman2();
+                case "crates":
+                    return new hl2mods_toomanycrates();
+                case "te120":
+                    return new te120();
+                case "dear esther":
+                    return new hl2mods_dearesther();
             }
 
             return null;
