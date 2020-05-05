@@ -1,5 +1,7 @@
 ﻿using LiveSplit.ComponentUtil;
+using System;
 using System.Diagnostics;
+using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -14,20 +16,21 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int counter_index;
         private int cam_index;
 
+        private Vector3f startpos = new Vector3f(-2587.32f, 0f, -3.32f);
+
         private int skinoffset = 872;
 
         public hl2mods_toomanycrates()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "cratastrophy";
-            this.RequiredProperties = PlayerProperties.ViewEntity;
+            this.RequiredProperties = PlayerProperties.ViewEntity | PlayerProperties.Position;
         }
 
         public static void _resetflag()
         {
             resetflag = false;
         }
-
 
         public override void OnSessionStart(GameState state)
         {
@@ -53,11 +56,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                 state.GameProcess.ReadValue(crate.EntityPtr + skinoffset, out d);
 
-                if (resetflag == false)
+                if (resetflag == false && state.PlayerEntInfo.EntityPtr != IntPtr.Zero && state.PlayerPosition.Distance(startpos) <= 0.05f)
                 {
-                    resetflag = true;
-                    Debug.WriteLine("toomanycrates start");
-                    return GameSupportResult.PlayerGainedControl;
+                  resetflag = true;
+                  Debug.WriteLine("toomanycrates start");
+                  return GameSupportResult.PlayerGainedControl;
                 }
                     
                 if (d == 10 && state.PlayerViewEntityIndex == cam_index)

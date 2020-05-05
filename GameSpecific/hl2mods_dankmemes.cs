@@ -15,6 +15,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private int _baseEntityHealthOffset = -1;
 
+        private int cam_index;
         IntPtr boss;
 
         public hl2mods_dankmemes()
@@ -22,7 +23,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "Your_house";
             this.LastMap = "Dank_Boss";
-            this.RequiredProperties = PlayerProperties.Position;
+            this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
         public override void OnGameAttached(GameState state)
@@ -45,6 +46,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             base.OnSessionStart(state);
 
+            if (this.IsFirstMap)
+            {
+                cam_index = state.GetEntIndexByName("black_cam");
+            }
+
             if (this.IsLastMap)
             {
                 boss = state.GetEntityByName("John_Cena");
@@ -58,7 +64,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && _resetflag == false)
+            if (this.IsFirstMap && _resetflag == false && state.PlayerViewEntityIndex == cam_index)
             {
                 _resetflag = true;
                 Debug.WriteLine("dank memes start");

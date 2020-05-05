@@ -49,7 +49,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
 
-        public static void expfuelworkaround()
+        public static void expfuelresetflag()
         {
             _expfuelstartflag = false;
         }

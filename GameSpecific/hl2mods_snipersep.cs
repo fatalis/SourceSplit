@@ -12,7 +12,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag;
         private int _baseEntityHealthOffset = -1;
-        public static bool resetflag;
+        public static bool _resetflag;
 
         IntPtr _freeman;
         Vector3f _startpos = new Vector3f(9928f, 12472f, -180f);
@@ -34,9 +34,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
 
-        public static void workaround()
+        public static void resetflag()
         {
-            resetflag = false;
+            _resetflag = false;
         }
 
 
@@ -62,9 +62,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                if (!state.PlayerPosition.BitEqualsXY(_startpos) && resetflag == false)
+                if (!state.PlayerPosition.BitEqualsXY(_startpos) && _resetflag == false)
                 {
-                    resetflag = true;
+                    _resetflag = true;
                     return GameSupportResult.PlayerGainedControl;
                 }
 

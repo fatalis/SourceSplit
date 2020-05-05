@@ -232,9 +232,10 @@ namespace LiveSplit.SourceSplit
             //what is this?
             //a bodge job to add an "onceflag" that gets reset on timer reset
             //TODO: find a better method
-            hl2mods_watchingpaintdry.workaround();
-            hl2mods_snipersep.workaround();
-            HL2.expfuelworkaround();
+
+            hl2mods_watchingpaintdry.resetflag();
+            hl2mods_snipersep.resetflag();
+            HL2.expfuelresetflag();
             hl2mods_dankmemes.resetflag();
             hl2mods_toomanycrates._resetflag();
             hl2mods_dearesther._resetflag();
