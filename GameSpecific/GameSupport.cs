@@ -165,6 +165,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new te120();
                 case "dear esther":
                     return new hl2mods_dearesther();
+                case "exit 2":
+                    return new hl2mods_exit2();
             }
 
             return null;

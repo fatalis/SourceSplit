@@ -60,6 +60,7 @@
     <Compile Include="GameSpecific\HL2Ep2.cs" />
     <Compile Include="GameSpecific\hl2mods_dearesther.cs" />
     <Compile Include="GameSpecific\hl2mods_crates.cs" />
+    <Compile Include="GameSpecific\hl2mods_exit2.cs" />
     <Compile Include="GameSpecific\te120.cs" />
     <Compile Include="GameSpecific\hl2mods_freakman2.cs" />
     <Compile Include="GameSpecific\hl2mods_freakman1.cs" />

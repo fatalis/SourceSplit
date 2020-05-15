@@ -41,3 +41,5 @@ SourceSplitSettings.resx
 SourceSplitSettings.Designer.cs
 SourceSplitSettings.resx
 SourceSplitSettings.Designer.cs
+.vs/LiveSplit.SourceSplit/v16/.suo
+*.cache
