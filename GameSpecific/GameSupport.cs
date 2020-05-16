@@ -167,6 +167,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new hl2mods_dearesther();
                 case "exit 2":
                     return new hl2mods_exit2();
+                case "dayhard":
+                    return new hl2mods_DayHard();
             }
 
             return null;
