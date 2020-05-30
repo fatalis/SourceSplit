@@ -124,6 +124,30 @@ namespace LiveSplit.SourceSplit
             return -1;
         }
 
+        public int GetEntIndexByNameMultiple(string name, int wrong)
+        {
+            const int MAX_ENTS = 2048; // TODO: is portal2's max higher?
+
+            for (int i = 0; i < MAX_ENTS; i++)
+            {
+                CEntInfoV2 info = this.GetEntInfoByIndex(i);
+                if (info.EntityPtr == IntPtr.Zero)
+                    continue;
+
+                IntPtr namePtr;
+                this.GameProcess.ReadPointer(info.EntityPtr + this.GameOffsets.BaseEntityTargetNameOffset, false, out namePtr);
+                if (namePtr == IntPtr.Zero)
+                    continue;
+
+                string n;
+                this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
+                if (n == name && i != wrong)
+                    return i;
+            }
+
+            return -1;
+        }
+
         public int GetEntIndexByPos(float x, float y, float z, float d = 0f, bool xy = false)
         {
             Vector3f pos = new Vector3f(x, y, z);
@@ -162,6 +186,13 @@ namespace LiveSplit.SourceSplit
             return -1;
         }
 
+        public Vector3f GetEntityPos(int i)
+        {
+            Vector3f pos;
+            var ent = GetEntInfoByIndex(i);
+            GameProcess.ReadValue(ent.EntityPtr + this.GameOffsets.BaseEntityAbsOriginOffset, out pos);
+            return pos;
+        }
 
     }
 

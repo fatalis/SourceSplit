@@ -18,7 +18,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private Vector3f startpos = new Vector3f(-2587.32f, 0f, -3.32f);
 
-        private int skinoffset = 872;
+        private const int skinoffset = 872;
 
         public hl2mods_toomanycrates()
         {

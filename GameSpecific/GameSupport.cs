@@ -108,6 +108,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public static GameSupport FromGameDir(string gameDir)
         {
+            thestanleyparable.stanley = false;
             switch (gameDir.ToLower())
             {
                 case "hl2oe":
@@ -169,6 +170,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new hl2mods_exit2();
                 case "dayhard":
                     return new hl2mods_DayHard();
+                case "thestanleyparable":
+                    return new thestanleyparable();
             }
 
             return null;
@@ -187,7 +190,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
     {
         DoNothing,
         PlayerGainedControl,
-        PlayerLostControl
+        PlayerLostControl,
+        ManualSplit
     }
 
     [Flags]

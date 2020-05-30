@@ -24,6 +24,7 @@ namespace LiveSplit.SourceSplit
         public event EventHandler<SessionTicksUpdateEventArgs> OnSessionTimeUpdate;
         public event EventHandler<PlayerControlChangedEventArgs> OnPlayerGainedControl;
         public event EventHandler<PlayerControlChangedEventArgs> OnPlayerLostControl;
+        public event EventHandler<PlayerControlChangedEventArgs> ManualSplit;
         public event EventHandler<MapChangedEventArgs> OnMapChanged;
         public event EventHandler<SessionStartedEventArgs> OnSessionStarted;
         public event EventHandler<GamePausedEventArgs> OnGamePaused;
@@ -44,6 +45,9 @@ namespace LiveSplit.SourceSplit
         private SigScanTarget _serverStateTarget;
 
         private bool _gotTickRate;
+
+        private int timesover;
+        private int timeoverspent;
 
         private SourceSplitSettings _settings;
 
@@ -451,7 +455,12 @@ namespace LiveSplit.SourceSplit
                 TimedTraceListener.Instance.UpdateCount = state.UpdateCount;
 
                 if (profiler.ElapsedMilliseconds >= TARGET_UPDATE_RATE)
-                    Debug.WriteLine("**** update iteration took too long: " + profiler.ElapsedMilliseconds);
+                {
+                    timesover += 1;
+                    timeoverspent += Convert.ToInt32(profiler.ElapsedMilliseconds) - TARGET_UPDATE_RATE;
+                    Debug.WriteLine("**** update iteration took too long: " + profiler.ElapsedMilliseconds + ", times: " + timesover + ", total: " + timeoverspent);
+                }
+
                 //var sleep = Stopwatch.StartNew();
                 //MapTimesForm.Instance.Text = profiler.Elapsed.ToString();
                 Thread.Sleep(Math.Max(TARGET_UPDATE_RATE - (int)profiler.ElapsedMilliseconds, 1));
@@ -672,6 +681,9 @@ namespace LiveSplit.SourceSplit
                 case GameSupportResult.PlayerLostControl:
                     this.SendLostControlEvent(state.GameSupport.EndOffsetTicks);
                     break;
+                case GameSupportResult.ManualSplit:
+                    this.SendManualSplit(state.GameSupport.EndOffsetTicks);
+                    break;
             }
         }
 
@@ -702,6 +714,13 @@ namespace LiveSplit.SourceSplit
         {
             _uiThread.Post(d => {
                 this.OnPlayerLostControl?.Invoke(this, new PlayerControlChangedEventArgs(ticksOffset));
+            }, null);
+        }
+
+        public void SendManualSplit(int ticksOffset)
+        {
+            _uiThread.Post(d => {
+                this.ManualSplit?.Invoke(this, new PlayerControlChangedEventArgs(ticksOffset));
             }, null);
         }
 

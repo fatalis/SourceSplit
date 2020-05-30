@@ -30,6 +30,17 @@ namespace LiveSplit.SourceSplit
 
         private GameMemory _gameMemory;
 
+        private static bool DoSpecialSplit = false;
+        private static bool ss_once_flag = false;
+        private static bool ss_once_flag2 = false;
+        private TimeSpan ss_time_to_split;
+        private static int pauseamount;
+        private static bool gamepaused = false;
+        public static float ss_delta = 0.1f;
+        private float ss_gt_delta = 0f;
+        private static int _tickoffset;
+        private static int _tickoffsettotal;
+
         private float _intervalPerTick;
         private int _sessionTicks;
         private int _totalMapTicks;
@@ -38,6 +49,7 @@ namespace LiveSplit.SourceSplit
         private DateTime? _gamePauseTime;
         private int _gamePauseTick;
         private GameTimingMethod _gameRecommendedTimingMethod;
+
 
         private bool _waitingForDelay;
 
@@ -67,15 +79,34 @@ namespace LiveSplit.SourceSplit
             {
                 if (_gamePauseTime != null && this.GameTimingMethod == GameTimingMethod.EngineTicksWithPauses)
                 {
-                    return TimeSpan.FromSeconds((_totalTicks + _gamePauseTick + FakeTicks(_gamePauseTime.Value, DateTime.Now) - _sessionTicksOffset) * _intervalPerTick);
+                    return TimeSpan.FromSeconds((_totalTicks + _gamePauseTick + FakeTicks(_gamePauseTime.Value, DateTime.Now) - _sessionTicksOffset) * _intervalPerTick - ss_gt_delta);
                 }
                 else
                 {
-                    return TimeSpan.FromSeconds((_totalTicks + _sessionTicks - _sessionTicksOffset) * _intervalPerTick);
+                    return TimeSpan.FromSeconds((_totalTicks + _sessionTicks - _sessionTicksOffset) * _intervalPerTick - ss_gt_delta);
                 }
             }
         }
 
+        private TimeSpan GameTimeNoOffset
+        {
+            get
+            {
+                if (thestanleyparable.stanley)
+                {
+                    if (_gamePauseTime != null && this.GameTimingMethod == GameTimingMethod.EngineTicksWithPauses)
+                    {
+                        return (TimeSpan.FromSeconds((_totalTicks + _gamePauseTick + FakeTicks(_gamePauseTime.Value, DateTime.Now) - _sessionTicksOffset + _tickoffsettotal) * _intervalPerTick));
+                    }
+                    else
+                        return TimeSpan.FromSeconds((_totalTicks + _sessionTicks - _sessionTicksOffset + _tickoffsettotal) * _intervalPerTick);
+                }
+                else
+                {
+                    return GameTime;
+                }
+            }
+        }
         public SourceSplitComponent(LiveSplitState state, bool isLayoutComponent)
         {
 #if DEBUG
@@ -113,6 +144,7 @@ namespace LiveSplit.SourceSplit
             _gameMemory.OnSessionTimeUpdate += gameMemory_OnSessionTimeUpdate;
             _gameMemory.OnPlayerGainedControl += gameMemory_OnPlayerGainedControl;
             _gameMemory.OnPlayerLostControl += gameMemory_OnPlayerLostControl;
+            _gameMemory.ManualSplit += gameMemory_ManualSplit;
             _gameMemory.OnMapChanged += gameMemory_OnMapChanged;
             _gameMemory.OnSessionStarted += gameMemory_OnSessionStarted;
             _gameMemory.OnSessionEnded += gameMemory_OnSessionEnded;
@@ -144,7 +176,7 @@ namespace LiveSplit.SourceSplit
 
         public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)
         {
-            // hack to prevent flicker, doesn't actually pause anything
+            // hack to prevent flicker, doesn't actually pause anything`
             state.IsGameTimePaused = true;
 
             // Update is called every 25ms, so up to 25ms IGT can be lost if using delay and no auto-start
@@ -163,7 +195,14 @@ namespace LiveSplit.SourceSplit
 
             if (!_waitingForDelay)
                 // update game time, don't show negative time due to tick adjusting
-                state.SetGameTime(this.GameTime >= TimeSpan.Zero ? this.GameTime : TimeSpan.Zero);
+                state.SetGameTime(this.GameTimeNoOffset >= TimeSpan.Zero ? this.GameTimeNoOffset : TimeSpan.Zero);
+
+            if (DoSpecialSplit)
+            {
+                SplitAfterSpecifiedTime(this.GameTime);
+            }
+
+            Debug.WriteLine(GameTime.TotalSeconds + " " + GameTimeNoOffset.TotalSeconds);
 
             if (!this.Settings.ShowGameTime)
                 return;
@@ -210,6 +249,12 @@ namespace LiveSplit.SourceSplit
             _totalMapTicks = 0;
             _gamePauseTime = null;
 
+            // something weird happens in the case of tsp, when the player resets the timer and starts it manually, then
+            // start the map normally then move their view then state_onreset gets fired non stop
+            // so this is a hack to prevent the game from autostarting the run if the timer has already started
+            thestanleyparable.resetflag2();
+
+
             // hack to make sure Portal players aren't using manual offset. we handle offset automatically now.
             // remove this eventually
             if (_timer.CurrentState.TimePausedAt.Seconds == 53 && _timer.CurrentState.TimePausedAt.Milliseconds == 10)
@@ -230,7 +275,7 @@ namespace LiveSplit.SourceSplit
             _waitingForDelay = false;
 
             //what is this?
-            //a bodge job to add an "onceflag" that gets reset on timer reset
+            //a bodge job to add an "ss_once_flagflag" that gets reset on timer reset
             //TODO: find a better method
 
             hl2mods_watchingpaintdry.resetflag();
@@ -239,6 +284,9 @@ namespace LiveSplit.SourceSplit
             hl2mods_dankmemes.resetflag();
             hl2mods_toomanycrates._resetflag();
             hl2mods_dearesther._resetflag();
+            thestanleyparable.resetflag();
+
+            ss_gt_delta = 0f;
         }
 
         void state_OnSplit(object sender, EventArgs e)
@@ -248,7 +296,7 @@ namespace LiveSplit.SourceSplit
             if (_timer.CurrentState.CurrentPhase == TimerPhase.Ended)
             {
                 this.AddMapTime(_currentMap, TimeSpan.FromSeconds(_totalMapTicks + _sessionTicks - _sessionTicksOffset));
-                this.AddMapTime("-Total-", this.GameTime);
+                this.AddMapTime("-Total-", this.GameTimeNoOffset);
             }
         }
 
@@ -256,6 +304,7 @@ namespace LiveSplit.SourceSplit
         void gameMemory_OnSessionStarted(object sender, SessionStartedEventArgs e)
         {
             _currentMap = e.Map;
+            gamepaused = false;
         }
 
         void gameMemory_OnSetTickRate(object sender, SetTickRateEventArgs e)
@@ -316,10 +365,10 @@ namespace LiveSplit.SourceSplit
         {
             if (!this.Settings.AutoStartEndResetEnabled)
                 return;
-
             _timer.Reset(); // make sure to reset for games that start from a quicksave (Aperture Tag)
             _timer.Start();
             _sessionTicksOffset += e.TicksOffset;
+            _tickoffset = e.TicksOffset;
         }
 
         void gameMemory_OnPlayerLostControl(object sender, PlayerControlChangedEventArgs e)
@@ -329,6 +378,25 @@ namespace LiveSplit.SourceSplit
 
             _sessionTicksOffset += e.TicksOffset;
             this.DoSplit();
+        }
+
+
+        // temp: there's an issue with using playerlostcontrol as a hack for splitting manually with an offset value
+        // the timer is set to the time with the offset applied so that it can split at the correct offset time
+        // but it never gets reset back to normal so we lose some time every time we do this
+
+        // only allowed in the stanley parable runs for now
+
+        void gameMemory_ManualSplit(object sender, PlayerControlChangedEventArgs e)
+        {
+            if (!this.Settings.AutoStartEndResetEnabled)
+                return;
+
+            _sessionTicksOffset += e.TicksOffset;
+            _tickoffset = e.TicksOffset;
+
+            Debug.WriteLine("** time adjusted, " + _tickoffset + " ticks were added to time");
+            this.DoSplitandRevertOffset();
         }
 
         void gameMemory_OnNewGameStarted(object sender, EventArgs e)
@@ -348,13 +416,17 @@ namespace LiveSplit.SourceSplit
             {
                 _gamePauseTime = DateTime.Now;
                 _gamePauseTick = _sessionTicks;
+                gamepaused = true;
             }
             else
             {
+                gamepaused = false;
                 if (_gamePauseTime != null)
                 {
                     Debug.WriteLine("pause done, adding  " + TimeSpan.FromSeconds((DateTime.Now - _gamePauseTime.Value).TotalSeconds));
                     _sessionTicksOffset -= FakeTicks(_gamePauseTime.Value, DateTime.Now);
+                    pauseamount = FakeTicks(_gamePauseTime.Value, DateTime.Now);
+                    ss_once_flag2 = true;
                 }
                 _gamePauseTime = null;
             }
@@ -409,6 +481,68 @@ namespace LiveSplit.SourceSplit
             bool before = profile.DoubleTapPrevention;
             profile.DoubleTapPrevention = false;
             _timer.Split();
+            profile.DoubleTapPrevention = before;
+        }
+
+        public static void ResetSpecialSplit()
+        {
+            DoSpecialSplit = false;
+            ss_once_flag = false;
+            ss_once_flag2 = false;
+            pauseamount = 0;
+            gamepaused = false;
+            ss_delta = 0.1f;
+            Debug.WriteLine("special split reset");
+        }
+
+        // split after a cetain amount of time (including load and pause time)
+        private void SplitAfterSpecifiedTime(TimeSpan time)
+        {
+            if (!ss_once_flag)
+            {
+                ss_time_to_split = time;
+                ss_once_flag = true;
+            }
+            else if (pauseamount > 0 && ss_once_flag2)
+            {
+                ss_time_to_split = TimeSpan.FromSeconds(ss_time_to_split.TotalSeconds + (pauseamount * _intervalPerTick));
+                ss_once_flag2 = false;
+            }
+
+            double delta = Math.Abs(this.GameTimeNoOffset.TotalSeconds - ss_time_to_split.TotalSeconds);
+            if (!gamepaused && (delta <= 0.1))
+            {
+                _timer.Split();
+                Debug.WriteLine("special split done, delta was " + delta + "on split");
+                ss_gt_delta += Convert.ToSingle(GameTime.TotalSeconds - GameTimeNoOffset.TotalSeconds);
+                _timer.CurrentState.SetGameTime(this.GameTimeNoOffset);
+                ResetSpecialSplit();
+            }
+            Debug.WriteLine(GameTime.TotalSeconds + " " + GameTimeNoOffset.TotalSeconds + " " + ss_time_to_split.TotalSeconds + " " + Math.Abs(this.GameTimeNoOffset.TotalSeconds - (ss_time_to_split.TotalSeconds)) + " " + gamepaused);
+            //Debug.WriteLine(_tickoffset);
+        }
+
+        void DoSplitandRevertOffset()
+        {
+            // make split times accurate
+            _timer.CurrentState.SetGameTime(this.GameTime);
+
+            HotkeyProfile profile = _timer.CurrentState.Settings.HotkeyProfiles[_timer.CurrentState.CurrentHotkeyProfile];
+            bool before = profile.DoubleTapPrevention;
+            profile.DoubleTapPrevention = false;
+            if (_tickoffset < 0)
+            {
+                Debug.WriteLine("using special split");
+                pauseamount = 0;
+                DoSpecialSplit = true;
+                ss_once_flag = false;
+                _tickoffsettotal += _tickoffset;
+            }
+            else if (_tickoffset > 0)
+            {
+                _timer.Split();
+                _timer.CurrentState.SetGameTime(this.GameTimeNoOffset);
+            }
             profile.DoubleTapPrevention = before;
         }
 
