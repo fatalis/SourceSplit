@@ -275,7 +275,7 @@ namespace LiveSplit.SourceSplit
             _waitingForDelay = false;
 
             //what is this?
-            //a bodge job to add an "ss_once_flagflag" that gets reset on timer reset
+            //a bodge job to add an "onceflag" that gets reset on timer reset
             //TODO: find a better method
 
             hl2mods_watchingpaintdry.resetflag();
