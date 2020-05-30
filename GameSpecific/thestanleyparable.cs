@@ -18,7 +18,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // escape:      when the player's view entity changes to the final camera
         // broom:       when the player is within 50 units of the center of the room
         // choice:      when stanley_drawcredits is set to 1
-        // confusion:   when the cmd point_clientcommand entity gets fed "tsp_reload 5"
+        // confusion:   when the cmd point_clientcommand entity gets fed "tsp_reload 5", this only gets detected in onsessionend, the split happens on map1
         // games:       when the player's view entity changes to the final blackout camera
         // heaven:      when the tsp_buttonpass counter is 4 or higher AND it is increased when the final button in stanley's room is pressed
         // insane:      when the player's view entity changes to the final blackout camera AND the player is wihtin the rooms before the cutscene
@@ -80,9 +80,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int ending_disco_text_index;
         Vector3f ending_disco_angvel;
         private int ending_stuck_box_index;
+        private int ending_stuck_box_index_2;
         private int ending_zending_cam_index;
         Vector3f ending_whiteboard_door_origin = new Vector3f(1988f, -1792f, -1992f);
-        private int ending_stuck_box_index_2;
+        private static bool ending_confuse_flag = false;
 
         public static bool stanley;
 
@@ -101,6 +102,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             _resetFlag2 = false;
             ending_serious_count = 0;
             ending_song_oktoconsider = false;
+            ending_confuse_flag = false;
         }
 
         public static void resetflag2()
@@ -201,6 +203,18 @@ namespace LiveSplit.SourceSplit.GameSpecific
             return GameSupportResult.PlayerLostControl;
         }
 
+        public override void OnSessionEnd(GameState state)
+        {
+            if (state.CurrentMap.ToLower() == "map") // confusion ending
+            {
+                string cmd2;
+                state.GameProcess.ReadString(commandptr, ReadStringType.ASCII, 12, out cmd2);
+                if (cmd2 == "tsp_reload 5")
+                {
+                    ending_confuse_flag = true;
+                }
+            }
+        }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
@@ -214,6 +228,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     {
                         return GameSupportResult.DoNothing;
                     }
+
                 case "map1": // beginning, death, reluctant, whiteboard, broom closet, song, voice over, cold feet, insane, apartment, heaven ending
                     {
 
@@ -323,6 +338,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
                             return defaultend("whiteboard");
                         }
 
+                        // half of confusion ending
+                        if (ending_confuse_flag)
+                        {
+                            ending_confuse_flag = false;
+                            return defaultend("confusion");
+                        }
+
                         //Debug.WriteLine(ending_vo_button_locked);
                         break;
                     }
@@ -399,20 +421,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         break;
                     }
 
-                case "map": // confusion ending
-                    {
-                        if (commandptr != IntPtr.Zero)
-                        {
-                            string cmd;
-                            state.GameProcess.ReadString(commandptr, ReadStringType.ASCII, 12, out cmd);
-                            
-                            if (cmd == "tsp_reload 5")
-                            {
-                                return defaultend("confusion");
-                            }
-                        }
-                        break;
-                    }
                 case "testchmb_a_00": // games, stuck ending
                     {
                         if (state.PrevPlayerViewEntityIndex == 1 &&

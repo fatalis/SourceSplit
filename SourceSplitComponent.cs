@@ -286,6 +286,8 @@ namespace LiveSplit.SourceSplit
             hl2mods_dearesther._resetflag();
             thestanleyparable.resetflag();
 
+            _tickoffsettotal = 0;
+
             ss_gt_delta = 0f;
         }
 
