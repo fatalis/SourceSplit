@@ -117,6 +117,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "portal":
                 case "portalelevators":
                     return new Portal();
+                case "portal_tfv":
+                    return new PortalTFV();
                 case "portal2":
                     return new Portal2();
                 case "aperturetag":
