@@ -7,21 +7,21 @@ namespace LiveSplit.SourceSplit.GameSpecific
 {
     class PortalTFV : GameSupport
     {
-        // how to match this timing with demos:
-        // start: crosshair appear
-        // ending: crosshair disappear
+        // how to match with demos:
+        // start: first tick when your position is at 0 168 129 (cl_showpos 1)
+        // ending: first tick player is slowed down by the ending trigger
 
-        private int _laggedMovementOffset = -1;
         private bool _onceFlag;
-        private IntPtr _gunshipMakerPtr;
-        private const int VAULT_SAVE_TICK = 4261;
+        private Vector3f _startPos = new Vector3f(0f, 168f, 129f);
+        private int _laggedMovementOffset = -1;
+        private const int VAULT_SAVE_TICK = 3876;
 
         public PortalTFV()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.AutoStartType = AutoStart.ViewEntityChanged;
             this.FirstMap = "portaltfv1";
             this.LastMap = "portaltfv5";
+            this.RequiredProperties |= PlayerProperties.Position;
         }
 
         public override void OnGameAttached(GameState state)
@@ -38,13 +38,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
-
-            if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _laggedMovementOffset != -1)
-            {
-                _gunshipMakerPtr = state.GetEntityByName("gunshipmaker");
-                Debug.WriteLine("Gunship Maker pointer = 0x" + _gunshipMakerPtr.ToString("X"));
-            }
-
             _onceFlag = false;
         }
 
@@ -53,25 +46,29 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            //if (this.IsFirstMap)
-            //{
-            //    // vault save starts at tick 4261, but update interval may miss it so be a little lenient
-            //    if ((state.TickBase >= VAULT_SAVE_TICK && state.TickBase <= VAULT_SAVE_TICK+4) && !_onceFlag)
-            //    {
-            //        _onceFlag = true;
-            //        int ticksSinceVaultSaveTick = state.TickBase - VAULT_SAVE_TICK; // account for missing ticks if update interval missed it
-            //        this.StartOffsetTicks = -3534 - ticksSinceVaultSaveTick; // 53.01 seconds
-            //        return GameSupportResult.PlayerGainedControl;
-            //    }
-
-            //    this.StartOffsetTicks = 1;
-            //    return base.OnUpdate(state);
-            //}
-            //else if (!this.IsLastMap || _onceFlag)
-            //    return GameSupportResult.DoNothing;
-
-            if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
+            if (this.IsFirstMap)
             {
+                // vault save starts at tick 3876, but update interval may miss it so be a little lenient
+                if ((state.TickBase >= VAULT_SAVE_TICK && state.TickBase <= VAULT_SAVE_TICK + 4))
+                {
+                    Debug.WriteLine("tfv start");
+                    _onceFlag = true;
+                    int ticksSinceVaultSaveTick = state.TickBase - VAULT_SAVE_TICK; // account for missing ticks if update interval missed it
+                    this.StartOffsetTicks = -3803 - ticksSinceVaultSaveTick; // 57.045 seconds
+                    return GameSupportResult.PlayerGainedControl;
+                }
+
+                // map started without vault save
+                else if (state.PlayerPosition.DistanceXY(_startPos) < 1.0f)
+                {
+                    Debug.WriteLine("tfv start");
+                    _onceFlag = true;
+                    return GameSupportResult.PlayerGainedControl;
+                }
+            }
+            else if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
+            {
+                // "OnTrigger" "weapon_disable2:ModifySpeed:0.4:0:-1"
                 float laggedMovementValue;
                 state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _laggedMovementOffset, out laggedMovementValue);
                 if (laggedMovementValue==0.4f)
