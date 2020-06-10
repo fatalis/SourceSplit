@@ -31,15 +31,13 @@ namespace LiveSplit.SourceSplit
         private GameMemory _gameMemory;
 
         private static bool DoSpecialSplit = false;
-        private static bool ss_once_flag = false;
-        private static bool ss_once_flag2 = false;
+        private static bool ss_init_time = false;
+        private static bool ss_init_measure_pauses = false;
         private TimeSpan ss_time_to_split;
         private static int pauseamount;
         private static bool gamepaused = false;
         public static float ss_delta = 0.1f;
-        private float ss_gt_delta = 0f;
         private static int _tickoffset;
-        private static int _tickoffsettotal;
 
         private float _intervalPerTick;
         private int _sessionTicks;
@@ -79,34 +77,15 @@ namespace LiveSplit.SourceSplit
             {
                 if (_gamePauseTime != null && this.GameTimingMethod == GameTimingMethod.EngineTicksWithPauses)
                 {
-                    return TimeSpan.FromSeconds((_totalTicks + _gamePauseTick + FakeTicks(_gamePauseTime.Value, DateTime.Now) - _sessionTicksOffset) * _intervalPerTick - ss_gt_delta);
+                    return TimeSpan.FromSeconds((_totalTicks + _gamePauseTick + FakeTicks(_gamePauseTime.Value, DateTime.Now) - _sessionTicksOffset) * _intervalPerTick);
                 }
                 else
                 {
-                    return TimeSpan.FromSeconds((_totalTicks + _sessionTicks - _sessionTicksOffset) * _intervalPerTick - ss_gt_delta);
+                    return TimeSpan.FromSeconds((_totalTicks + _sessionTicks - _sessionTicksOffset) * _intervalPerTick);
                 }
             }
         }
 
-        private TimeSpan GameTimeNoOffset
-        {
-            get
-            {
-                if (thestanleyparable.stanley)
-                {
-                    if (_gamePauseTime != null && this.GameTimingMethod == GameTimingMethod.EngineTicksWithPauses)
-                    {
-                        return (TimeSpan.FromSeconds((_totalTicks + _gamePauseTick + FakeTicks(_gamePauseTime.Value, DateTime.Now) - _sessionTicksOffset + _tickoffsettotal) * _intervalPerTick));
-                    }
-                    else
-                        return TimeSpan.FromSeconds((_totalTicks + _sessionTicks - _sessionTicksOffset + _tickoffsettotal) * _intervalPerTick);
-                }
-                else
-                {
-                    return GameTime;
-                }
-            }
-        }
         public SourceSplitComponent(LiveSplitState state, bool isLayoutComponent)
         {
 #if DEBUG
@@ -174,6 +153,8 @@ namespace LiveSplit.SourceSplit
             _gameMemory?.Stop();
         }
 
+
+
         public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)
         {
             // hack to prevent flicker, doesn't actually pause anything`
@@ -194,15 +175,21 @@ namespace LiveSplit.SourceSplit
             }
 
             if (!_waitingForDelay)
-                // update game time, don't show negative time due to tick adjusting
-                state.SetGameTime(this.GameTimeNoOffset >= TimeSpan.Zero ? this.GameTimeNoOffset : TimeSpan.Zero);
+            {
+                if (thestanleyparable.stanley)
+                {
+                    // for bug detection only since tsp support isn't final yet
+                    state.SetGameTime(this.GameTime);
+                }
+                else
+                    // update game time, don't show negative time due to tick adjusting
+                    state.SetGameTime(this.GameTime >= TimeSpan.Zero ? this.GameTime : TimeSpan.Zero);
+            }
 
             if (DoSpecialSplit)
             {
                 SplitAfterSpecifiedTime(this.GameTime);
             }
-
-            Debug.WriteLine(GameTime.TotalSeconds + " " + GameTimeNoOffset.TotalSeconds);
 
             if (!this.Settings.ShowGameTime)
                 return;
@@ -285,10 +272,6 @@ namespace LiveSplit.SourceSplit
             hl2mods_toomanycrates._resetflag();
             hl2mods_dearesther._resetflag();
             thestanleyparable.resetflag();
-
-            _tickoffsettotal = 0;
-
-            ss_gt_delta = 0f;
         }
 
         void state_OnSplit(object sender, EventArgs e)
@@ -298,7 +281,7 @@ namespace LiveSplit.SourceSplit
             if (_timer.CurrentState.CurrentPhase == TimerPhase.Ended)
             {
                 this.AddMapTime(_currentMap, TimeSpan.FromSeconds(_totalMapTicks + _sessionTicks - _sessionTicksOffset));
-                this.AddMapTime("-Total-", this.GameTimeNoOffset);
+                this.AddMapTime("-Total-", this.GameTime);
             }
         }
 
@@ -382,19 +365,11 @@ namespace LiveSplit.SourceSplit
             this.DoSplit();
         }
 
-
-        // temp: there's an issue with using playerlostcontrol as a hack for splitting manually with an offset value
-        // the timer is set to the time with the offset applied so that it can split at the correct offset time
-        // but it never gets reset back to normal so we lose some time every time we do this
-
-        // only allowed in the stanley parable runs for now
-
         void gameMemory_ManualSplit(object sender, PlayerControlChangedEventArgs e)
         {
             if (!this.Settings.AutoStartEndResetEnabled)
                 return;
 
-            _sessionTicksOffset += e.TicksOffset;
             _tickoffset = e.TicksOffset;
 
             Debug.WriteLine("** time adjusted, " + _tickoffset + " ticks were added to time");
@@ -428,7 +403,7 @@ namespace LiveSplit.SourceSplit
                     Debug.WriteLine("pause done, adding  " + TimeSpan.FromSeconds((DateTime.Now - _gamePauseTime.Value).TotalSeconds));
                     _sessionTicksOffset -= FakeTicks(_gamePauseTime.Value, DateTime.Now);
                     pauseamount = FakeTicks(_gamePauseTime.Value, DateTime.Now);
-                    ss_once_flag2 = true;
+                    ss_init_measure_pauses = true;
                 }
                 _gamePauseTime = null;
             }
@@ -489,40 +464,50 @@ namespace LiveSplit.SourceSplit
         public static void ResetSpecialSplit()
         {
             DoSpecialSplit = false;
-            ss_once_flag = false;
-            ss_once_flag2 = false;
+            ss_init_time = true;
+            ss_init_measure_pauses = false;
             pauseamount = 0;
             gamepaused = false;
-            ss_delta = 0.1f;
             Debug.WriteLine("special split reset");
         }
 
-        // split after a cetain amount of time (including load and pause time)
+        // for negative values of endoffsetticks, we are now predicting the split end some time in the future.
+        // static endoffsetticks values only work if we assume the player never pauses during that period of time
+        // between sourcesplit splitting and the actual ending
+
+        // this function will account for pause time so the split is accurate
         private void SplitAfterSpecifiedTime(TimeSpan time)
         {
-            if (!ss_once_flag)
+            // first set initial target time
+            if (ss_init_time)
             {
-                ss_time_to_split = time;
-                ss_once_flag = true;
+                ss_time_to_split = time - TimeSpan.FromSeconds(_tickoffset * _intervalPerTick);
+                ss_init_time = false;
             }
-            else if (pauseamount > 0 && ss_once_flag2)
+            // then measure pauses and add it to target time
+            else if (pauseamount > 0 && ss_init_measure_pauses)
             {
                 ss_time_to_split = TimeSpan.FromSeconds(ss_time_to_split.TotalSeconds + (pauseamount * _intervalPerTick));
-                ss_once_flag2 = false;
+                ss_init_measure_pauses = false;
             }
 
-            double delta = Math.Abs(this.GameTimeNoOffset.TotalSeconds - ss_time_to_split.TotalSeconds);
+            // due to update() 25ms imprecision we'll have to settle with detecting if the time is within 0.1s of target time
+            double delta = Math.Abs(this.GameTime.TotalSeconds - ss_time_to_split.TotalSeconds);
             if (!gamepaused && (delta <= 0.1))
             {
                 _timer.Split();
-                Debug.WriteLine("special split done, delta was " + delta + "on split");
-                ss_gt_delta += Convert.ToSingle(GameTime.TotalSeconds - GameTimeNoOffset.TotalSeconds);
-                _timer.CurrentState.SetGameTime(this.GameTimeNoOffset);
+                Debug.WriteLine("special split done, delta was " + delta + " on split");
+                _timer.CurrentState.SetGameTime(this.GameTime);
                 ResetSpecialSplit();
             }
-            Debug.WriteLine(GameTime.TotalSeconds + " " + GameTimeNoOffset.TotalSeconds + " " + ss_time_to_split.TotalSeconds + " " + Math.Abs(this.GameTimeNoOffset.TotalSeconds - (ss_time_to_split.TotalSeconds)) + " " + gamepaused);
             //Debug.WriteLine(_tickoffset);
         }
+
+        // what is this?
+        // for the stanley parable the precision of splits needs to be near-perfect so some endings must have an end offset
+        // however because endoffsetticks was only meant to be used at the end of a run, that means
+        // when using it mid-run the timer will go back into the past to split then never get bumped forward again,
+        // losing a few ticks
 
         void DoSplitandRevertOffset()
         {
@@ -537,13 +522,13 @@ namespace LiveSplit.SourceSplit
                 Debug.WriteLine("using special split");
                 pauseamount = 0;
                 DoSpecialSplit = true;
-                ss_once_flag = false;
-                _tickoffsettotal += _tickoffset;
+                ss_init_time = true;
             }
             else if (_tickoffset > 0)
             {
+                _timer.CurrentState.SetGameTime(this.GameTime - TimeSpan.FromSeconds(_tickoffset * _intervalPerTick));
                 _timer.Split();
-                _timer.CurrentState.SetGameTime(this.GameTimeNoOffset);
+                _timer.CurrentState.SetGameTime(this.GameTime);
             }
             profile.DoubleTapPrevention = before;
         }

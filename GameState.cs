@@ -100,7 +100,7 @@ namespace LiveSplit.SourceSplit
             return IntPtr.Zero;
         }
 
-        public int GetEntIndexByName(string name)
+        public int GetEntIndexByName(string name, int wrong = -2)
         {
             const int MAX_ENTS = 2048; // TODO: is portal2's max higher?
 
@@ -118,35 +118,17 @@ namespace LiveSplit.SourceSplit
                 string n;
                 this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
                 if (n == name)
-                    return i;
+                {
+                    if (i != wrong)
+                    {
+                        return i;
+                    }
+                    else continue;
+                }
             }
-
             return -1;
         }
 
-        public int GetEntIndexByNameMultiple(string name, int wrong)
-        {
-            const int MAX_ENTS = 2048; // TODO: is portal2's max higher?
-
-            for (int i = 0; i < MAX_ENTS; i++)
-            {
-                CEntInfoV2 info = this.GetEntInfoByIndex(i);
-                if (info.EntityPtr == IntPtr.Zero)
-                    continue;
-
-                IntPtr namePtr;
-                this.GameProcess.ReadPointer(info.EntityPtr + this.GameOffsets.BaseEntityTargetNameOffset, false, out namePtr);
-                if (namePtr == IntPtr.Zero)
-                    continue;
-
-                string n;
-                this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
-                if (n == name && i != wrong)
-                    return i;
-            }
-
-            return -1;
-        }
 
         public int GetEntIndexByPos(float x, float y, float z, float d = 0f, bool xy = false)
         {
@@ -168,9 +150,9 @@ namespace LiveSplit.SourceSplit
                     if (newpos.BitEquals(pos) && i != 1) //not equal 1 becase the player might be in the same exact position
                         return i;
                 }
-                else
+                else // check for distance if it's a non-static entity like an npc or a prop
                 {
-                    if (xy == true)
+                    if (xy == true) 
                     {
                         if (newpos.DistanceXY(pos) <= d && i != 1) 
                             return i;

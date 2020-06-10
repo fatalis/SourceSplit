@@ -27,7 +27,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // disco:       when the y axis speed of the entity that rotates the text is 20
         // stuck:       when the cube's bounding box touches the trigger (done with math, hopefully not too expensive)
         // song:        2000 ticks after pressing the button
-        // voice over:  6 ticks after pressing the button
+        // voice over:  6 ticks after pressing the button   
         // space:       when the previous player's X pos is less than -7000 and current is higher than -400
         // zending:     when the player view entity switches from the player to the final camera
         // whiteboard:  when the previous player's X pos is =< 1993 and current is >= 1993
@@ -431,10 +431,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
                             return GameSupportResult.ManualSplit;
                         }
 
-                        if (state.GetEntityPos(ending_stuck_box_index_2).Distance(new Vector3f(-844f, -1043f, 676f)) <= 50)
+                        if (state.GetEntityPos(ending_stuck_box_index_2).Distance(new Vector3f(-844f, -1043f, 676f)) <= 50 || ending_stuck_box_index_2 == -1)
                         {
-                            ending_stuck_box_index = state.GetEntIndexByNameMultiple("box", ending_stuck_box_index_2);
+                            // the originally detected box is actually a template which is used to spawn
+                            // the real box, so we have to recheck with an exception
+                            ending_stuck_box_index = state.GetEntIndexByName("box", ending_stuck_box_index_2);
                         }
+
+                        Debug.WriteLine(ending_stuck_box_index_2);
 
                         if (ending_stuck_box_index != -1)
                         {
