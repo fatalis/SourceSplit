@@ -3,17 +3,17 @@ using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class estrangedact1 : GameSupport
+    class EstrangedAct1 : GameSupport
     {
         // start: 6.8 seconds after a trigger_once is hit
         // ending: when final trigger_once is hit, breaking the floor
 
         private bool _onceFlag;
 
-        private int _trig_index;
-        private int _trig2_index;
+        private int _trig_Index;
+        private int _trig2_Index;
 
-        public estrangedact1()
+        public EstrangedAct1()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "sp01thebeginning";
@@ -25,13 +25,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (this.IsFirstMap)
             {
-                this._trig_index = state.GetEntIndexByPos(1120f, -1278f, 1292f);
-                Debug.WriteLine("trig index is " + this._trig_index);
+                this._trig_Index = state.GetEntIndexByPos(1120f, -1278f, 1292f);
+                Debug.WriteLine("trig index is " + this._trig_Index);
             }
             if (this.IsLastMap)
             {
-                this._trig2_index = state.GetEntIndexByPos(5240f, -7800f, -206f);
-                Debug.WriteLine("trig2 index is " + this._trig_index);
+                this._trig2_Index = state.GetEntIndexByPos(5240f, -7800f, -206f);
+                Debug.WriteLine("trig2 index is " + this._trig_Index);
 
             }
             _onceFlag = false;
@@ -43,13 +43,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && this._trig_index != -1)
+            if (this.IsFirstMap && this._trig_Index != -1)
             {
-                var newtrig = state.GetEntInfoByIndex(_trig_index);
+                var newtrig = state.GetEntInfoByIndex(_trig_Index);
 
                 if (newtrig.EntityPtr == IntPtr.Zero)
                 {
-                    _trig_index = -1;
+                    _trig_Index = -1;
                     Debug.WriteLine("estranged2 start");
                     this.StartOffsetTicks = 791;
                     _onceFlag = true;
@@ -57,13 +57,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
             }
 
-            if (this.IsLastMap && this._trig2_index != -1)
+            if (this.IsLastMap && this._trig2_Index != -1)
             {
-                var newtrig2 = state.GetEntInfoByIndex(_trig2_index);
+                var newtrig2 = state.GetEntInfoByIndex(_trig2_Index);
 
                 if (newtrig2.EntityPtr == IntPtr.Zero)
                 {
-                    _trig2_index = -1;
+                    _trig2_Index = -1;
                     Debug.WriteLine("estranged1 end");
                     _onceFlag = true;
                     return GameSupportResult.PlayerLostControl;

@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class lostcoast : GameSupport
+    class LostCoast : GameSupport
     {
         // how to match with demos:
         // start: 0.2 seconds (14 ticks before timer starts) before the blackout camera guide entity is killed
@@ -11,10 +11,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag = false;
 
-        private int _black_index;
-        private int _trig_index;
+        private int _black_Index;
+        private int _trig_Index;
 
-        public lostcoast()
+        public LostCoast()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "hdrtest"; //beta%
@@ -27,10 +27,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (this.IsFirstMap || this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._black_index = state.GetEntIndexByName("blackout");
-                Debug.WriteLine("blackout index is " + this._black_index);
-                this._trig_index = state.GetEntIndexByPos(1109.82f, 2952f, 2521.26f);
-                Debug.WriteLine("test index is " + this._trig_index);
+                this._black_Index = state.GetEntIndexByName("blackout");
+                Debug.WriteLine("blackout index is " + this._black_Index);
+                this._trig_Index = state.GetEntIndexByPos(1109.82f, 2952f, 2521.26f);
+                Debug.WriteLine("test index is " + this._trig_Index);
             }
             _onceFlag = false;
         }
@@ -41,13 +41,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this._black_index != -1)
+            if (this._black_Index != -1)
             {
-                var newblack = state.GetEntInfoByIndex(_black_index);
+                var newBlack = state.GetEntInfoByIndex(_black_Index);
 
-                if (newblack.EntityPtr == IntPtr.Zero)
+                if (newBlack.EntityPtr == IntPtr.Zero)
                 {
-                    _black_index = -1;
+                    _black_Index = -1;
                     Debug.WriteLine("lostcoast start");
                     this.StartOffsetTicks = -14;
                     // no once flag because the end wont trigger otherwise
@@ -55,13 +55,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
             }
 
-            else if (this._trig_index != -1)
+            else if (this._trig_Index != -1)
             {
-                var newtrig = state.GetEntInfoByIndex(_trig_index);
+                var newTrig = state.GetEntInfoByIndex(_trig_Index);
 
-                if (newtrig.EntityPtr == IntPtr.Zero)
+                if (newTrig.EntityPtr == IntPtr.Zero)
                 {
-                    _black_index = -1;
+                    _black_Index = -1;
                     Debug.WriteLine("lostcoast end");
                     _onceFlag = true;
                     return GameSupportResult.PlayerLostControl;

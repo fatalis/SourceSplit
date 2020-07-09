@@ -3,17 +3,16 @@ using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class hl2mods_downfall : GameSupport
+    class HL2Mods_Downfall : GameSupport
     {
         // start: when player view entity changes
         // ending: when elevator button is pressed
 
-        private const int ENT_INDEX_PLAYER = 1;
         private bool _onceFlag;
 
         private int _sprite_index;
 
-        public hl2mods_downfall()
+        public HL2Mods_Downfall()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "dwn01";
@@ -54,9 +53,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             else if (this.IsLastMap && _sprite_index != 1)
             {
-                var newblack = state.GetEntInfoByIndex(_sprite_index);
+                var newBlack = state.GetEntInfoByIndex(_sprite_index);
 
-                if (newblack.EntityPtr == IntPtr.Zero)
+                if (newBlack.EntityPtr == IntPtr.Zero)
                 {
                     _sprite_index = -1;
                     Debug.WriteLine("downfall end");

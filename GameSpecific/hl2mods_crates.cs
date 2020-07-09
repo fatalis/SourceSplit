@@ -11,10 +11,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending: when the end text model's skin code is 10 and player view entity switches to the final camera
 
         private bool _onceFlag;
-        private static bool resetflag;
+        private static bool _resetFlag;
 
-        private int counter_index;
-        private int cam_index;
+        private int _counter_Index;
+        private int _cam_Index;
 
         private Vector3f startpos = new Vector3f(-2587.32f, 0f, -3.32f);
 
@@ -27,9 +27,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.RequiredProperties = PlayerProperties.ViewEntity | PlayerProperties.Position;
         }
 
-        public static void _resetflag()
+        public override void OnTimerReset(bool resetflagto)
         {
-            resetflag = false;
+            _resetFlag = resetflagto;
         }
 
         public override void OnSessionStart(GameState state)
@@ -37,8 +37,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (IsFirstMap)
             {
-                counter_index = state.GetEntIndexByName("EndWords");
-                cam_index = state.GetEntIndexByName("EndCamera");
+                _counter_Index = state.GetEntIndexByName("EndWords");
+                _cam_Index = state.GetEntIndexByName("EndCamera");
             }
             _onceFlag = false;
         }
@@ -51,19 +51,19 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                var crate = state.GetEntInfoByIndex(counter_index);
+                var crate = state.GetEntInfoByIndex(_counter_Index);
                 int d;
 
                 state.GameProcess.ReadValue(crate.EntityPtr + skinoffset, out d);
 
-                if (resetflag == false && state.PlayerEntInfo.EntityPtr != IntPtr.Zero && state.PlayerPosition.Distance(startpos) <= 0.05f)
+                if (!_resetFlag && state.PlayerEntInfo.EntityPtr != IntPtr.Zero && state.PlayerPosition.Distance(startpos) <= 0.05f)
                 {
-                  resetflag = true;
+                  _resetFlag = true;
                   Debug.WriteLine("toomanycrates start");
                   return GameSupportResult.PlayerGainedControl;
                 }
                     
-                if (d == 10 && state.PlayerViewEntityIndex == cam_index)
+                if (d == 10 && state.PlayerViewEntityIndex == _cam_Index)
                 {
                     _onceFlag = true;
                     Debug.WriteLine("toomanycrates start");

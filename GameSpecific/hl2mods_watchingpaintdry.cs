@@ -4,7 +4,7 @@ using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class hl2mods_watchingpaintdry : GameSupport
+    class HL2Mods_WatchingPaintDry : GameSupport
     {
         // start (all categories): on chapter select (only activates on timer reset)
         // ending (ice): 0.225 seconds (15 ticks) after button moves after it is pressed
@@ -12,15 +12,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag;
 
-        private Vector3f _crashbutton_newpos = new Vector3f(142.5f, 62f, 251f);
-        private Vector3f _crashbutton_pos;
-        private IntPtr _crashbutton_index;
+        private Vector3f _crashbutton_Newpos = new Vector3f(142.5f, 62f, 251f);
+        private Vector3f _crashbutton_Pos;
+        private IntPtr _crashbutton_Index;
 
-        private Vector3f _start_pos = new Vector3f(192f, -24f, 1.96845f);
+        private Vector3f _start_Pos = new Vector3f(192f, -24f, 1.96845f);
 
-        public static bool reserflag;
+        public static bool _resetFlag = false;
 
-        public hl2mods_watchingpaintdry()
+        public HL2Mods_WatchingPaintDry()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "wpd_st";
@@ -29,12 +29,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.RequiredProperties = PlayerProperties.Flags | PlayerProperties.Position;
         }
 
-
-        public static void resetflag()
+        public override void OnTimerReset(bool resetflagto)
         {
-            reserflag = false;
+            _resetFlag = resetflagto;
         }
-
 
         public override void OnSessionStart(GameState state)
         {
@@ -51,17 +49,18 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap || this.IsFirstMap2)
             {
-                this._crashbutton_index = state.GetEntityByName("bonzibutton");
-                state.GameProcess.ReadValue(_crashbutton_index + state.GameOffsets.BaseEntityAbsOriginOffset, out _crashbutton_pos);
-                //Debug.WriteLine("_crashbutton_index pos is " + _crashbutton_pos);
+                this._crashbutton_Index = state.GetEntityByName("bonzibutton");
+                state.GameProcess.ReadValue(_crashbutton_Index + state.GameOffsets.BaseEntityAbsOriginOffset, out _crashbutton_Pos);
+                //Debug.WriteLine("_crashbutton_Index pos is " + _crashbutton_Pos);
 
-                if (reserflag == false && state.PlayerPosition.Distance(_start_pos)<=0.001)
+                if (!_resetFlag && state.PlayerPosition.Distance(_start_Pos)<=0.001)
                 {
-                    reserflag =true;
+                    _resetFlag = true;
+                    Debug.WriteLine("wpd start");
                     return GameSupportResult.PlayerGainedControl;
                 }
 
-                if (_crashbutton_pos.BitEquals(_crashbutton_newpos))
+                if (_crashbutton_Pos.BitEquals(_crashbutton_Newpos))
                 {
                     Debug.WriteLine("wpd ice end");
                     _onceFlag = true;

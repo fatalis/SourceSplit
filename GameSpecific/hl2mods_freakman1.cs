@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class hl2mods_freakman1 : GameSupport
+    class HL2Mods_Freakman1 : GameSupport
     {
         // start: when the start trigger is hit
         // ending: when kleiner's hp is <= 0
@@ -14,10 +14,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private int _baseEntityHealthOffset = -1;
 
-        private int trig_index;
-        private int _kleiner_index;
+        private int _trig_Index;
+        private int _kleiner_Index;
 
-        public hl2mods_freakman1()
+        public HL2Mods_Freakman1()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "gordon1";
@@ -41,14 +41,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                trig_index = state.GetEntIndexByPos(-1472f, -608f, 544f);
+                _trig_Index = state.GetEntIndexByPos(-1472f, -608f, 544f);
             }
             _onceFlag = false;
 
             if (this.IsLastMap)
             {
-                _kleiner_index = state.GetEntIndexByPos(0f, 0f, 1888f, 1f);
-                Debug.WriteLine("kleiner index is " + _kleiner_index);
+                _kleiner_Index = state.GetEntIndexByPos(0f, 0f, 1888f, 1f);
+                Debug.WriteLine("kleiner index is " + _kleiner_Index);
             }
         }
 
@@ -58,22 +58,22 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && trig_index != -1)
+            if (this.IsFirstMap && _trig_Index != -1)
             {
-                var newtrig = state.GetEntInfoByIndex(trig_index);
+                var newTrig = state.GetEntInfoByIndex(_trig_Index);
                 
-                if (newtrig.EntityPtr == IntPtr.Zero)
+                if (newTrig.EntityPtr == IntPtr.Zero)
                 {
-                    trig_index = -1;
+                    _trig_Index = -1;
                     _onceFlag = true;
                     Debug.WriteLine("freakman1 start");
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
 
-            else if (this.IsLastMap && _kleiner_index != -1)
+            else if (this.IsLastMap && _kleiner_Index != -1)
             {
-                var kleiner = state.GetEntInfoByIndex(_kleiner_index);
+                var kleiner = state.GetEntInfoByIndex(_kleiner_Index);
                 int hp;
                 state.GameProcess.ReadValue(kleiner.EntityPtr + _baseEntityHealthOffset, out hp);
 

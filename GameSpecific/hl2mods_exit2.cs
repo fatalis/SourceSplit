@@ -3,17 +3,17 @@ using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class hl2mods_exit2 : GameSupport
+    class HL2Mods_Exit2 : GameSupport
     {
         // start: when player's view index changes from the camera entity to the player
         // ending: 2 seconds after final trigger_once is hit and fade starts
 
         private bool _onceFlag = false;
 
-        private int _cam_index;
-        private int _trig_index;
+        private int _cam_Index;
+        private int _trig_Index;
 
-        public hl2mods_exit2()
+        public HL2Mods_Exit2()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "e2_01"; //beta%
@@ -26,14 +26,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (this.IsFirstMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._cam_index = state.GetEntIndexByName("view");
-                Debug.WriteLine("_cam_index index is " + this._cam_index);
+                this._cam_Index = state.GetEntIndexByName("view");
+                Debug.WriteLine("_cam_Index index is " + this._cam_Index);
             }
 
             if (this.IsLastMap)
             {
-                this._trig_index = state.GetEntIndexByPos(-840f, -15096f, 48f);
-                Debug.WriteLine("_trig_index index is " + this._trig_index);
+                this._trig_Index = state.GetEntIndexByPos(-840f, -15096f, 48f);
+                Debug.WriteLine("_trig_Index index is " + this._trig_Index);
 
             }
             _onceFlag = false;
@@ -45,21 +45,21 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && this._cam_index != -1)
+            if (this.IsFirstMap && this._cam_Index != -1)
             {
                 if (state.PlayerViewEntityIndex == 1 &&
-                    state.PrevPlayerViewEntityIndex == _cam_index)
+                    state.PrevPlayerViewEntityIndex == _cam_Index)
                 {
                     Debug.WriteLine("exit2 start");
                     _onceFlag = true;
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-            else if (this.IsLastMap && _trig_index != -1)
+            else if (this.IsLastMap && _trig_Index != -1)
             {
-                var newtrig = state.GetEntInfoByIndex(_trig_index);
+                var newTrig = state.GetEntInfoByIndex(_trig_Index);
 
-                if (newtrig.EntityPtr == IntPtr.Zero)
+                if (newTrig.EntityPtr == IntPtr.Zero)
                 {
                     Debug.WriteLine("exit2 end");
                     _onceFlag = true;

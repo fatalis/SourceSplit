@@ -46,10 +46,12 @@ namespace LiveSplit.SourceSplit
 
         private bool _gotTickRate;
 
-        private int timesover;
-        private int timeoverspent;
+        private int _timesOver;
+        private int _timeOverSpent;
 
         private SourceSplitSettings _settings;
+
+        public static GameState GameSupportOutBoundCalls;
 
         // TODO: match tickrate as closely as possible without going over
         // otherwise we will most likely read when the game isn't sleeping
@@ -440,6 +442,7 @@ namespace LiveSplit.SourceSplit
             Debug.WriteLine("HandleProcess " + game.ProcessName);
 
             var state = new GameState(game, offsets);
+            GameSupportOutBoundCalls = state;
             this.InitGameState(state);
             _gotTickRate = false;
 
@@ -456,9 +459,9 @@ namespace LiveSplit.SourceSplit
 
                 if (profiler.ElapsedMilliseconds >= TARGET_UPDATE_RATE)
                 {
-                    timesover += 1;
-                    timeoverspent += Convert.ToInt32(profiler.ElapsedMilliseconds) - TARGET_UPDATE_RATE;
-                    Debug.WriteLine("**** update iteration took too long: " + profiler.ElapsedMilliseconds + ", times: " + timesover + ", total: " + timeoverspent);
+                    _timesOver += 1;
+                    _timeOverSpent += Convert.ToInt32(profiler.ElapsedMilliseconds) - TARGET_UPDATE_RATE;
+                    Debug.WriteLine("**** update iteration took too long: " + profiler.ElapsedMilliseconds + ", times: " + _timesOver + ", total: " + _timeOverSpent);
                 }
 
                 //var sleep = Stopwatch.StartNew();

@@ -119,7 +119,7 @@ namespace LiveSplit.SourceSplit
                 this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
                 if (n == name)
                 {
-                    if (i != wrong)
+                    if (i != wrong) // if an exception value is set, check the found index with it
                     {
                         return i;
                     }
@@ -152,7 +152,7 @@ namespace LiveSplit.SourceSplit
                 }
                 else // check for distance if it's a non-static entity like an npc or a prop
                 {
-                    if (xy == true) 
+                    if (xy) 
                     {
                         if (newpos.DistanceXY(pos) <= d && i != 1) 
                             return i;

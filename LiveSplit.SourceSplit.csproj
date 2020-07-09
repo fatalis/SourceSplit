@@ -58,24 +58,24 @@
     <Compile Include="GameSpecific\HL2.cs" />
     <Compile Include="GameSpecific\HL2Ep1.cs" />
     <Compile Include="GameSpecific\HL2Ep2.cs" />
-    <Compile Include="GameSpecific\hl2mods_dearesther.cs" />
-    <Compile Include="GameSpecific\hl2mods_crates.cs" />
-    <Compile Include="GameSpecific\hl2mods_exit2.cs" />
-    <Compile Include="GameSpecific\hl2mods_DayHard.cs" />
-    <Compile Include="GameSpecific\thestanleyparable.cs" />
-    <Compile Include="GameSpecific\te120.cs" />
-    <Compile Include="GameSpecific\hl2mods_freakman2.cs" />
-    <Compile Include="GameSpecific\hl2mods_freakman1.cs" />
-    <Compile Include="GameSpecific\hl2mods_dankmemes.cs" />
-    <Compile Include="GameSpecific\hl2mods_snipersep.cs" />
-    <Compile Include="GameSpecific\hl2mods_watchingpaintdry.cs" />
-    <Compile Include="GameSpecific\hl2mods_uncertaintyprinciple.cs" />
-    <Compile Include="GameSpecific\hl2mods_downfall.cs" />
-    <Compile Include="GameSpecific\hl2mods_mimp.cs" />
-    <Compile Include="GameSpecific\hl2mods_ptsd1.cs" />
-    <Compile Include="GameSpecific\hl2mods_DeepDown.cs" />
-    <Compile Include="GameSpecific\estrangedact1.cs" />
-    <Compile Include="GameSpecific\lostcoast.cs" />
+    <Compile Include="GameSpecific\HL2Mods_DearEsther.cs" />
+    <Compile Include="GameSpecific\HL2Mods_Crates.cs" />
+    <Compile Include="GameSpecific\HL2Mods_Exit2.cs" />
+    <Compile Include="GameSpecific\HL2Mods_DayHard.cs" />
+    <Compile Include="GameSpecific\TheStanleyParable.cs" />
+    <Compile Include="GameSpecific\TE120.cs" />
+    <Compile Include="GameSpecific\HL2Mods_Freakman2.cs" />
+    <Compile Include="GameSpecific\HL2Mods_Freakman1.cs" />
+    <Compile Include="GameSpecific\HL2Mods_DankMemes.cs" />
+    <Compile Include="GameSpecific\HL2Mods_SnipersEp.cs" />
+    <Compile Include="GameSpecific\HL2Mods_WatchingPaintDry.cs" />
+    <Compile Include="GameSpecific\HL2Mods_UncertaintyPrinciple.cs" />
+    <Compile Include="GameSpecific\HL2Mods_Downfall.cs" />
+    <Compile Include="GameSpecific\HL2Mods_MImp.cs" />
+    <Compile Include="GameSpecific\HL2Mods_Ptsd1.cs" />
+    <Compile Include="GameSpecific\HL2Mods_DeepDown.cs" />
+    <Compile Include="GameSpecific\EstrangedAct1.cs" />
+    <Compile Include="GameSpecific\LostCoast.cs" />
     <Compile Include="GameSpecific\Portal.cs" />
     <Compile Include="GameSpecific\Portal2.cs" />
     <Compile Include="GameSpecific\PortalStoriesMel.cs" />
@@ -115,7 +115,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "D:\Speedrun\~sourcesplit\own code\SourceSplit\bin\LiveSplit.SourceSplit.dll" "D:\Speedrun\~Livesplits\LiveSplit_1.7.6\Components\LiveSplit.SourceSplit.dll" /y</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

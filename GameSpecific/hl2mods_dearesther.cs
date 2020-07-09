@@ -5,19 +5,19 @@ using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class hl2mods_dearesther : GameSupport
+    class HL2Mods_DearEsther : GameSupport
     {
         // start: on first map
         // ending: when the final trigger is hit
 
         private bool _onceFlag;
-        private static bool resetflag;
+        private static bool _resetFlag;
 
-        private Vector3f startpos = new Vector3f(3836f, 5620f, 350.395477f);
+        private Vector3f _startPos = new Vector3f(3836f, 5620f, 350.395477f);
 
-        private int trig_index;
+        private int _trig_Index;
 
-        public hl2mods_dearesther()
+        public HL2Mods_DearEsther()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "donnelley";
@@ -25,9 +25,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.RequiredProperties = PlayerProperties.Position;
         }
 
-        public static void _resetflag()
+        public override void OnTimerReset(bool resetflagto)
         {
-            resetflag = false;
+            _resetFlag = resetflagto;
         }
 
 
@@ -36,8 +36,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (IsLastMap)
             {
-                trig_index = state.GetEntIndexByName("triggerEndSequence");
-                Debug.WriteLine("trigger index is " + trig_index);
+                _trig_Index = state.GetEntIndexByName("triggerEndSequence");
+                Debug.WriteLine("trigger index is " + _trig_Index);
             }
             _onceFlag = false;
         }
@@ -48,9 +48,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && state.PlayerPosition.DistanceXY(startpos) <= 0.05f && resetflag == false)
+            if (this.IsFirstMap && state.PlayerPosition.DistanceXY(_startPos) <= 0.05f && !_resetFlag)
             {
-                resetflag = true;
+                _resetFlag = true;
                 _onceFlag = true;
                 Debug.WriteLine("dearesther start");
                 return GameSupportResult.PlayerGainedControl;
@@ -58,9 +58,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap)
             {
-                var newtrig = state.GetEntInfoByIndex(trig_index);
+                var newTrig = state.GetEntInfoByIndex(_trig_Index);
 
-                if (newtrig.EntityPtr == IntPtr.Zero)
+                if (newTrig.EntityPtr == IntPtr.Zero)
                 {
                     _onceFlag = true;
                     Debug.WriteLine("dearesther end");

@@ -3,17 +3,17 @@ using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class hl2mods_freakman2 : GameSupport
+    class HL2Mods_Freakman2 : GameSupport
     {
         // start: when player gains control from camera entity (when the its parent entity is killed)
         // ending: when player's view entity changes to the ending camera
 
         private bool _onceFlag;
 
-        private int train_index;
-        private int cam_index;
+        private int _train_Index;
+        private int _cam_Index;
 
-        public hl2mods_freakman2()
+        public HL2Mods_Freakman2()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "kleiner0";
@@ -27,14 +27,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                train_index = state.GetEntIndexByName("lookatthis_move");
+                _train_Index = state.GetEntIndexByName("lookatthis_move");
             }
             _onceFlag = false;
 
             if (this.IsLastMap)
             {
-                cam_index = state.GetEntIndexByName("credit_cam");
-                Debug.WriteLine("cam index is " + cam_index);
+                _cam_Index = state.GetEntIndexByName("credit_cam");
+                Debug.WriteLine("cam index is " + _cam_Index);
             }
         }
 
@@ -44,13 +44,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && train_index != -1)
+            if (this.IsFirstMap && _train_Index != -1)
             {
-                var newtrig = state.GetEntInfoByIndex(train_index);
+                var newTrig = state.GetEntInfoByIndex(_train_Index);
                 
-                if (newtrig.EntityPtr == IntPtr.Zero)
+                if (newTrig.EntityPtr == IntPtr.Zero)
                 {
-                    train_index = -1;
+                    _train_Index = -1;
                     _onceFlag = true;
                     this.StartOffsetTicks = -4;
                     Debug.WriteLine("freakman2 start");
@@ -58,9 +58,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
             }
 
-            else if (this.IsLastMap && cam_index != -1)
+            else if (this.IsLastMap && _cam_Index != -1)
             {
-                if (state.PlayerViewEntityIndex == cam_index)
+                if (state.PlayerViewEntityIndex == _cam_Index)
                 {
                     _onceFlag = true;
                     Debug.WriteLine("freakman2 end");

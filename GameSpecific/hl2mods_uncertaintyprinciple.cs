@@ -4,20 +4,20 @@ using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class hl2mods_uncertaintyprinciple : GameSupport
+    class HL2Mods_UncertaintyPrinciple : GameSupport
     {
         // start: 2 seconds after the camera's parent entity gets within 8 units of the final path_track
         // ending: when player is frozen by the camera entity
 
         private bool _onceFlag;
 
-        private IntPtr _track_index;
-        private IntPtr _cam_index;
+        private IntPtr _track_Index;
+        private IntPtr _cam_Index;
 
-        Vector3f trackpos;
-        Vector3f campos;
+        Vector3f _trackPos;
+        Vector3f _camPos;
 
-        public hl2mods_uncertaintyprinciple()
+        public HL2Mods_UncertaintyPrinciple()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "up_retreat_a";
@@ -32,10 +32,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                this._track_index = state.GetEntityByName("start_cam_corner2");
-                this._cam_index = state.GetEntityByName("camera1_train");
-                state.GameProcess.ReadValue(_track_index + state.GameOffsets.BaseEntityAbsOriginOffset, out trackpos);
-                Debug.WriteLine("trackpos pos is " + trackpos);
+                this._track_Index = state.GetEntityByName("start_cam_corner2");
+                this._cam_Index = state.GetEntityByName("camera1_train");
+                state.GameProcess.ReadValue(_track_Index + state.GameOffsets.BaseEntityAbsOriginOffset, out _trackPos);
+                Debug.WriteLine("_trackPos pos is " + _trackPos);
             }
 
             _onceFlag = false;
@@ -51,10 +51,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                state.GameProcess.ReadValue(_cam_index + state.GameOffsets.BaseEntityAbsOriginOffset, out campos);
-                Debug.WriteLine("campos is " + campos);
+                state.GameProcess.ReadValue(_cam_Index + state.GameOffsets.BaseEntityAbsOriginOffset, out _camPos);
+                Debug.WriteLine("_camPos is " + _camPos);
 
-                if (campos.DistanceXY(trackpos) <= 8)
+                if (_camPos.DistanceXY(_trackPos) <= 8)
                 {
                     Debug.WriteLine("up start");
                     this.StartOffsetTicks = 134;

@@ -59,6 +59,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // called when attached to a new game process
         public virtual void OnGameAttached(GameState state) { }
 
+        public virtual void OnTimerReset(bool resetflagto) { }
+
         // called on the first tick when player is fully in the game (according to demos)
         public virtual void OnSessionStart(GameState state)
         {
@@ -108,7 +110,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public static GameSupport FromGameDir(string gameDir)
         {
-            thestanleyparable.stanley = false;
             switch (gameDir.ToLower())
             {
                 case "hl2oe":
@@ -136,42 +137,42 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "bms":
                     return new BMSRetail();
                 case "lostcoast":
-                    return new lostcoast();
+                    return new LostCoast();
                 case "estrangedact1":
-                    return new estrangedact1();
+                    return new EstrangedAct1();
                 case "ptsd":
-                    return new hl2mods_ptsd1();
+                    return new HL2Mods_Ptsd1();
                 case "missionimprobable":
-                    return new hl2mods_mimp();
+                    return new HL2Mods_MImp();
                 case "downfall":
-                    return new hl2mods_downfall();
+                    return new HL2Mods_Downfall();
                 case "uncertaintyprinciple":
-                    return new hl2mods_uncertaintyprinciple();
+                    return new HL2Mods_UncertaintyPrinciple();
                 case "watchingpaintdry":
                 case "watchingpaintdry2":
-                    return new hl2mods_watchingpaintdry();
+                    return new HL2Mods_WatchingPaintDry();
                 case "mod_episodic":
-                    return new hl2mods_snipersep();
+                    return new HL2Mods_SnipersEp();
                 case "deepdown":
-                    return new hl2mods_DeepDown();
+                    return new HL2Mods_DeepDown();
                 case "dank_memes":
-                    return new hl2mods_dankmemes();
+                    return new HL2Mods_DankMemes();
                 case "freakman":
-                    return new hl2mods_freakman1();
+                    return new HL2Mods_Freakman1();
                 case "freakman-kleinerlife":
-                    return new hl2mods_freakman2();
+                    return new HL2Mods_Freakman2();
                 case "crates":
                     return new hl2mods_toomanycrates();
                 case "te120":
-                    return new te120();
+                    return new TE120();
                 case "dear esther":
-                    return new hl2mods_dearesther();
+                    return new HL2Mods_DearEsther();
                 case "exit 2":
-                    return new hl2mods_exit2();
+                    return new HL2Mods_Exit2();
                 case "dayhard":
-                    return new hl2mods_DayHard();
+                    return new HL2Mods_DayHard();
                 case "thestanleyparable":
-                    return new thestanleyparable();
+                    return new TheStanleyParable();
             }
 
             return null;

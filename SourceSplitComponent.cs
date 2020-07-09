@@ -176,7 +176,7 @@ namespace LiveSplit.SourceSplit
 
             if (!_waitingForDelay)
             {
-                if (thestanleyparable.stanley)
+                if (TheStanleyParable._stanley)
                 {
                     // for bug detection only since tsp support isn't final yet
                     state.SetGameTime(this.GameTime);
@@ -239,7 +239,8 @@ namespace LiveSplit.SourceSplit
             // something weird happens in the case of tsp, when the player resets the timer and starts it manually, then
             // start the map normally then move their view then state_onreset gets fired non stop
             // so this is a hack to prevent the game from autostarting the run if the timer has already started
-            thestanleyparable.resetflag2();
+            if (TheStanleyParable._stanley)
+                GameMemory.GameSupportOutBoundCalls.GameSupport.OnTimerReset(true);
 
 
             // hack to make sure Portal players aren't using manual offset. we handle offset automatically now.
@@ -261,17 +262,9 @@ namespace LiveSplit.SourceSplit
             MapTimesForm.Instance.Reset();
             _waitingForDelay = false;
 
-            //what is this?
-            //a bodge job to add an "onceflag" that gets reset on timer reset
-            //TODO: find a better method
-
-            hl2mods_watchingpaintdry.resetflag();
-            hl2mods_snipersep.resetflag();
-            HL2.expfuelresetflag();
-            hl2mods_dankmemes.resetflag();
-            hl2mods_toomanycrates._resetflag();
-            hl2mods_dearesther._resetflag();
-            thestanleyparable.resetflag();
+            // some game has unspecific starts like if the player's position isn't something which
+            // can be repeated easily by accident, so this is a _onceflag but reset on timer reset.
+            GameMemory.GameSupportOutBoundCalls.GameSupport.OnTimerReset(false);
         }
 
         void state_OnSplit(object sender, EventArgs e)

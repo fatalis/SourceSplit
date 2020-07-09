@@ -5,7 +5,7 @@ using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class hl2mods_ptsd1 : GameSupport
+    class HL2Mods_Ptsd1 : GameSupport
     {
         // how to match with demos:
         // start: after player view entity changes (requires debug config and checks to avoid other changes)
@@ -13,10 +13,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag;
 
-        private int _breen_index;
-        private int cam_index;
+        private int _breen_Index;
+        private int _cam_Index;
 
-        public hl2mods_ptsd1()
+        public HL2Mods_Ptsd1()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "ptsd_1";
@@ -31,13 +31,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                this.cam_index = state.GetEntIndexByName("camera_1");
+                this._cam_Index = state.GetEntIndexByName("camera_1");
             }
 
             if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._breen_index = state.GetEntIndexByName("banana2");
-                Debug.WriteLine("banana2 index is " + this._breen_index);
+                this._breen_Index = state.GetEntIndexByName("banana2");
+                Debug.WriteLine("banana2 index is " + this._breen_Index);
             }
         
              _onceFlag = false;
@@ -49,9 +49,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && cam_index != -1)
+            if (this.IsFirstMap && _cam_Index != -1)
             {
-                if (state.PrevPlayerViewEntityIndex == cam_index
+                if (state.PrevPlayerViewEntityIndex == _cam_Index
                     && state.PlayerViewEntityIndex == GameState.ENT_INDEX_PLAYER)
                 {
                     Debug.WriteLine("ptsd start");
@@ -59,13 +59,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-            else if (this.IsLastMap && this._breen_index != -1)
+            else if (this.IsLastMap && this._breen_Index != -1)
             {
-                var newblack = state.GetEntInfoByIndex(_breen_index);
+                var newBlack = state.GetEntInfoByIndex(_breen_Index);
 
-                if (newblack.EntityPtr == IntPtr.Zero)
+                if (newBlack.EntityPtr == IntPtr.Zero)
                 {
-                    _breen_index = -1;
+                    _breen_Index = -1;
                     Debug.WriteLine("ptsd end");
                     _onceFlag = true;
                     return GameSupportResult.PlayerLostControl;

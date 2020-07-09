@@ -3,17 +3,17 @@ using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class hl2mods_DeepDown : GameSupport
+    class HL2Mods_DeepDown : GameSupport
     {
         // start: when intro text entity is killed
         // ending: when the trigger for alyx to do her wake up animation is hit
 
         private bool _onceFlag;
 
-        private int _intro_index;
-        private int _trig_index;
+        private int _intro_Index;
+        private int _trig_Index;
 
-        public hl2mods_DeepDown()
+        public HL2Mods_DeepDown()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "ep2_deepdown_1";
@@ -25,13 +25,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (this.IsFirstMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._intro_index = state.GetEntIndexByName("IntroCredits1");
-                Debug.WriteLine("intro index is " + this._intro_index);
+                this._intro_Index = state.GetEntIndexByName("IntroCredits1");
+                Debug.WriteLine("intro index is " + this._intro_Index);
             }
 
             if (this.IsLastMap)
             {
-                this._trig_index = state.GetEntIndexByName("AlyxWake1");
+                this._trig_Index = state.GetEntIndexByName("AlyxWake1");
             }
             _onceFlag = false;
         }
@@ -42,22 +42,22 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && this._intro_index != -1)
+            if (this.IsFirstMap && this._intro_Index != -1)
             {
-                var newintro = state.GetEntInfoByIndex(_intro_index);
+                var newIntro = state.GetEntInfoByIndex(_intro_Index);
 
-                if (newintro.EntityPtr == IntPtr.Zero)
+                if (newIntro.EntityPtr == IntPtr.Zero)
                 {
-                    _intro_index = -1;
+                    _intro_Index = -1;
                     Debug.WriteLine("deepdown start");
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-            else if (this.IsLastMap && this._trig_index != -1)
+            else if (this.IsLastMap && this._trig_Index != -1)
             {
-                var newtrig = state.GetEntInfoByIndex(_trig_index);
+                var newTrig = state.GetEntInfoByIndex(_trig_Index);
 
-                if (newtrig.EntityPtr == IntPtr.Zero)
+                if (newTrig.EntityPtr == IntPtr.Zero)
                 {
                     Debug.WriteLine("deepdown end");
                     _onceFlag = true;
