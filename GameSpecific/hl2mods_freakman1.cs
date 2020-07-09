@@ -67,6 +67,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     _trig_Index = -1;
                     _onceFlag = true;
                     Debug.WriteLine("freakman1 start");
+                    this.StartOffsetTicks = -7;
                     return GameSupportResult.PlayerGainedControl;
                 }
             }

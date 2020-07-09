@@ -63,7 +63,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("exit2 end");
                     _onceFlag = true;
-                    this.EndOffsetTicks = -134;
+                    this.EndOffsetTicks = -127;
                     return GameSupportResult.PlayerLostControl;
                 }
             }

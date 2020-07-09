@@ -64,6 +64,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     _black_Index = -1;
                     Debug.WriteLine("lostcoast end");
                     _onceFlag = true;
+                    this.EndOffsetTicks = 7;
                     return GameSupportResult.PlayerLostControl;
                 }
             }

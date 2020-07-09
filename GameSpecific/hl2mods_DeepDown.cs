@@ -61,6 +61,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("deepdown end");
                     _onceFlag = true;
+                    this.EndOffsetTicks = 7;
                     return GameSupportResult.PlayerLostControl;
                 }
             }

@@ -264,7 +264,8 @@ namespace LiveSplit.SourceSplit
 
             // some game has unspecific starts like if the player's position isn't something which
             // can be repeated easily by accident, so this is a _onceflag but reset on timer reset.
-            GameMemory.GameSupportOutBoundCalls.GameSupport.OnTimerReset(false);
+            if (GameMemory.GameSupportOutBoundCalls != null)
+                GameMemory.GameSupportOutBoundCalls.GameSupport.OnTimerReset(false);
         }
 
         void state_OnSplit(object sender, EventArgs e)

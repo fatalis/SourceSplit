@@ -66,6 +66,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     _trig2_Index = -1;
                     Debug.WriteLine("estranged1 end");
                     _onceFlag = true;
+                    this.EndOffsetTicks = (int)Math.Ceiling(0.1f / state.IntervalPerTick);
                     return GameSupportResult.PlayerLostControl;
                 }
             }
