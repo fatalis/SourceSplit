@@ -1,29 +1,26 @@
-﻿using LiveSplit.ComponentUtil;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class HL2Mods_DankMemes : GameSupport
+    class HL2Mods_SnipersEp : GameSupport
     {
-        // start: on first map
-        // ending: when "John Cena" (final antlion king _boss_Ptr) hp is <= 0 
+        //start: when player moves (excluding an on-the-spot jump)
+        //end: when "gordon" is killed (hp is <= 0)
 
         private bool _onceFlag;
-        private static bool _resetFlag;
-
         private int _baseEntityHealthOffset = -1;
+        public static bool _resetFlag;
 
-        private int _cam_Index;
-        IntPtr _boss_Ptr;
+        IntPtr _freeman_Ptr;
+        Vector3f _startPos = new Vector3f(9928f, 12472f, -180f);
 
-        public HL2Mods_DankMemes()
+        public HL2Mods_SnipersEp()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "Your_house";
-            this.LastMap = "Dank_Boss";
-            this.RequiredProperties = PlayerProperties.ViewEntity;
+            this.FirstMap = "bestmod2013";
         }
 
         public override void OnGameAttached(GameState state)
@@ -42,44 +39,41 @@ namespace LiveSplit.SourceSplit.GameSpecific
             _resetFlag = resetflagto;
         }
 
+
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
 
+            _onceFlag = false;
+
             if (this.IsFirstMap)
             {
-                _cam_Index = state.GetEntIndexByName("black_cam");
+                _freeman_Ptr = state.GetEntityByName("bar");
+                Debug.WriteLine("freeman ptr is 0x" + _freeman_Ptr.ToString("X"));
             }
-
-            if (this.IsLastMap)
-            {
-                _boss_Ptr = state.GetEntityByName("John_Cena");
-            }
-            _onceFlag = false;
         }
-
 
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (_onceFlag)
-                return GameSupportResult.DoNothing;
-
-            if (this.IsFirstMap && !_resetFlag && state.PlayerViewEntityIndex == _cam_Index)
             {
-                _resetFlag = true;
-                Debug.WriteLine("dank memes start");
-                return GameSupportResult.PlayerGainedControl;
+                return GameSupportResult.DoNothing;
             }
 
-            else if (this.IsLastMap)
+            if (this.IsFirstMap)
             {
-                int hp;
-                state.GameProcess.ReadValue(_boss_Ptr + _baseEntityHealthOffset, out hp);
+                if (!state.PlayerPosition.BitEqualsXY(_startPos) && !_resetFlag)
+                {
+                    _resetFlag = true;
+                    return GameSupportResult.PlayerGainedControl;
+                }
 
+                int hp;
+                state.GameProcess.ReadValue(_freeman_Ptr + _baseEntityHealthOffset, out hp);
                 if (hp <= 0)
                 {
+                    Debug.WriteLine("snipersep end");
                     _onceFlag = true;
-                    Debug.WriteLine("dank memes end");
                     return GameSupportResult.PlayerLostControl;
                 }
             }

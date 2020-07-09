@@ -1,64 +1,72 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
+using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class HL2Mods_Downfall : GameSupport
+    class HL2Mods_Ptsd1 : GameSupport
     {
-        // start: when player view entity changes
-        // ending: when elevator button is pressed
+        // how to match with demos:
+        // start: after player view entity changes (requires debug config and checks to avoid other changes)
+        // ending: when breen's banana hat (yes really) is killed
 
         private bool _onceFlag;
 
-        private int _sprite_index;
+        private int _breen_Index;
+        private int _cam_Index;
 
-        public HL2Mods_Downfall()
+        public HL2Mods_Ptsd1()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "dwn01";
-            this.LastMap = "dwn01a";
+            this.FirstMap = "ptsd_1";
+            this.LastMap = "ptsd_final";
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
+
 
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
 
+            if (this.IsFirstMap)
+            {
+                this._cam_Index = state.GetEntIndexByName("camera_1");
+            }
+
             if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._sprite_index = state.GetEntIndexByName("elevator02_button_sprite");
-                Debug.WriteLine("elevator02_button_sprite index is " + this._sprite_index);
+                this._breen_Index = state.GetEntIndexByName("banana2");
+                Debug.WriteLine("banana2 index is " + this._breen_Index);
             }
-            _onceFlag = false;
+        
+             _onceFlag = false;
         }
 
 
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (_onceFlag)
-            {
                 return GameSupportResult.DoNothing;
-            }
 
-            if (this.IsFirstMap)
+            if (this.IsFirstMap && _cam_Index != -1)
             {
-                if (state.PrevPlayerViewEntityIndex != GameState.ENT_INDEX_PLAYER
+                if (state.PrevPlayerViewEntityIndex == _cam_Index
                     && state.PlayerViewEntityIndex == GameState.ENT_INDEX_PLAYER)
                 {
-                    Debug.WriteLine("downfall start");
+                    Debug.WriteLine("ptsd start");
                     _onceFlag = true;
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-
-            else if (this.IsLastMap && _sprite_index != 1)
+            else if (this.IsLastMap && this._breen_Index != -1)
             {
-                var newBlack = state.GetEntInfoByIndex(_sprite_index);
+                var newBlack = state.GetEntInfoByIndex(_breen_Index);
 
                 if (newBlack.EntityPtr == IntPtr.Zero)
                 {
-                    _sprite_index = -1;
-                    Debug.WriteLine("downfall end");
+                    _breen_Index = -1;
+                    Debug.WriteLine("ptsd end");
                     _onceFlag = true;
                     return GameSupportResult.PlayerLostControl;
                 }

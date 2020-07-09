@@ -5,23 +5,25 @@ using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class HL2Mods_Freakman1 : GameSupport
+    class HL2Mods_DankMemes : GameSupport
     {
-        // start: when the start trigger is hit
-        // ending: when kleiner's hp is <= 0
+        // start: on first map
+        // ending: when "John Cena" (final antlion king _boss_Ptr) hp is <= 0 
 
         private bool _onceFlag;
+        private static bool _resetFlag;
 
         private int _baseEntityHealthOffset = -1;
 
-        private int _trig_Index;
-        private int _kleiner_Index;
+        private int _cam_Index;
+        IntPtr _boss_Ptr;
 
-        public HL2Mods_Freakman1()
+        public HL2Mods_DankMemes()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "gordon1";
-            this.LastMap = "endbattle";
+            this.FirstMap = "Your_house";
+            this.LastMap = "Dank_Boss";
+            this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
         public override void OnGameAttached(GameState state)
@@ -35,21 +37,25 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
 
+        public override void OnTimerReset(bool resetflagto)
+        {
+            _resetFlag = resetflagto;
+        }
+
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
 
             if (this.IsFirstMap)
             {
-                _trig_Index = state.GetEntIndexByPos(-1472f, -608f, 544f);
+                _cam_Index = state.GetEntIndexByName("black_cam");
             }
-            _onceFlag = false;
 
             if (this.IsLastMap)
             {
-                _kleiner_Index = state.GetEntIndexByPos(0f, 0f, 1888f, 1f);
-                Debug.WriteLine("kleiner index is " + _kleiner_Index);
+                _boss_Ptr = state.GetEntityByName("John_Cena");
             }
+            _onceFlag = false;
         }
 
 
@@ -58,30 +64,22 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && _trig_Index != -1)
+            if (this.IsFirstMap && !_resetFlag && state.PlayerViewEntityIndex == _cam_Index)
             {
-                var newTrig = state.GetEntInfoByIndex(_trig_Index);
-                
-                if (newTrig.EntityPtr == IntPtr.Zero)
-                {
-                    _trig_Index = -1;
-                    _onceFlag = true;
-                    Debug.WriteLine("freakman1 start");
-                    this.StartOffsetTicks = -7;
-                    return GameSupportResult.PlayerGainedControl;
-                }
+                _resetFlag = true;
+                Debug.WriteLine("dank memes start");
+                return GameSupportResult.PlayerGainedControl;
             }
 
-            else if (this.IsLastMap && _kleiner_Index != -1)
+            else if (this.IsLastMap)
             {
-                var kleiner = state.GetEntInfoByIndex(_kleiner_Index);
                 int hp;
-                state.GameProcess.ReadValue(kleiner.EntityPtr + _baseEntityHealthOffset, out hp);
+                state.GameProcess.ReadValue(_boss_Ptr + _baseEntityHealthOffset, out hp);
 
                 if (hp <= 0)
                 {
                     _onceFlag = true;
-                    Debug.WriteLine("freakman1 end");
+                    Debug.WriteLine("dank memes end");
                     return GameSupportResult.PlayerLostControl;
                 }
             }

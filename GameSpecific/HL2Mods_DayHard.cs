@@ -3,21 +3,21 @@ using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class HL2Mods_Exit2 : GameSupport
+    class HL2Mods_DayHard : GameSupport
     {
-        // start: when player's view index changes from the camera entity to the player
-        // ending: 2 seconds after final trigger_once is hit and fade starts
+        // start: when player view entity changes from start camera to the player
+        // ending: when breen is killed
 
         private bool _onceFlag = false;
 
         private int _cam_Index;
-        private int _trig_Index;
+        private int _prop_Index;
 
-        public HL2Mods_Exit2()
+        public HL2Mods_DayHard()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "e2_01"; //beta%
-            this.LastMap = "e2_07";
+            this.FirstMap = "dayhardpart1";
+            this.LastMap = "breencave";
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
@@ -26,17 +26,16 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (this.IsFirstMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._cam_Index = state.GetEntIndexByName("view");
+                this._cam_Index = state.GetEntIndexByName("cutscene3");
                 Debug.WriteLine("_cam_Index index is " + this._cam_Index);
             }
 
             if (this.IsLastMap)
             {
-                this._trig_Index = state.GetEntIndexByPos(-840f, -15096f, 48f);
-                Debug.WriteLine("_trig_Index index is " + this._trig_Index);
-
+                this._prop_Index = state.GetEntIndexByName("Patch3");
+                Debug.WriteLine("_prop_Index index is " + this._prop_Index);
             }
-            _onceFlag = false;
+            _onceFlag = false; 
         }
 
 
@@ -45,25 +44,26 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && this._cam_Index != -1)
+            if (this.IsFirstMap && _cam_Index != -1)
             {
                 if (state.PlayerViewEntityIndex == 1 &&
                     state.PrevPlayerViewEntityIndex == _cam_Index)
                 {
-                    Debug.WriteLine("exit2 start");
+                    Debug.WriteLine("DayHard start");
                     _onceFlag = true;
                     return GameSupportResult.PlayerGainedControl;
                 }
-            }
-            else if (this.IsLastMap && _trig_Index != -1)
-            {
-                var newTrig = state.GetEntInfoByIndex(_trig_Index);
 
-                if (newTrig.EntityPtr == IntPtr.Zero)
+            }
+
+            else if (this.IsLastMap && _prop_Index != -1)
+            {
+                var newProp = state.GetEntInfoByIndex(_prop_Index);
+
+                if (newProp.EntityPtr == IntPtr.Zero)
                 {
-                    Debug.WriteLine("exit2 end");
+                    Debug.WriteLine("DayHard end");
                     _onceFlag = true;
-                    this.EndOffsetTicks = -127;
                     return GameSupportResult.PlayerLostControl;
                 }
             }
