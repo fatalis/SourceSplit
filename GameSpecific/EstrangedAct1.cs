@@ -51,7 +51,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     _trig_Index = -1;
                     Debug.WriteLine("estranged2 start");
-                    this.StartOffsetTicks = 791;
+                    this.StartOffsetTicks = 791 - (int)Math.Ceiling(0.1f / state.IntervalPerTick);
                     _onceFlag = true;
                     return GameSupportResult.PlayerGainedControl;
                 }
