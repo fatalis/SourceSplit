@@ -24,6 +24,7 @@ namespace LiveSplit.SourceSplit
         public event EventHandler<SessionTicksUpdateEventArgs> OnSessionTimeUpdate;
         public event EventHandler<PlayerControlChangedEventArgs> OnPlayerGainedControl;
         public event EventHandler<PlayerControlChangedEventArgs> OnPlayerLostControl;
+        public event EventHandler<PlayerControlChangedEventArgs> ManualSplit;
         public event EventHandler<MapChangedEventArgs> OnMapChanged;
         public event EventHandler<SessionStartedEventArgs> OnSessionStarted;
         public event EventHandler<GamePausedEventArgs> OnGamePaused;
@@ -45,7 +46,12 @@ namespace LiveSplit.SourceSplit
 
         private bool _gotTickRate;
 
+        private int _timesOver;
+        private int _timeOverSpent;
+
         private SourceSplitSettings _settings;
+
+        public static GameState GameSupportOutBoundCalls;
 
         // TODO: match tickrate as closely as possible without going over
         // otherwise we will most likely read when the game isn't sleeping
@@ -436,6 +442,7 @@ namespace LiveSplit.SourceSplit
             Debug.WriteLine("HandleProcess " + game.ProcessName);
 
             var state = new GameState(game, offsets);
+            GameSupportOutBoundCalls = state;
             this.InitGameState(state);
             _gotTickRate = false;
 
@@ -451,7 +458,12 @@ namespace LiveSplit.SourceSplit
                 TimedTraceListener.Instance.UpdateCount = state.UpdateCount;
 
                 if (profiler.ElapsedMilliseconds >= TARGET_UPDATE_RATE)
-                    Debug.WriteLine("**** update iteration took too long: " + profiler.ElapsedMilliseconds);
+                {
+                    _timesOver += 1;
+                    _timeOverSpent += Convert.ToInt32(profiler.ElapsedMilliseconds) - TARGET_UPDATE_RATE;
+                    Debug.WriteLine("**** update iteration took too long: " + profiler.ElapsedMilliseconds + ", times: " + _timesOver + ", total: " + _timeOverSpent);
+                }
+
                 //var sleep = Stopwatch.StartNew();
                 //MapTimesForm.Instance.Text = profiler.Elapsed.ToString();
                 Thread.Sleep(Math.Max(TARGET_UPDATE_RATE - (int)profiler.ElapsedMilliseconds, 1));
@@ -647,7 +659,7 @@ namespace LiveSplit.SourceSplit
 
                     if (state.HostState == HostState.NewGame)
                     {
-                        if (state.GameSupport != null && levelName == state.GameSupport.FirstMap)
+                        if (state.GameSupport != null && levelName == state.GameSupport.FirstMap || levelName == state.GameSupport.FirstMap2)
                             this.SendNewGameStartedEvent(levelName);
                     }
                     else // changelevel sp/mp
@@ -671,6 +683,9 @@ namespace LiveSplit.SourceSplit
                     break;
                 case GameSupportResult.PlayerLostControl:
                     this.SendLostControlEvent(state.GameSupport.EndOffsetTicks);
+                    break;
+                case GameSupportResult.ManualSplit:
+                    this.SendManualSplit(state.GameSupport.EndOffsetTicks);
                     break;
             }
         }
@@ -702,6 +717,13 @@ namespace LiveSplit.SourceSplit
         {
             _uiThread.Post(d => {
                 this.OnPlayerLostControl?.Invoke(this, new PlayerControlChangedEventArgs(ticksOffset));
+            }, null);
+        }
+
+        public void SendManualSplit(int ticksOffset)
+        {
+            _uiThread.Post(d => {
+                this.ManualSplit?.Invoke(this, new PlayerControlChangedEventArgs(ticksOffset));
             }, null);
         }
 

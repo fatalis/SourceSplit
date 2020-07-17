@@ -67,7 +67,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             {
                 int nihiHealth;
                 state.GameProcess.ReadValue(_nihiPtr + _baseEntityHealthOffset, out nihiHealth);
-                if (nihiHealth == 0)
+                if (nihiHealth <= 0)
                 {
                     int health;
                     state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseEntityHealthOffset, out health);

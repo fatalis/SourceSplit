@@ -10,6 +10,7 @@ using System.Drawing;
 using System.Linq;
 using System.Xml;
 using System.Windows.Forms;
+using LiveSplit.SourceSplit.GameSpecific;
 
 namespace LiveSplit.SourceSplit
 {
@@ -29,6 +30,15 @@ namespace LiveSplit.SourceSplit
 
         private GameMemory _gameMemory;
 
+        private static bool DoSpecialSplit = false;
+        private static bool ss_init_time = false;
+        private static bool ss_init_measure_pauses = false;
+        private TimeSpan ss_time_to_split;
+        private static int pauseamount;
+        private static bool gamepaused = false;
+        public static float ss_delta = 0.1f;
+        private static int _tickoffset;
+
         private float _intervalPerTick;
         private int _sessionTicks;
         private int _totalMapTicks;
@@ -37,6 +47,7 @@ namespace LiveSplit.SourceSplit
         private DateTime? _gamePauseTime;
         private int _gamePauseTick;
         private GameTimingMethod _gameRecommendedTimingMethod;
+
 
         private bool _waitingForDelay;
 
@@ -57,7 +68,7 @@ namespace LiveSplit.SourceSplit
                     default:
                         return _gameRecommendedTimingMethod;
                 }
-            } 
+            }
         }
 
         private TimeSpan GameTime
@@ -74,7 +85,7 @@ namespace LiveSplit.SourceSplit
                 }
             }
         }
-            
+
         public SourceSplitComponent(LiveSplitState state, bool isLayoutComponent)
         {
 #if DEBUG
@@ -89,7 +100,7 @@ namespace LiveSplit.SourceSplit
 
             this.Settings = new SourceSplitSettings();
             this.InternalComponent = new InfoTimeComponent("Game Time", null, new RegularTimeFormatter(TimeAccuracy.Hundredths));
-            
+
             this.ContextMenuControls = new Dictionary<String, Action>();
             this.ContextMenuControls.Add("SourceSplit: Map Times", () => MapTimesForm.Instance.Show());
 
@@ -112,6 +123,7 @@ namespace LiveSplit.SourceSplit
             _gameMemory.OnSessionTimeUpdate += gameMemory_OnSessionTimeUpdate;
             _gameMemory.OnPlayerGainedControl += gameMemory_OnPlayerGainedControl;
             _gameMemory.OnPlayerLostControl += gameMemory_OnPlayerLostControl;
+            _gameMemory.ManualSplit += gameMemory_ManualSplit;
             _gameMemory.OnMapChanged += gameMemory_OnMapChanged;
             _gameMemory.OnSessionStarted += gameMemory_OnSessionStarted;
             _gameMemory.OnSessionEnded += gameMemory_OnSessionEnded;
@@ -141,10 +153,12 @@ namespace LiveSplit.SourceSplit
             _gameMemory?.Stop();
         }
 
+
+
         public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)
         {
-            // hack to prevent flicker, doesn't actually pause anything
-            state.IsGameTimePaused = true; 
+            // hack to prevent flicker, doesn't actually pause anything`
+            state.IsGameTimePaused = true;
 
             // Update is called every 25ms, so up to 25ms IGT can be lost if using delay and no auto-start
             if (_waitingForDelay)
@@ -161,8 +175,21 @@ namespace LiveSplit.SourceSplit
             }
 
             if (!_waitingForDelay)
-                // update game time, don't show negative time due to tick adjusting
-                state.SetGameTime(this.GameTime >= TimeSpan.Zero ? this.GameTime : TimeSpan.Zero);
+            {
+                if (TheStanleyParable._stanley)
+                {
+                    // for bug detection only since tsp support isn't final yet
+                    state.SetGameTime(this.GameTime);
+                }
+                else
+                    // update game time, don't show negative time due to tick adjusting
+                    state.SetGameTime(this.GameTime >= TimeSpan.Zero ? this.GameTime : TimeSpan.Zero);
+            }
+
+            if (DoSpecialSplit)
+            {
+                SplitAfterSpecifiedTime(this.GameTime);
+            }
 
             if (!this.Settings.ShowGameTime)
                 return;
@@ -209,6 +236,13 @@ namespace LiveSplit.SourceSplit
             _totalMapTicks = 0;
             _gamePauseTime = null;
 
+            // something weird happens in the case of tsp, when the player resets the timer and starts it manually, then
+            // start the map normally then move their view then state_onreset gets fired non stop
+            // so this is a hack to prevent the game from autostarting the run if the timer has already started
+            if (TheStanleyParable._stanley)
+                GameMemory.GameSupportOutBoundCalls.GameSupport.OnTimerReset(true);
+
+
             // hack to make sure Portal players aren't using manual offset. we handle offset automatically now.
             // remove this eventually
             if (_timer.CurrentState.TimePausedAt.Seconds == 53 && _timer.CurrentState.TimePausedAt.Milliseconds == 10)
@@ -227,6 +261,11 @@ namespace LiveSplit.SourceSplit
         {
             MapTimesForm.Instance.Reset();
             _waitingForDelay = false;
+
+            // some game has unspecific starts like if the player's position isn't something which
+            // can be repeated easily by accident, so this is a _onceflag but reset on timer reset.
+            if (GameMemory.GameSupportOutBoundCalls != null)
+                GameMemory.GameSupportOutBoundCalls.GameSupport.OnTimerReset(false);
         }
 
         void state_OnSplit(object sender, EventArgs e)
@@ -244,6 +283,7 @@ namespace LiveSplit.SourceSplit
         void gameMemory_OnSessionStarted(object sender, SessionStartedEventArgs e)
         {
             _currentMap = e.Map;
+            gamepaused = false;
         }
 
         void gameMemory_OnSetTickRate(object sender, SetTickRateEventArgs e)
@@ -304,19 +344,30 @@ namespace LiveSplit.SourceSplit
         {
             if (!this.Settings.AutoStartEndResetEnabled)
                 return;
-
             _timer.Reset(); // make sure to reset for games that start from a quicksave (Aperture Tag)
             _timer.Start();
             _sessionTicksOffset += e.TicksOffset;
+            _tickoffset = e.TicksOffset;
         }
 
         void gameMemory_OnPlayerLostControl(object sender, PlayerControlChangedEventArgs e)
         {
             if (!this.Settings.AutoStartEndResetEnabled)
                 return;
-            
+
             _sessionTicksOffset += e.TicksOffset;
             this.DoSplit();
+        }
+
+        void gameMemory_ManualSplit(object sender, PlayerControlChangedEventArgs e)
+        {
+            if (!this.Settings.AutoStartEndResetEnabled)
+                return;
+
+            _tickoffset = e.TicksOffset;
+
+            Debug.WriteLine("** time adjusted, " + _tickoffset + " ticks were added to time");
+            this.DoSplitandRevertOffset();
         }
 
         void gameMemory_OnNewGameStarted(object sender, EventArgs e)
@@ -336,13 +387,17 @@ namespace LiveSplit.SourceSplit
             {
                 _gamePauseTime = DateTime.Now;
                 _gamePauseTick = _sessionTicks;
+                gamepaused = true;
             }
             else
             {
+                gamepaused = false;
                 if (_gamePauseTime != null)
                 {
                     Debug.WriteLine("pause done, adding  " + TimeSpan.FromSeconds((DateTime.Now - _gamePauseTime.Value).TotalSeconds));
                     _sessionTicksOffset -= FakeTicks(_gamePauseTime.Value, DateTime.Now);
+                    pauseamount = FakeTicks(_gamePauseTime.Value, DateTime.Now);
+                    ss_init_measure_pauses = true;
                 }
                 _gamePauseTime = null;
             }
@@ -350,7 +405,7 @@ namespace LiveSplit.SourceSplit
 
         int FakeTicks(DateTime start, DateTime end)
         {
-            return (int)((end-start).TotalSeconds / _intervalPerTick);
+            return (int)((end - start).TotalSeconds / _intervalPerTick);
         }
 
         void AutoSplit(string map)
@@ -400,6 +455,78 @@ namespace LiveSplit.SourceSplit
             profile.DoubleTapPrevention = before;
         }
 
+        public static void ResetSpecialSplit()
+        {
+            DoSpecialSplit = false;
+            ss_init_time = true;
+            ss_init_measure_pauses = false;
+            pauseamount = 0;
+            gamepaused = false;
+            Debug.WriteLine("special split reset");
+        }
+
+        // for negative values of endoffsetticks, we are now predicting the split end some time in the future.
+        // static endoffsetticks values only work if we assume the player never pauses during that period of time
+        // between sourcesplit splitting and the actual ending
+
+        // this function will account for pause time so the split is accurate
+        private void SplitAfterSpecifiedTime(TimeSpan time)
+        {
+            // first set initial target time
+            if (ss_init_time)
+            {
+                ss_time_to_split = time - TimeSpan.FromSeconds(_tickoffset * _intervalPerTick);
+                ss_init_time = false;
+            }
+            // then measure pauses and add it to target time
+            else if (pauseamount > 0 && ss_init_measure_pauses)
+            {
+                ss_time_to_split = TimeSpan.FromSeconds(ss_time_to_split.TotalSeconds + (pauseamount * _intervalPerTick));
+                ss_init_measure_pauses = false;
+            }
+
+            // due to update() 25ms imprecision we'll have to settle with detecting if the time is within 0.1s of target time
+            double delta = Math.Abs(this.GameTime.TotalSeconds - ss_time_to_split.TotalSeconds);
+            if (!gamepaused && (delta <= 0.1))
+            {
+                _timer.Split();
+                Debug.WriteLine("special split done, delta was " + delta + " on split");
+                _timer.CurrentState.SetGameTime(this.GameTime);
+                ResetSpecialSplit();
+            }
+            //Debug.WriteLine(_tickoffset);
+        }
+
+        // what is this?
+        // for the stanley parable the precision of splits needs to be near-perfect so some endings must have an end offset
+        // however because endoffsetticks was only meant to be used at the end of a run, that means
+        // when using it mid-run the timer will go back into the past to split then never get bumped forward again,
+        // losing a few ticks
+
+        void DoSplitandRevertOffset()
+        {
+            // make split times accurate
+            _timer.CurrentState.SetGameTime(this.GameTime);
+
+            HotkeyProfile profile = _timer.CurrentState.Settings.HotkeyProfiles[_timer.CurrentState.CurrentHotkeyProfile];
+            bool before = profile.DoubleTapPrevention;
+            profile.DoubleTapPrevention = false;
+            if (_tickoffset < 0)
+            {
+                Debug.WriteLine("using special split");
+                pauseamount = 0;
+                DoSpecialSplit = true;
+                ss_init_time = true;
+            }
+            else if (_tickoffset > 0)
+            {
+                _timer.CurrentState.SetGameTime(this.GameTime - TimeSpan.FromSeconds(_tickoffset * _intervalPerTick));
+                _timer.Split();
+                _timer.CurrentState.SetGameTime(this.GameTime);
+            }
+            profile.DoubleTapPrevention = before;
+        }
+
         // TODO: asterisk for manual start and splits
         void AddMapTime(string map, TimeSpan time)
         {
@@ -422,13 +549,13 @@ namespace LiveSplit.SourceSplit
             this.Settings.SetSettings(settings);
         }
 
-        public float MinimumWidth =>    this.InternalComponent.MinimumWidth;
-        public float MinimumHeight =>   this.InternalComponent.MinimumHeight;
-        public float VerticalHeight =>  this.Settings.ShowGameTime ? this.InternalComponent.VerticalHeight : 0;
+        public float MinimumWidth => this.InternalComponent.MinimumWidth;
+        public float MinimumHeight => this.InternalComponent.MinimumHeight;
+        public float VerticalHeight => this.Settings.ShowGameTime ? this.InternalComponent.VerticalHeight : 0;
         public float HorizontalWidth => this.Settings.ShowGameTime ? this.InternalComponent.HorizontalWidth : 0;
-        public float PaddingLeft =>     this.Settings.ShowGameTime ? this.InternalComponent.PaddingLeft : 0;
-        public float PaddingRight =>    this.Settings.ShowGameTime ? this.InternalComponent.PaddingRight : 0;
-        public float PaddingTop =>      this.Settings.ShowGameTime ? this.InternalComponent.PaddingTop : 0;
-        public float PaddingBottom =>   this.Settings.ShowGameTime ? this.InternalComponent.PaddingBottom : 0;
+        public float PaddingLeft => this.Settings.ShowGameTime ? this.InternalComponent.PaddingLeft : 0;
+        public float PaddingRight => this.Settings.ShowGameTime ? this.InternalComponent.PaddingRight : 0;
+        public float PaddingTop => this.Settings.ShowGameTime ? this.InternalComponent.PaddingTop : 0;
+        public float PaddingBottom => this.Settings.ShowGameTime ? this.InternalComponent.PaddingBottom : 0;
     }
 }

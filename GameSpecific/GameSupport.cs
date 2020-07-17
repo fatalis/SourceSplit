@@ -7,9 +7,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
     {
         public string FirstMap { get; protected set; }
         public string LastMap { get; protected set; }
+        public string FirstMap2 { get; internal set; }
 
         // ticks to subtract
-        public int StartOffsetTicks { get; protected set;  }
+        public int StartOffsetTicks { get; protected set; }
         public int EndOffsetTicks { get; protected set; }
 
         public GameTimingMethod GameTimingMethod { get; protected set; } = GameTimingMethod.EngineTicks;
@@ -36,7 +37,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         protected AutoStart AutoStartType
         {
             get { return _autoStartType; }
-            set {
+            set
+            {
                 if (value == AutoStart.Unfrozen)
                     this.RequiredProperties |= PlayerProperties.Flags;
                 else if (value == AutoStart.ViewEntityChanged)
@@ -48,12 +50,16 @@ namespace LiveSplit.SourceSplit.GameSpecific
         }
 
         protected bool IsFirstMap { get; private set; }
+        protected bool IsFirstMap2 { get; private set; }
         protected bool IsLastMap { get; private set; }
+
 
         private bool _onceFlag;
 
         // called when attached to a new game process
         public virtual void OnGameAttached(GameState state) { }
+
+        public virtual void OnTimerReset(bool resetflagto) { }
 
         // called on the first tick when player is fully in the game (according to demos)
         public virtual void OnSessionStart(GameState state)
@@ -61,7 +67,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
             _onceFlag = false;
 
             this.IsFirstMap = state.CurrentMap == this.FirstMap;
-            this.IsLastMap = !this.IsFirstMap && state.CurrentMap == this.LastMap;
+            this.IsFirstMap2 = state.CurrentMap == this.FirstMap2;
+            this.IsLastMap = (!this.IsFirstMap || !this.IsFirstMap2) && state.CurrentMap == this.LastMap;
         }
 
         // called when player no longer fully in the game (map changed, load started)
@@ -75,7 +82,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.AutoStartType == AutoStart.Unfrozen
                 && !state.PlayerFlags.HasFlag(FL.FROZEN)
-                &&  state.PrevPlayerFlags.HasFlag(FL.FROZEN))
+                && state.PrevPlayerFlags.HasFlag(FL.FROZEN))
             {
                 Debug.WriteLine("FL_FROZEN removed from player");
                 _onceFlag = true;
@@ -109,6 +116,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "hl2":
                 case "ghosting":
                 case "ghostingmod":
+                case "ghostingmod2": //hl2 category extensions, NOTE: these are only guesses for the folder name
+                case "ghostingmod3":
+                case "ghostingmod4":
+                case "cutsceneless":
                     return new HL2();
                 case "episodic":
                     return new HL2Ep1();
@@ -127,6 +138,43 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new PortalStoriesMel();
                 case "bms":
                     return new BMSRetail();
+                case "lostcoast":
+                    return new LostCoast();
+                case "estrangedact1":
+                    return new EstrangedAct1();
+                case "ptsd":
+                    return new HL2Mods_Ptsd1();
+                case "missionimprobable":
+                    return new HL2Mods_MImp();
+                case "downfall":
+                    return new HL2Mods_Downfall();
+                case "uncertaintyprinciple":
+                    return new HL2Mods_UncertaintyPrinciple();
+                case "watchingpaintdry":
+                case "watchingpaintdry2":
+                    return new HL2Mods_WatchingPaintDry();
+                case "mod_episodic":
+                    return new HL2Mods_SnipersEp();
+                case "deepdown":
+                    return new HL2Mods_DeepDown();
+                case "dank_memes":
+                    return new HL2Mods_DankMemes();
+                case "freakman":
+                    return new HL2Mods_Freakman1();
+                case "freakman-kleinerlife":
+                    return new HL2Mods_Freakman2();
+                case "crates":
+                    return new hl2mods_toomanycrates();
+                case "te120":
+                    return new TE120();
+                case "dear esther":
+                    return new HL2Mods_DearEsther();
+                case "exit 2":
+                    return new HL2Mods_Exit2();
+                case "dayhard":
+                    return new HL2Mods_DayHard();
+                case "thestanleyparable":
+                    return new TheStanleyParable();
             }
 
             return null;
@@ -145,7 +193,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
     {
         DoNothing,
         PlayerGainedControl,
-        PlayerLostControl
+        PlayerLostControl,
+        ManualSplit
     }
 
     [Flags]

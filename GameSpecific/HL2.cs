@@ -10,18 +10,28 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // how to match with demos:
         // start: first tick when your position is at -9419 -2483 22 (cl_showpos 1)
         // ending: first tick when screen flashes white
+        
+        // experimental fuel:
+        // start: when block brush is killed
+        // end: when a dustmote entity is killed by the switch
 
         private bool _onceFlag;
+
+        private static bool _expfuelstartflag;
 
         private Vector3f _startPos = new Vector3f(-9419f, -2483f, 22f);
         private int _baseCombatCharacaterActiveWeaponOffset = -1;
         private int _baseEntityHealthOffset = -1;
         private int _prevActiveWeapon;
 
+        private int _ef_BlockBrush_Index;
+        private int _ef_Dustmote_Index;
+
         public HL2()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "d1_trainstation_01";
+            this.FirstMap2 = "bmg1_experimental_fuel";
             this.LastMap = "d3_breen_01";
             this.RequiredProperties = PlayerProperties.Position;
         }
@@ -39,6 +49,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
 
+        public override void OnTimerReset(bool resetflagto)
+        {
+            _expfuelstartflag = resetflagto;
+        }
+
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
@@ -47,6 +62,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
                 state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out _prevActiveWeapon);
+
+            if (this.IsFirstMap2)
+            {
+                _ef_BlockBrush_Index = state.GetEntIndexByName("dontrunaway");
+                _ef_Dustmote_Index = state.GetEntIndexByName("kokedepth");
+            }
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -90,6 +111,26 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
 
                 _prevActiveWeapon = activeWeapon;
+            }
+            else if (IsFirstMap2 && _ef_Dustmote_Index != -1)
+            {
+                var newMote = state.GetEntInfoByIndex(_ef_Dustmote_Index);
+                var newBrush = state.GetEntInfoByIndex(_ef_BlockBrush_Index);
+
+                if (state.PlayerPosition.DistanceXY(new Vector3f(7784.5f, 7284f, -15107f)) >= 2 && newBrush.EntityPtr == IntPtr.Zero && !_expfuelstartflag)
+                { 
+                    Debug.WriteLine("exp fuel start");
+                    _expfuelstartflag = true;
+                    return GameSupportResult.PlayerGainedControl;
+                }
+
+                if (newMote.EntityPtr == IntPtr.Zero)
+                {
+                    _ef_Dustmote_Index = -1;
+                    Debug.WriteLine("exp fuel end");
+                    return GameSupportResult.PlayerLostControl;
+                }
+             
             }
 
             return GameSupportResult.DoNothing;
