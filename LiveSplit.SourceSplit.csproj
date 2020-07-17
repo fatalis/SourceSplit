@@ -62,7 +62,7 @@
     <Compile Include="GameSpecific\HL2Mods_Crates.cs" />
     <Compile Include="GameSpecific\HL2Mods_Exit2.cs" />
     <Compile Include="GameSpecific\HL2Mods_DayHard.cs" />
-    <Compile Include="GameSpecific\TheStanleyParable.cs" />
+    <Compile Include="GameSpecific\PortalTFV.cs" />
     <Compile Include="GameSpecific\TE120.cs" />
     <Compile Include="GameSpecific\HL2Mods_Freakman2.cs" />
     <Compile Include="GameSpecific\HL2Mods_Freakman1.cs" />

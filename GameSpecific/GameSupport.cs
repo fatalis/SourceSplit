@@ -173,8 +173,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_Exit2();
                 case "dayhard":
                     return new HL2Mods_DayHard();
-                case "thestanleyparable":
-                    return new TheStanleyParable();
             }
 
             return null;
@@ -194,7 +192,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         DoNothing,
         PlayerGainedControl,
         PlayerLostControl,
-        ManualSplit
     }
 
     [Flags]
