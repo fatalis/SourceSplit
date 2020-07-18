@@ -11,7 +11,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
 
         private int _trigIndex;
-        private int _trig2_Index;
+        private int _trig2Index;
 
         public EstrangedAct1()
         {
@@ -30,8 +30,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
             }
             if (this.IsLastMap)
             {
-                this._trig2_Index = state.GetEntIndexByPos(5240f, -7800f, -206f);
-                Debug.WriteLine("trig2 index is " + this._trigIndex);
+                this._trig2Index = state.GetEntIndexByPos(5240f, -7800f, -206f);
+                Debug.WriteLine("trig2 index is " + this._trig2Index);
 
             }
             _onceFlag = false;
@@ -57,13 +57,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
             }
 
-            if (this.IsLastMap && this._trig2_Index != -1)
+            if (this.IsLastMap && this._trig2Index != -1)
             {
-                var newtrig2 = state.GetEntInfoByIndex(_trig2_Index);
+                var newtrig2 = state.GetEntInfoByIndex(_trig2Index);
 
                 if (newtrig2.EntityPtr == IntPtr.Zero)
                 {
-                    _trig2_Index = -1;
+                    _trig2Index = -1;
                     Debug.WriteLine("estranged1 end");
                     _onceFlag = true;
                     this.EndOffsetTicks = (int)Math.Ceiling(0.1f / state.IntervalPerTick);
