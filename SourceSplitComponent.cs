@@ -147,7 +147,7 @@ namespace LiveSplit.SourceSplit
 
         public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)
         {
-            // hack to prevent flicker, doesn't actually pause anything`
+            // hack to prevent flicker, doesn't actually pause anything
             state.IsGameTimePaused = true;
 
             // Update is called every 25ms, so up to 25ms IGT can be lost if using delay and no auto-start

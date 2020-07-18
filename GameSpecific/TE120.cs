@@ -10,11 +10,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag;
 
-        private int _cam_Index;
+        private int _camIndex;
 
-        private IntPtr _stride1_Ptr;
-        private IntPtr _stride2_Ptr;
-        private IntPtr _stride3_Ptr;
+        private IntPtr _stride1Ptr;
+        private IntPtr _stride2Ptr;
+        private IntPtr _stride3Ptr;
 
         public TE120()
         {
@@ -30,8 +30,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._cam_Index = state.GetEntIndexByName("blackout_viewcontrol");
-                Debug.WriteLine("blackout_viewcontrol index is " + this._cam_Index);
+                this._camIndex = state.GetEntIndexByName("blackout_viewcontrol");
+                Debug.WriteLine("blackout_viewcontrol index is " + this._camIndex);
             }
             _onceFlag = false;
         }
@@ -46,7 +46,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                if (state.PrevPlayerViewEntityIndex == this._cam_Index
+                if (state.PrevPlayerViewEntityIndex == this._camIndex
                     && state.PlayerViewEntityIndex == GameState.ENT_INDEX_PLAYER)
                 {
                     Debug.WriteLine("te120 start");
@@ -57,11 +57,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             else if (this.IsLastMap && state.PlayerFlags.HasFlag(FL.GODMODE))
             {
-                this._stride1_Ptr = state.GetEntityByName("tl_crush_1");
-                this._stride2_Ptr = state.GetEntityByName("tl_crush_2");
-                this._stride3_Ptr = state.GetEntityByName("tl_crush_3");
+                this._stride1Ptr = state.GetEntityByName("tl_crush_1");
+                this._stride2Ptr = state.GetEntityByName("tl_crush_2");
+                this._stride3Ptr = state.GetEntityByName("tl_crush_3");
 
-                if (_stride1_Ptr == IntPtr.Zero && _stride2_Ptr == IntPtr.Zero && _stride3_Ptr == IntPtr.Zero)
+                if (_stride1Ptr == IntPtr.Zero && _stride2Ptr == IntPtr.Zero && _stride3Ptr == IntPtr.Zero)
                 {
                     _onceFlag = true;
                     Debug.WriteLine("te120 end");

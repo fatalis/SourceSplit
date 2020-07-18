@@ -10,7 +10,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag;
 
-        private int _sprite_index;
+        private int _spriteIndex;
 
         public HL2Mods_Downfall()
         {
@@ -26,8 +26,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._sprite_index = state.GetEntIndexByName("elevator02_button_sprite");
-                Debug.WriteLine("elevator02_button_sprite index is " + this._sprite_index);
+                this._spriteIndex = state.GetEntIndexByName("elevator02_button_sprite");
+                Debug.WriteLine("elevator02_button_sprite index is " + this._spriteIndex);
             }
             _onceFlag = false;
         }
@@ -51,13 +51,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
             }
 
-            else if (this.IsLastMap && _sprite_index != 1)
+            else if (this.IsLastMap && _spriteIndex != 1)
             {
-                var newBlack = state.GetEntInfoByIndex(_sprite_index);
+                var newBlack = state.GetEntInfoByIndex(_spriteIndex);
 
                 if (newBlack.EntityPtr == IntPtr.Zero)
                 {
-                    _sprite_index = -1;
+                    _spriteIndex = -1;
                     Debug.WriteLine("downfall end");
                     _onceFlag = true;
                     return GameSupportResult.PlayerLostControl;

@@ -10,8 +10,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag;
 
-        private int _train_Index;
-        private int _cam_Index;
+        private int _trainIndex;
+        private int _camIndex;
 
         public HL2Mods_Freakman2()
         {
@@ -27,14 +27,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                _train_Index = state.GetEntIndexByName("lookatthis_move");
+                _trainIndex = state.GetEntIndexByName("lookatthis_move");
             }
             _onceFlag = false;
 
             if (this.IsLastMap)
             {
-                _cam_Index = state.GetEntIndexByName("credit_cam");
-                Debug.WriteLine("cam index is " + _cam_Index);
+                _camIndex = state.GetEntIndexByName("credit_cam");
+                Debug.WriteLine("cam index is " + _camIndex);
             }
         }
 
@@ -44,13 +44,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && _train_Index != -1)
+            if (this.IsFirstMap && _trainIndex != -1)
             {
-                var newTrig = state.GetEntInfoByIndex(_train_Index);
+                var newTrig = state.GetEntInfoByIndex(_trainIndex);
                 
                 if (newTrig.EntityPtr == IntPtr.Zero)
                 {
-                    _train_Index = -1;
+                    _trainIndex = -1;
                     _onceFlag = true;
                     this.StartOffsetTicks = -4;
                     Debug.WriteLine("freakman2 start");
@@ -58,9 +58,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
             }
 
-            else if (this.IsLastMap && _cam_Index != -1)
+            else if (this.IsLastMap && _camIndex != -1)
             {
-                if (state.PlayerViewEntityIndex == _cam_Index)
+                if (state.PlayerViewEntityIndex == _camIndex)
                 {
                     _onceFlag = true;
                     Debug.WriteLine("freakman2 end");

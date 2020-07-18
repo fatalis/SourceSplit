@@ -12,11 +12,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag;
 
-        private Vector3f _crashbutton_Newpos = new Vector3f(142.5f, 62f, 251f);
-        private Vector3f _crashbutton_Pos;
-        private IntPtr _crashbutton_Index;
+        private Vector3f _crashbuttonNewpos = new Vector3f(142.5f, 62f, 251f);
+        private Vector3f _crashbuttonPos;
+        private IntPtr _crashbuttonIndex;
 
-        private Vector3f _start_Pos = new Vector3f(192f, -24f, 1.96845f);
+        private Vector3f _startPos = new Vector3f(192f, -24f, 1.96845f);
 
         public static bool _resetFlag = false;
 
@@ -49,18 +49,18 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap || this.IsFirstMap2)
             {
-                this._crashbutton_Index = state.GetEntityByName("bonzibutton");
-                state.GameProcess.ReadValue(_crashbutton_Index + state.GameOffsets.BaseEntityAbsOriginOffset, out _crashbutton_Pos);
-                //Debug.WriteLine("_crashbutton_Index pos is " + _crashbutton_Pos);
+                this._crashbuttonIndex = state.GetEntityByName("bonzibutton");
+                state.GameProcess.ReadValue(_crashbuttonIndex + state.GameOffsets.BaseEntityAbsOriginOffset, out _crashbuttonPos);
+                //Debug.WriteLine("_crashbuttonIndex pos is " + _crashbuttonPos);
 
-                if (!_resetFlag && state.PlayerPosition.Distance(_start_Pos)<=0.001)
+                if (!_resetFlag && state.PlayerPosition.Distance(_startPos)<=0.001)
                 {
                     _resetFlag = true;
                     Debug.WriteLine("wpd start");
                     return GameSupportResult.PlayerGainedControl;
                 }
 
-                if (_crashbutton_Pos.BitEquals(_crashbutton_Newpos))
+                if (_crashbuttonPos.BitEquals(_crashbuttonNewpos))
                 {
                     Debug.WriteLine("wpd ice end");
                     _onceFlag = true;

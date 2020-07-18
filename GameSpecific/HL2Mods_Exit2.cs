@@ -10,8 +10,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag = false;
 
-        private int _cam_Index;
-        private int _trig_Index;
+        private int _camIndex;
+        private int _trigIndex;
 
         public HL2Mods_Exit2()
         {
@@ -26,14 +26,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (this.IsFirstMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._cam_Index = state.GetEntIndexByName("view");
-                Debug.WriteLine("_cam_Index index is " + this._cam_Index);
+                this._camIndex = state.GetEntIndexByName("view");
+                Debug.WriteLine("_camIndex index is " + this._camIndex);
             }
 
             if (this.IsLastMap)
             {
-                this._trig_Index = state.GetEntIndexByPos(-840f, -15096f, 48f);
-                Debug.WriteLine("_trig_Index index is " + this._trig_Index);
+                this._trigIndex = state.GetEntIndexByPos(-840f, -15096f, 48f);
+                Debug.WriteLine("_trigIndex index is " + this._trigIndex);
 
             }
             _onceFlag = false;
@@ -45,19 +45,19 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && this._cam_Index != -1)
+            if (this.IsFirstMap && this._camIndex != -1)
             {
                 if (state.PlayerViewEntityIndex == 1 &&
-                    state.PrevPlayerViewEntityIndex == _cam_Index)
+                    state.PrevPlayerViewEntityIndex == _camIndex)
                 {
                     Debug.WriteLine("exit2 start");
                     _onceFlag = true;
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-            else if (this.IsLastMap && _trig_Index != -1)
+            else if (this.IsLastMap && _trigIndex != -1)
             {
-                var newTrig = state.GetEntInfoByIndex(_trig_Index);
+                var newTrig = state.GetEntInfoByIndex(_trigIndex);
 
                 if (newTrig.EntityPtr == IntPtr.Zero)
                 {

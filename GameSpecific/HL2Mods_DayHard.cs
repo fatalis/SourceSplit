@@ -10,7 +10,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag = false;
 
-        private int _cam_Index;
+        private int _camIndex;
         private int _prop_Index;
 
         public HL2Mods_DayHard()
@@ -26,8 +26,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (this.IsFirstMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._cam_Index = state.GetEntIndexByName("cutscene3");
-                Debug.WriteLine("_cam_Index index is " + this._cam_Index);
+                this._camIndex = state.GetEntIndexByName("cutscene3");
+                Debug.WriteLine("_camIndex index is " + this._camIndex);
             }
 
             if (this.IsLastMap)
@@ -44,10 +44,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && _cam_Index != -1)
+            if (this.IsFirstMap && _camIndex != -1)
             {
                 if (state.PlayerViewEntityIndex == 1 &&
-                    state.PrevPlayerViewEntityIndex == _cam_Index)
+                    state.PrevPlayerViewEntityIndex == _camIndex)
                 {
                     Debug.WriteLine("DayHard start");
                     _onceFlag = true;

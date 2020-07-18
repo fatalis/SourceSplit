@@ -14,8 +14,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private int _baseEntityHealthOffset = -1;
 
-        private int _trig_Index;
-        private int _kleiner_Index;
+        private int _trigIndex;
+        private int _kleinerIndex;
 
         public HL2Mods_Freakman1()
         {
@@ -41,14 +41,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                _trig_Index = state.GetEntIndexByPos(-1472f, -608f, 544f);
+                _trigIndex = state.GetEntIndexByPos(-1472f, -608f, 544f);
             }
             _onceFlag = false;
 
             if (this.IsLastMap)
             {
-                _kleiner_Index = state.GetEntIndexByPos(0f, 0f, 1888f, 1f);
-                Debug.WriteLine("kleiner index is " + _kleiner_Index);
+                _kleinerIndex = state.GetEntIndexByPos(0f, 0f, 1888f, 1f);
+                Debug.WriteLine("kleiner index is " + _kleinerIndex);
             }
         }
 
@@ -58,13 +58,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && _trig_Index != -1)
+            if (this.IsFirstMap && _trigIndex != -1)
             {
-                var newTrig = state.GetEntInfoByIndex(_trig_Index);
+                var newTrig = state.GetEntInfoByIndex(_trigIndex);
                 
                 if (newTrig.EntityPtr == IntPtr.Zero)
                 {
-                    _trig_Index = -1;
+                    _trigIndex = -1;
                     _onceFlag = true;
                     Debug.WriteLine("freakman1 start");
                     this.StartOffsetTicks = -7;
@@ -72,9 +72,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
             }
 
-            else if (this.IsLastMap && _kleiner_Index != -1)
+            else if (this.IsLastMap && _kleinerIndex != -1)
             {
-                var kleiner = state.GetEntInfoByIndex(_kleiner_Index);
+                var kleiner = state.GetEntInfoByIndex(_kleinerIndex);
                 int hp;
                 state.GameProcess.ReadValue(kleiner.EntityPtr + _baseEntityHealthOffset, out hp);
 

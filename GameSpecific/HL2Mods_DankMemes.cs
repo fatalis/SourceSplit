@@ -8,15 +8,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
     class HL2Mods_DankMemes : GameSupport
     {
         // start: on first map
-        // ending: when "John Cena" (final antlion king _boss_Ptr) hp is <= 0 
+        // ending: when "John Cena" (final antlion king _bossPtr) hp is <= 0 
 
         private bool _onceFlag;
         private static bool _resetFlag;
 
         private int _baseEntityHealthOffset = -1;
 
-        private int _cam_Index;
-        IntPtr _boss_Ptr;
+        private int _camIndex;
+        IntPtr _bossPtr;
 
         public HL2Mods_DankMemes()
         {
@@ -48,12 +48,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                _cam_Index = state.GetEntIndexByName("black_cam");
+                _camIndex = state.GetEntIndexByName("black_cam");
             }
 
             if (this.IsLastMap)
             {
-                _boss_Ptr = state.GetEntityByName("John_Cena");
+                _bossPtr = state.GetEntityByName("John_Cena");
             }
             _onceFlag = false;
         }
@@ -64,7 +64,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && !_resetFlag && state.PlayerViewEntityIndex == _cam_Index)
+            if (this.IsFirstMap && !_resetFlag && state.PlayerViewEntityIndex == _camIndex)
             {
                 _resetFlag = true;
                 Debug.WriteLine("dank memes start");
@@ -74,7 +74,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             else if (this.IsLastMap)
             {
                 int hp;
-                state.GameProcess.ReadValue(_boss_Ptr + _baseEntityHealthOffset, out hp);
+                state.GameProcess.ReadValue(_bossPtr + _baseEntityHealthOffset, out hp);
 
                 if (hp <= 0)
                 {

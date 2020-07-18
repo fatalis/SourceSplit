@@ -9,11 +9,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // start: 1s (~67 ticks after the timer starts) after cave_giveitems_trig is triggered
         // ending: when player's view entity changes
 
-        private const int ENT_INDEX_PLAYER = 1;
         private bool _onceFlag;
 
-        private int _trig_Index;
-        private int _cam_Index;
+        private int _trigIndex;
+        private int _camIndex;
 
         public HL2Mods_MImp()
         {
@@ -30,14 +29,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                this._trig_Index = state.GetEntIndexByName("cave_giveitems_trig");
-                Debug.WriteLine("cave_giveitems_trig index is " + this._trig_Index);
+                this._trigIndex = state.GetEntIndexByName("cave_giveitems_trig");
+                Debug.WriteLine("cave_giveitems_trig index is " + this._trigIndex);
             }
 
             if (this.IsLastMap)
             {
-                this._cam_Index = state.GetEntIndexByName("outro.camera");
-                Debug.WriteLine("_cam_Index index is " + this._cam_Index);
+                this._camIndex = state.GetEntIndexByName("outro.camera");
+                Debug.WriteLine("_camIndex index is " + this._camIndex);
             }
                 _onceFlag = false;
         }
@@ -50,13 +49,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 return GameSupportResult.DoNothing;
             }
 
-            if (this.IsFirstMap && this._trig_Index != -1)
+            if (this.IsFirstMap && this._trigIndex != -1)
             {
-                var newTrig = state.GetEntInfoByIndex(_trig_Index);
+                var newTrig = state.GetEntInfoByIndex(_trigIndex);
 
                 if (newTrig.EntityPtr == IntPtr.Zero)
                 {
-                    _trig_Index = -1;
+                    _trigIndex = -1;
                     Debug.WriteLine("mimp start");
                     this.StartOffsetTicks = 62;
                     _onceFlag = true;
@@ -64,9 +63,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
             }
 
-            else if (this.IsLastMap && _cam_Index != -1)
+            else if (this.IsLastMap && _camIndex != -1)
             {
-                if (state.PlayerViewEntityIndex == _cam_Index)
+                if (state.PlayerViewEntityIndex == _camIndex)
                 {
                     Debug.WriteLine("mimp end");
                     _onceFlag = true;

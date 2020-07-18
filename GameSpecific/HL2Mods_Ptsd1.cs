@@ -13,8 +13,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag;
 
-        private int _breen_Index;
-        private int _cam_Index;
+        private int _breenIndex;
+        private int _camIndex;
 
         public HL2Mods_Ptsd1()
         {
@@ -31,13 +31,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                this._cam_Index = state.GetEntIndexByName("camera_1");
+                this._camIndex = state.GetEntIndexByName("camera_1");
             }
 
             if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._breen_Index = state.GetEntIndexByName("banana2");
-                Debug.WriteLine("banana2 index is " + this._breen_Index);
+                this._breenIndex = state.GetEntIndexByName("banana2");
+                Debug.WriteLine("banana2 index is " + this._breenIndex);
             }
         
              _onceFlag = false;
@@ -49,9 +49,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && _cam_Index != -1)
+            if (this.IsFirstMap && _camIndex != -1)
             {
-                if (state.PrevPlayerViewEntityIndex == _cam_Index
+                if (state.PrevPlayerViewEntityIndex == _camIndex
                     && state.PlayerViewEntityIndex == GameState.ENT_INDEX_PLAYER)
                 {
                     Debug.WriteLine("ptsd start");
@@ -59,13 +59,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-            else if (this.IsLastMap && this._breen_Index != -1)
+            else if (this.IsLastMap && this._breenIndex != -1)
             {
-                var newBlack = state.GetEntInfoByIndex(_breen_Index);
+                var newBlack = state.GetEntInfoByIndex(_breenIndex);
 
                 if (newBlack.EntityPtr == IntPtr.Zero)
                 {
-                    _breen_Index = -1;
+                    _breenIndex = -1;
                     Debug.WriteLine("ptsd end");
                     _onceFlag = true;
                     return GameSupportResult.PlayerLostControl;

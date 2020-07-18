@@ -11,8 +11,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag = false;
 
-        private int _black_Index;
-        private int _trig_Index;
+        private int _blackIndex;
+        private int _trigIndex;
 
         public LostCoast()
         {
@@ -27,10 +27,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (this.IsFirstMap || this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._black_Index = state.GetEntIndexByName("blackout");
-                Debug.WriteLine("blackout index is " + this._black_Index);
-                this._trig_Index = state.GetEntIndexByPos(1109.82f, 2952f, 2521.26f);
-                Debug.WriteLine("test index is " + this._trig_Index);
+                this._blackIndex = state.GetEntIndexByName("blackout");
+                Debug.WriteLine("blackout index is " + this._blackIndex);
+                this._trigIndex = state.GetEntIndexByPos(1109.82f, 2952f, 2521.26f);
+                Debug.WriteLine("test index is " + this._trigIndex);
             }
             _onceFlag = false;
         }
@@ -41,13 +41,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this._black_Index != -1)
+            if (this._blackIndex != -1)
             {
-                var newBlack = state.GetEntInfoByIndex(_black_Index);
+                var newBlack = state.GetEntInfoByIndex(_blackIndex);
 
                 if (newBlack.EntityPtr == IntPtr.Zero)
                 {
-                    _black_Index = -1;
+                    _blackIndex = -1;
                     Debug.WriteLine("lostcoast start");
                     this.StartOffsetTicks = -14;
                     // no once flag because the end wont trigger otherwise
@@ -55,13 +55,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
             }
 
-            else if (this._trig_Index != -1)
+            else if (this._trigIndex != -1)
             {
-                var newTrig = state.GetEntInfoByIndex(_trig_Index);
+                var newTrig = state.GetEntInfoByIndex(_trigIndex);
 
                 if (newTrig.EntityPtr == IntPtr.Zero)
                 {
-                    _black_Index = -1;
+                    _blackIndex = -1;
                     Debug.WriteLine("lostcoast end");
                     _onceFlag = true;
                     this.EndOffsetTicks = 7;

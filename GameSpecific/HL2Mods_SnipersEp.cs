@@ -14,7 +14,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _baseEntityHealthOffset = -1;
         public static bool _resetFlag;
 
-        IntPtr _freeman_Ptr;
+        IntPtr _freemanPtr;
         Vector3f _startPos = new Vector3f(9928f, 12472f, -180f);
 
         public HL2Mods_SnipersEp()
@@ -48,8 +48,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                _freeman_Ptr = state.GetEntityByName("bar");
-                Debug.WriteLine("freeman ptr is 0x" + _freeman_Ptr.ToString("X"));
+                _freemanPtr = state.GetEntityByName("bar");
+                Debug.WriteLine("freeman ptr is 0x" + _freemanPtr.ToString("X"));
             }
         }
 
@@ -69,7 +69,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
 
                 int hp;
-                state.GameProcess.ReadValue(_freeman_Ptr + _baseEntityHealthOffset, out hp);
+                state.GameProcess.ReadValue(_freemanPtr + _baseEntityHealthOffset, out hp);
                 if (hp <= 0)
                 {
                     Debug.WriteLine("snipersep end");

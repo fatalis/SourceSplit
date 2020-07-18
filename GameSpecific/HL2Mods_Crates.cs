@@ -13,8 +13,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
         private static bool _resetFlag;
 
-        private int _counter_Index;
-        private int _cam_Index;
+        private int _counterIndex;
+        private int _camIndex;
 
         private Vector3f startpos = new Vector3f(-2587.32f, 0f, -3.32f);
 
@@ -37,8 +37,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (IsFirstMap)
             {
-                _counter_Index = state.GetEntIndexByName("EndWords");
-                _cam_Index = state.GetEntIndexByName("EndCamera");
+                _counterIndex = state.GetEntIndexByName("EndWords");
+                _camIndex = state.GetEntIndexByName("EndCamera");
             }
             _onceFlag = false;
         }
@@ -51,7 +51,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                var crate = state.GetEntInfoByIndex(_counter_Index);
+                var crate = state.GetEntInfoByIndex(_counterIndex);
                 int d;
 
                 state.GameProcess.ReadValue(crate.EntityPtr + skinoffset, out d);
@@ -63,7 +63,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                   return GameSupportResult.PlayerGainedControl;
                 }
                     
-                if (d == 10 && state.PlayerViewEntityIndex == _cam_Index)
+                if (d == 10 && state.PlayerViewEntityIndex == _camIndex)
                 {
                     _onceFlag = true;
                     Debug.WriteLine("toomanycrates start");

@@ -10,8 +10,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag;
 
-        private int _intro_Index;
-        private int _trig_Index;
+        private int _introIndex;
+        private int _trigIndex;
 
         public HL2Mods_DeepDown()
         {
@@ -25,13 +25,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (this.IsFirstMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._intro_Index = state.GetEntIndexByName("IntroCredits1");
-                Debug.WriteLine("intro index is " + this._intro_Index);
+                this._introIndex = state.GetEntIndexByName("IntroCredits1");
+                Debug.WriteLine("intro index is " + this._introIndex);
             }
 
             if (this.IsLastMap)
             {
-                this._trig_Index = state.GetEntIndexByName("AlyxWake1");
+                this._trigIndex = state.GetEntIndexByName("AlyxWake1");
             }
             _onceFlag = false;
         }
@@ -42,20 +42,20 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && this._intro_Index != -1)
+            if (this.IsFirstMap && this._introIndex != -1)
             {
-                var newIntro = state.GetEntInfoByIndex(_intro_Index);
+                var newIntro = state.GetEntInfoByIndex(_introIndex);
 
                 if (newIntro.EntityPtr == IntPtr.Zero)
                 {
-                    _intro_Index = -1;
+                    _introIndex = -1;
                     Debug.WriteLine("deepdown start");
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-            else if (this.IsLastMap && this._trig_Index != -1)
+            else if (this.IsLastMap && this._trigIndex != -1)
             {
-                var newTrig = state.GetEntInfoByIndex(_trig_Index);
+                var newTrig = state.GetEntInfoByIndex(_trigIndex);
 
                 if (newTrig.EntityPtr == IntPtr.Zero)
                 {

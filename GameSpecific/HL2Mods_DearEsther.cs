@@ -15,7 +15,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private Vector3f _startPos = new Vector3f(3836f, 5620f, 350.395477f);
 
-        private int _trig_Index;
+        private int _trigIndex;
 
         public HL2Mods_DearEsther()
         {
@@ -36,8 +36,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (IsLastMap)
             {
-                _trig_Index = state.GetEntIndexByName("triggerEndSequence");
-                Debug.WriteLine("trigger index is " + _trig_Index);
+                _trigIndex = state.GetEntIndexByName("triggerEndSequence");
+                Debug.WriteLine("trigger index is " + _trigIndex);
             }
             _onceFlag = false;
         }
@@ -58,7 +58,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap)
             {
-                var newTrig = state.GetEntInfoByIndex(_trig_Index);
+                var newTrig = state.GetEntInfoByIndex(_trigIndex);
 
                 if (newTrig.EntityPtr == IntPtr.Zero)
                 {

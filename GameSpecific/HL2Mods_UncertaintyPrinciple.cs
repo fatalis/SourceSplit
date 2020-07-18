@@ -12,7 +12,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
 
         private IntPtr _track_Index;
-        private IntPtr _cam_Index;
+        private IntPtr _camIndex;
 
         Vector3f _trackPos;
         Vector3f _camPos;
@@ -33,7 +33,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsFirstMap)
             {
                 this._track_Index = state.GetEntityByName("start_cam_corner2");
-                this._cam_Index = state.GetEntityByName("camera1_train");
+                this._camIndex = state.GetEntityByName("camera1_train");
                 state.GameProcess.ReadValue(_track_Index + state.GameOffsets.BaseEntityAbsOriginOffset, out _trackPos);
                 Debug.WriteLine("_trackPos pos is " + _trackPos);
             }
@@ -51,7 +51,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                state.GameProcess.ReadValue(_cam_Index + state.GameOffsets.BaseEntityAbsOriginOffset, out _camPos);
+                state.GameProcess.ReadValue(_camIndex + state.GameOffsets.BaseEntityAbsOriginOffset, out _camPos);
                 Debug.WriteLine("_camPos is " + _camPos);
 
                 if (_camPos.DistanceXY(_trackPos) <= 8)
