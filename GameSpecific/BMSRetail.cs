@@ -69,15 +69,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 state.GameProcess.ReadValue(_nihiPtr + _baseEntityHealthOffset, out nihiHealth);
                 if (nihiHealth <= 0)
                 {
-                    int health;
-                    state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseEntityHealthOffset, out health);
-
-                    if (health > 0)
-                    {
-                        Debug.WriteLine("black mesa end");
-                        _onceFlag = true;
-                        return GameSupportResult.PlayerLostControl;
-                    }
+                    Debug.WriteLine("black mesa end");
+                    _onceFlag = true;
+                    return GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;

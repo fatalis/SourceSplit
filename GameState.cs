@@ -87,14 +87,16 @@ namespace LiveSplit.SourceSplit
                     continue;
 
                 IntPtr namePtr;
-                this.GameProcess.ReadPointer(info.EntityPtr + this.GameOffsets.BaseEntityTargetNameOffset, false, out namePtr);
+                // for some reason, for black mesa in nihilanth's fight the entity pointer returns a false 64bit number with the first half being FFFFFFFF...
+                IntPtr entPtr = (IntPtr)((uint)info.EntityPtr & 0xFFFFFFFF);
+                this.GameProcess.ReadPointer(entPtr + this.GameOffsets.BaseEntityTargetNameOffset, false, out namePtr);
                 if (namePtr == IntPtr.Zero)
                     continue;
 
                 string n;
                 this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
                 if (n == name)
-                    return info.EntityPtr;
+                    return entPtr;
             }
 
             return IntPtr.Zero;
