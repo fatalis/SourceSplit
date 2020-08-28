@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using LiveSplit.ComponentUtil;
 
@@ -15,6 +16,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private Vector3f _startPos = new Vector3f(113f, -1225f, 582f);
         private IntPtr _nihiPtr;
         private int _baseEntityHealthOffset = -1;
+        private bool _resetFlag;
 
         public BMSRetail()
         {
@@ -33,6 +35,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (GameMemory.GetBaseEntityMemberOffset("m_iHealth", state.GameProcess, scanner, out _baseEntityHealthOffset))
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
+        }
+
+        public override void OnTimerReset(bool resetflagto)
+        {
+            _resetFlag = resetflagto;
         }
 
         public override void OnSessionStart(GameState state)
@@ -54,14 +61,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 return GameSupportResult.DoNothing;
 
             // map starts
-            if (this.IsFirstMap)
+            if (this.IsFirstMap && !_resetFlag)
             {
-                if (state.PlayerPosition.DistanceXY(_startPos) < 1.0f)
-                {
-                    Debug.WriteLine("black mesa start");
-                    _onceFlag = true;
-                    return GameSupportResult.PlayerGainedControl;
-                }
+                Debug.WriteLine("black mesa start");
+                _resetFlag = true;
+                _onceFlag = true;
+                return GameSupportResult.PlayerGainedControl;
             }
             else if (this.IsLastMap && _nihiPtr != IntPtr.Zero)
             {

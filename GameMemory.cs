@@ -460,7 +460,7 @@ namespace LiveSplit.SourceSplit
                 {
                     _timesOver += 1;
                     _timeOverSpent += Convert.ToInt32(profiler.ElapsedMilliseconds) - TARGET_UPDATE_RATE;
-                    Debug.WriteLine("**** update iteration took too long: " + profiler.ElapsedMilliseconds + ", times: " + _timesOver + ", total: " + _timeOverSpent);
+                    Debug.WriteLine("**** update iteration took too long: " + profiler.ElapsedMilliseconds + "ms, times: " + _timesOver + " ticks , total: " + _timeOverSpent + "ms");
                 }
 
                 //var sleep = Stopwatch.StartNew();
