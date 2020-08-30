@@ -50,7 +50,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                _nihiPtr = state.GetEntityByName("nihilanth");
+                _nihiPtr = state.GetEntityByName("nihilanth", true);
                 Debug.WriteLine("Nihilanth pointer = 0x" + _nihiPtr.ToString("X"));
             }
         }

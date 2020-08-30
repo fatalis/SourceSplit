@@ -76,7 +76,7 @@ namespace LiveSplit.SourceSplit
 
         // warning: expensive -  7ms on i5
         // do not call frequently!
-        public IntPtr GetEntityByName(string name)
+        public IntPtr GetEntityByName(string name, bool fixfalse64bit = false)
         {
             const int MAX_ENTS = 2048; // TODO: is portal2's max higher?
 
@@ -88,7 +88,7 @@ namespace LiveSplit.SourceSplit
 
                 IntPtr namePtr;
                 // for some reason, for black mesa in nihilanth's fight the entity pointer returns a false 64bit number with the first half being FFFFFFFF...
-                IntPtr entPtr = (IntPtr)((uint)info.EntityPtr & 0xFFFFFFFF);
+                IntPtr entPtr = fixfalse64bit ? (IntPtr)((uint)info.EntityPtr & 0xFFFFFFFF) : info.EntityPtr;
                 this.GameProcess.ReadPointer(entPtr + this.GameOffsets.BaseEntityTargetNameOffset, false, out namePtr);
                 if (namePtr == IntPtr.Zero)
                     continue;
