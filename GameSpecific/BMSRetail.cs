@@ -61,7 +61,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 return GameSupportResult.DoNothing;
 
             // map starts
-            if (this.IsFirstMap && !_resetFlag)
+            if (this.IsFirstMap && !_resetFlag && state.PlayerPosition.DistanceXY(_startPos) <= 1.0f)
             {
                 Debug.WriteLine("black mesa start");
                 _resetFlag = true;

@@ -215,6 +215,9 @@ namespace LiveSplit.SourceSplit
             _totalMapTicks = 0;
             _gamePauseTime = null;
 
+            if (_gameMemory._state != null)
+                _gameMemory._state.GameSupport.OnTimerReset(true);
+
 
             // hack to make sure Portal players aren't using manual offset. we handle offset automatically now.
             // remove this eventually
@@ -237,8 +240,8 @@ namespace LiveSplit.SourceSplit
 
             // some game has unspecific starts like if the player's position isn't something which
             // can be repeated easily by accident, so this is a _onceflag but reset on timer reset.
-            if (GameMemory.GameSupportOutBoundCalls != null)
-                GameMemory.GameSupportOutBoundCalls.GameSupport.OnTimerReset(false);
+            if (_gameMemory._state != null)
+                _gameMemory._state.GameSupport.OnTimerReset(false);
         }
 
         void state_OnSplit(object sender, EventArgs e)

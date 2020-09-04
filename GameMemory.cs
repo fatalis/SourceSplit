@@ -50,7 +50,7 @@ namespace LiveSplit.SourceSplit
 
         private SourceSplitSettings _settings;
 
-        public static GameState GameSupportOutBoundCalls;
+        public GameState _state;
 
         // TODO: match tickrate as closely as possible without going over
         // otherwise we will most likely read when the game isn't sleeping
@@ -441,7 +441,7 @@ namespace LiveSplit.SourceSplit
             Debug.WriteLine("HandleProcess " + game.ProcessName);
 
             var state = new GameState(game, offsets);
-            GameSupportOutBoundCalls = state;
+            _state = state;
             this.InitGameState(state);
             _gotTickRate = false;
 

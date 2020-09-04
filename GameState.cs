@@ -102,7 +102,7 @@ namespace LiveSplit.SourceSplit
             return IntPtr.Zero;
         }
 
-        public int GetEntIndexByName(string name, int wrong = -2)
+        public int GetEntIndexByName(string name)
         {
             const int MAX_ENTS = 2048; // TODO: is portal2's max higher?
 
@@ -120,17 +120,11 @@ namespace LiveSplit.SourceSplit
                 string n;
                 this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
                 if (n == name)
-                {
-                    if (i != wrong) // if an exception value is set, check the found index with it
-                    {
-                        return i;
-                    }
-                    else continue;
-                }
+                    return i;
             }
+
             return -1;
         }
-
 
         public int GetEntIndexByPos(float x, float y, float z, float d = 0f, bool xy = false)
         {

@@ -164,7 +164,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "freakman-kleinerlife":
                     return new HL2Mods_Freakman2();
                 case "crates":
-                    return new hl2mods_toomanycrates();
+                    return new HL2mods_toomanycrates();
                 case "te120":
                     return new TE120();
                 case "dear esther":
