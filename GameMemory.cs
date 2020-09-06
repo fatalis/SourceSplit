@@ -24,6 +24,7 @@ namespace LiveSplit.SourceSplit
         public event EventHandler<SessionTicksUpdateEventArgs> OnSessionTimeUpdate;
         public event EventHandler<PlayerControlChangedEventArgs> OnPlayerGainedControl;
         public event EventHandler<PlayerControlChangedEventArgs> OnPlayerLostControl;
+        public event EventHandler<PlayerControlChangedEventArgs> ManualSplit;
         public event EventHandler<MapChangedEventArgs> OnMapChanged;
         public event EventHandler<SessionStartedEventArgs> OnSessionStarted;
         public event EventHandler<GamePausedEventArgs> OnGamePaused;
@@ -460,7 +461,7 @@ namespace LiveSplit.SourceSplit
                 {
                     _timesOver += 1;
                     _timeOverSpent += Convert.ToInt32(profiler.ElapsedMilliseconds) - TARGET_UPDATE_RATE;
-                    Debug.WriteLine("**** update iteration took too long: " + profiler.ElapsedMilliseconds + "ms, times: " + _timesOver + " ticks , total: " + _timeOverSpent + "ms");
+                    Debug.WriteLine("**** update iteration took too long: " + profiler.ElapsedMilliseconds + "ms, times: " + _timesOver + ", total: " + _timeOverSpent + "ms");
                 }
 
                 //var sleep = Stopwatch.StartNew();
@@ -683,6 +684,9 @@ namespace LiveSplit.SourceSplit
                 case GameSupportResult.PlayerLostControl:
                     this.SendLostControlEvent(state.GameSupport.EndOffsetTicks);
                     break;
+                case GameSupportResult.ManualSplit:
+                    this.SendManualSplit(state.GameSupport.EndOffsetTicks);
+                    break;
             }
         }
 
@@ -713,6 +717,13 @@ namespace LiveSplit.SourceSplit
         {
             _uiThread.Post(d => {
                 this.OnPlayerLostControl?.Invoke(this, new PlayerControlChangedEventArgs(ticksOffset));
+            }, null);
+        }
+
+        public void SendManualSplit(int ticksOffset)
+        {
+            _uiThread.Post(d => {
+                this.ManualSplit?.Invoke(this, new PlayerControlChangedEventArgs(ticksOffset));
             }, null);
         }
 

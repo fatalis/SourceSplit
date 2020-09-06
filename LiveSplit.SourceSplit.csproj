@@ -58,10 +58,12 @@
     <Compile Include="GameSpecific\HL2.cs" />
     <Compile Include="GameSpecific\HL2Ep1.cs" />
     <Compile Include="GameSpecific\HL2Ep2.cs" />
+    <Compile Include="GameSpecific\HDTF.cs" />
     <Compile Include="GameSpecific\HL2Mods_DearEsther.cs" />
     <Compile Include="GameSpecific\HL2Mods_Crates.cs" />
     <Compile Include="GameSpecific\HL2Mods_Exit2.cs" />
     <Compile Include="GameSpecific\HL2Mods_DayHard.cs" />
+    <Compile Include="GameSpecific\TheBeginnersGuide.cs" />
     <Compile Include="GameSpecific\PortalTFV.cs" />
     <Compile Include="GameSpecific\TE120.cs" />
     <Compile Include="GameSpecific\HL2Mods_Freakman2.cs" />
@@ -79,6 +81,7 @@
     <Compile Include="GameSpecific\Portal.cs" />
     <Compile Include="GameSpecific\Portal2.cs" />
     <Compile Include="GameSpecific\PortalStoriesMel.cs" />
+    <Compile Include="GameSpecific\TheStanleyParable.cs" />
     <Compile Include="GameState.cs" />
     <Compile Include="MapTimesForm.cs">
       <SubType>Form</SubType>

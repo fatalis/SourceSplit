@@ -35,6 +35,7 @@ namespace LiveSplit.SourceSplit
         private int _totalMapTicks;
         private int _totalTicks;
         private int _sessionTicksOffset;
+        private int _tickoffset;
         private DateTime? _gamePauseTime;
         private int _gamePauseTick;
         private GameTimingMethod _gameRecommendedTimingMethod;
@@ -114,6 +115,7 @@ namespace LiveSplit.SourceSplit
             _gameMemory.OnSessionTimeUpdate += gameMemory_OnSessionTimeUpdate;
             _gameMemory.OnPlayerGainedControl += gameMemory_OnPlayerGainedControl;
             _gameMemory.OnPlayerLostControl += gameMemory_OnPlayerLostControl;
+            _gameMemory.ManualSplit += gameMemory_ManualSplit;
             _gameMemory.OnMapChanged += gameMemory_OnMapChanged;
             _gameMemory.OnSessionStarted += gameMemory_OnSessionStarted;
             _gameMemory.OnSessionEnded += gameMemory_OnSessionEnded;
@@ -322,6 +324,7 @@ namespace LiveSplit.SourceSplit
             _timer.Reset(); // make sure to reset for games that start from a quicksave (Aperture Tag)
             _timer.Start();
             _sessionTicksOffset += e.TicksOffset;
+            _tickoffset = e.TicksOffset;
         }
 
         void gameMemory_OnPlayerLostControl(object sender, PlayerControlChangedEventArgs e)
@@ -331,6 +334,17 @@ namespace LiveSplit.SourceSplit
 
             _sessionTicksOffset += e.TicksOffset;
             this.DoSplit();
+        }
+
+        void gameMemory_ManualSplit(object sender, PlayerControlChangedEventArgs e)
+        {
+            if (!this.Settings.AutoStartEndResetEnabled)
+                return;
+
+            _tickoffset = e.TicksOffset;
+
+            Debug.WriteLine("** time adjusted, " + _tickoffset + " ticks were added to time");
+            this.DoSplitandRevertOffset();
         }
 
         void gameMemory_OnNewGameStarted(object sender, EventArgs e)
@@ -411,6 +425,27 @@ namespace LiveSplit.SourceSplit
             bool before = profile.DoubleTapPrevention;
             profile.DoubleTapPrevention = false;
             _timer.Split();
+            profile.DoubleTapPrevention = before;
+        }
+
+
+        // what is this?
+        // for the stanley parable the precision of splits needs to be near-perfect so some endings must have an end offset
+        // however because endoffsetticks was only meant to be used at the end of a run, that means
+        // when using it mid-run the timer will go back into the past to split then never get bumped forward again,
+        // losing a few ticks
+
+        void DoSplitandRevertOffset()
+        {
+            // make split times accurate
+            _timer.CurrentState.SetGameTime(this.GameTime);
+
+            HotkeyProfile profile = _timer.CurrentState.Settings.HotkeyProfiles[_timer.CurrentState.CurrentHotkeyProfile];
+            bool before = profile.DoubleTapPrevention;
+            profile.DoubleTapPrevention = false;
+            _timer.CurrentState.SetGameTime(this.GameTime - TimeSpan.FromSeconds(_tickoffset * _intervalPerTick));
+            _timer.Split();
+            _timer.CurrentState.SetGameTime(this.GameTime);
             profile.DoubleTapPrevention = before;
         }
 
