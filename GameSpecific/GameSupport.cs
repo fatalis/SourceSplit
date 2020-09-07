@@ -8,6 +8,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public string FirstMap { get; protected set; }
         public string LastMap { get; protected set; }
         public string FirstMap2 { get; internal set; }
+        public bool StartOnMapLoad { get; internal set; } = false;
 
         // ticks to subtract
         public int StartOffsetTicks { get; protected set; }
@@ -164,7 +165,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "freakman-kleinerlife":
                     return new HL2Mods_Freakman2();
                 case "crates":
-                    return new HL2mods_toomanycrates();
+                    return new HL2Mods_toomanycrates();
                 case "te120":
                     return new TE120();
                 case "dear esther":
@@ -179,6 +180,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HDTF();
                 case "beginnersguide":
                     return new TheBeginnersGuide();
+                case "icemod":
+                    return new HL2Mods_ICE();
             }
 
             return null;

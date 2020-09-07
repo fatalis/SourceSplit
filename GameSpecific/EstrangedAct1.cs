@@ -1,16 +1,19 @@
-﻿using System;
+﻿using LiveSplit.ComponentUtil;
+using System;
 using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
     class EstrangedAct1 : GameSupport
     {
-        // start: 6.8 seconds after a trigger_once is hit
+        // start: when the title screen card stops being active
         // ending: when final trigger_once is hit, breaking the floor
 
         private bool _onceFlag;
 
-        private int _trigIndex;
+        private const int _interactiveScreenActiveFlag = 0x338;
+
+        private MemoryWatcher<byte> _titleCardActive;
         private int _trig2Index;
 
         public EstrangedAct1()
@@ -25,8 +28,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (this.IsFirstMap)
             {
-                this._trigIndex = state.GetEntIndexByPos(1120f, -1278f, 1292f);
-                Debug.WriteLine("trig index is " + this._trigIndex);
+                this._titleCardActive = new MemoryWatcher<byte>(state.GetEntityByName("gillnetter_titlecard") + _interactiveScreenActiveFlag);
             }
             if (this.IsLastMap)
             {
@@ -43,15 +45,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && this._trigIndex != -1)
+            if (this.IsFirstMap)
             {
-                var newtrig = state.GetEntInfoByIndex(_trigIndex);
-
-                if (newtrig.EntityPtr == IntPtr.Zero)
+                _titleCardActive.Update(state.GameProcess);
+                if (_titleCardActive.Old == 1 && _titleCardActive.Current == 0)
                 {
-                    _trigIndex = -1;
                     Debug.WriteLine("estranged2 start");
-                    this.StartOffsetTicks = 791 - (int)Math.Ceiling(0.1f / state.IntervalPerTick);
                     _onceFlag = true;
                     return GameSupportResult.PlayerGainedControl;
                 }

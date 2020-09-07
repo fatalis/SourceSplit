@@ -59,6 +59,7 @@
     <Compile Include="GameSpecific\HL2Ep1.cs" />
     <Compile Include="GameSpecific\HL2Ep2.cs" />
     <Compile Include="GameSpecific\HDTF.cs" />
+    <Compile Include="GameSpecific\HL2Mods_ICE.cs" />
     <Compile Include="GameSpecific\HL2Mods_DearEsther.cs" />
     <Compile Include="GameSpecific\HL2Mods_Crates.cs" />
     <Compile Include="GameSpecific\HL2Mods_Exit2.cs" />

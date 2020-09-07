@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class HL2mods_toomanycrates : GameSupport
+    class HL2Mods_toomanycrates : GameSupport
     {
         // start: on first map
         // ending: when the end text model's skin code is 10 and player view entity switches to the final camera
@@ -20,7 +20,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private const int skinoffset = 872;
 
-        public HL2mods_toomanycrates()
+        public HL2Mods_toomanycrates()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "cratastrophy";

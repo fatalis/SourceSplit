@@ -660,7 +660,13 @@ namespace LiveSplit.SourceSplit
                     if (state.HostState == HostState.NewGame)
                     {
                         if (state.GameSupport != null && levelName == state.GameSupport.FirstMap || levelName == state.GameSupport.FirstMap2)
+                        {
                             this.SendNewGameStartedEvent(levelName);
+
+                            if (state.GameSupport.StartOnMapLoad)
+                                this.HandleGameSupportResult(GameSupportResult.PlayerGainedControl, state);
+                        }
+
                     }
                     else // changelevel sp/mp
                     {
