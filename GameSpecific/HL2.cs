@@ -17,15 +17,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag;
 
-        private static bool _expfuelstartflag;
+        private static bool _expfuelStartFlag;
 
         private Vector3f _startPos = new Vector3f(-9419f, -2483f, 22f);
         private int _baseCombatCharacaterActiveWeaponOffset = -1;
         private int _baseEntityHealthOffset = -1;
         private int _prevActiveWeapon;
 
-        private int _ef_BlockBrush_Index;
-        private int _ef_Dustmote_Index;
+        private int _efBlockBrushIndex;
+        private int _efDustmoteIndex;
 
         public HL2()
         {
@@ -51,7 +51,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override void OnTimerReset(bool resetflagto)
         {
-            _expfuelstartflag = resetflagto;
+            _expfuelStartFlag = resetflagto;
         }
 
         public override void OnSessionStart(GameState state)
@@ -65,8 +65,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap2)
             {
-                _ef_BlockBrush_Index = state.GetEntIndexByName("dontrunaway");
-                _ef_Dustmote_Index = state.GetEntIndexByName("kokedepth");
+                _efBlockBrushIndex = state.GetEntIndexByName("dontrunaway");
+                _efDustmoteIndex = state.GetEntIndexByName("kokedepth");
             }
         }
 
@@ -112,21 +112,21 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                 _prevActiveWeapon = activeWeapon;
             }
-            else if (IsFirstMap2 && _ef_Dustmote_Index != -1)
+            else if (IsFirstMap2 && _efDustmoteIndex != -1)
             {
-                var newMote = state.GetEntInfoByIndex(_ef_Dustmote_Index);
-                var newBrush = state.GetEntInfoByIndex(_ef_BlockBrush_Index);
+                var newMote = state.GetEntInfoByIndex(_efDustmoteIndex);
+                var newBrush = state.GetEntInfoByIndex(_efBlockBrushIndex);
 
-                if (state.PlayerPosition.DistanceXY(new Vector3f(7784.5f, 7284f, -15107f)) >= 2 && newBrush.EntityPtr == IntPtr.Zero && !_expfuelstartflag)
+                if (state.PlayerPosition.DistanceXY(new Vector3f(7784.5f, 7284f, -15107f)) >= 2 && newBrush.EntityPtr == IntPtr.Zero && !_expfuelStartFlag)
                 { 
                     Debug.WriteLine("exp fuel start");
-                    _expfuelstartflag = true;
+                    _expfuelStartFlag = true;
                     return GameSupportResult.PlayerGainedControl;
                 }
 
                 if (newMote.EntityPtr == IntPtr.Zero)
                 {
-                    _ef_Dustmote_Index = -1;
+                    _efDustmoteIndex = -1;
                     Debug.WriteLine("exp fuel end");
                     return GameSupportResult.PlayerLostControl;
                 }

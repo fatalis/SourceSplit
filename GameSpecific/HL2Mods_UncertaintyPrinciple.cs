@@ -6,16 +6,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
 {
     class HL2Mods_UncertaintyPrinciple : GameSupport
     {
-        // start: 2 seconds after the camera's parent entity gets within 8 units of the final path_track
+        // start: when the player's view entity index changes back to the player's
         // ending: when player is frozen by the camera entity
 
         private bool _onceFlag;
-
-        private IntPtr _track_Index;
-        private IntPtr _camIndex;
-
-        Vector3f _trackPos;
-        Vector3f _camPos;
+        private int _camIndex;
 
         public HL2Mods_UncertaintyPrinciple()
         {
@@ -31,12 +26,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
 
             if (this.IsFirstMap)
-            {
-                this._track_Index = state.GetEntityByName("start_cam_corner2");
-                this._camIndex = state.GetEntityByName("camera1_train");
-                state.GameProcess.ReadValue(_track_Index + state.GameOffsets.BaseEntityAbsOriginOffset, out _trackPos);
-                Debug.WriteLine("_trackPos pos is " + _trackPos);
-            }
+                _camIndex = state.GetEntIndexByName("camera1");
+
 
             _onceFlag = false;
         }
@@ -51,13 +42,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                state.GameProcess.ReadValue(_camIndex + state.GameOffsets.BaseEntityAbsOriginOffset, out _camPos);
-                Debug.WriteLine("_camPos is " + _camPos);
-
-                if (_camPos.DistanceXY(_trackPos) <= 8)
+                if (state.PrevPlayerViewEntityIndex == _camIndex && state.PlayerViewEntityIndex == 1)
                 {
                     Debug.WriteLine("up start");
-                    this.StartOffsetTicks = 134;
                     _onceFlag = true;
                     return GameSupportResult.PlayerGainedControl;
                 }
@@ -65,7 +52,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             else if (this.IsLastMap)
             {
-                if (state.PlayerFlags.HasFlag(FL.FROZEN))
+                if (!state.PrevPlayerFlags.HasFlag(FL.FROZEN) && state.PlayerFlags.HasFlag(FL.FROZEN))
                 {
                     Debug.WriteLine("up end");
                     _onceFlag = true;

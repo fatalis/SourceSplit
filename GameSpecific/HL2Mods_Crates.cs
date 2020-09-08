@@ -22,6 +22,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public HL2Mods_toomanycrates()
         {
+            this.StartOnFirstMapLoad = true;
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "cratastrophy";
             this.RequiredProperties = PlayerProperties.ViewEntity | PlayerProperties.Position;
@@ -55,13 +56,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 int d;
 
                 state.GameProcess.ReadValue(crate.EntityPtr + skinoffset, out d);
-
-                if (!_resetFlag && state.PlayerEntInfo.EntityPtr != IntPtr.Zero && state.PlayerPosition.Distance(startpos) <= 0.05f)
-                {
-                  _resetFlag = true;
-                  Debug.WriteLine("toomanycrates start");
-                  return GameSupportResult.PlayerGainedControl;
-                }
                     
                 if (d == 10 && state.PlayerViewEntityIndex == _camIndex)
                 {

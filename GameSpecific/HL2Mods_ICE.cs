@@ -10,7 +10,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending: when the gunship's hp drops hits or drops below 0hp
 
         private bool _onceFlag;
-        private MemoryWatcher<float> _gunshipHP;
+        private MemoryWatcher<int> _gunshipHP;
 
         private Vector3f _startPos = new Vector3f(-1296f, -1296f, 101f);
         private int _baseEntityHealthOffset = -1;
@@ -20,7 +20,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "ice_02";
             this.LastMap = "ice_32";
-            this.StartOnMapLoad = true;
+            this.StartOnFirstMapLoad = true;
         }
 
         public override void OnGameAttached(GameState state)
@@ -40,7 +40,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (IsLastMap && _baseEntityHealthOffset != 0x0)
             {
-                _gunshipHP = new MemoryWatcher<float>(state.GetEntityByName("helicopter_1") + _baseEntityHealthOffset);
+                _gunshipHP = new MemoryWatcher<int>(state.GetEntityByName("helicopter_1") + _baseEntityHealthOffset);
             }
 
             _onceFlag = false;
@@ -54,6 +54,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap)
             {
+                _gunshipHP.Update(state.GameProcess);
                 if (_gunshipHP.Current <= 0 && _gunshipHP.Old > 0)
                 {
                     _onceFlag = true;

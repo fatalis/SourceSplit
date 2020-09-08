@@ -8,7 +8,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public string FirstMap { get; protected set; }
         public string LastMap { get; protected set; }
         public string FirstMap2 { get; internal set; }
-        public bool StartOnMapLoad { get; internal set; } = false;
+        public bool StartOnFirstMapLoad { get; internal set; } = false;
 
         // ticks to subtract
         public int StartOffsetTicks { get; protected set; }

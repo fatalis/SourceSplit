@@ -7,6 +7,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
 {
     class TheStanleyParable : GameSupport
     {
+        // FOR THE RETAIL HD REMAKE
+        // TODO: add original mod and demo version support
+
         // start: when player first moves OR their view angle first changes OR when they close the door while standing still AND they mustve been teleported
 
         // endings:
@@ -49,35 +52,36 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private const int _mathCounterCurValueOffset = 0x368;
 
 
-        // endings
+        // start
         //Vector3f oldpos = new Vector3f(-154.778f, -205.209f, 0f); TODO: add 2nd start position which is where you end up after the intro cutscene
         Vector3f _startPos = new Vector3f(-200f, -208f, 0.03125f);
         Vector3f _startAng = new Vector3f(0f, 90f, 0f);
         Vector3f _spawnPos = new Vector3f(5152f, 776f, 3328f);
         Vector3f _doorStartAng = new Vector3f(0f, 360f, 0f);
 
+        // endings
         private MemoryWatcherList _endings_Watcher = new MemoryWatcherList();
         private StringWatcher _latest_Client_Cmd;
 
-        private MemoryWatcher<float> _ending_Song_Timer;
-        private MemoryWatcher<float> _ending_VO_Timer;
-        private int _ending_Heaven_Br_Index;
-        private int _ending_Heaven_BPass1;
-        private int _ending_Escape_Cam_Index;
-        private int _ending_Map1_Cam_Index;
-        private int _ending_Count_Cam_Index;
-        private int ending_Art_Cam_Index;
-        private int _ending_Games_Cam_Index;
-        Vector3f _ending_Insane_Sector_Origin = new Vector3f(-6072f, 888f, 0);
-        private int _ending_Insane_Cam_Index;
-        private static int _ending_Serious_Count;
-        private MemoryWatcher<Vector3f> _ending_Disco_AngVel;
-        private MemoryWatcher<float> _ending_Stuck_Ending_Count;
+        private MemoryWatcher<float> _endingSongTimer;
+        private MemoryWatcher<float> _endingVOTimer;
+        private int _endingHeavenBrIndex;
+        private int _endingHeavenBPass1;
+        private int _endingEscapeCamIndex;
+        private int _endingMap1CamIndex;
+        private int _endingCountCamIndex;
+        private int endingArtCamIndex;
+        private int _endingGamesCamIndex;
+        Vector3f _endingInsaneSectorOrigin = new Vector3f(-6072f, 888f, 0);
+        private int _endingInsaneCamIndex;
+        private static int _endingSeriousCount;
+        private MemoryWatcher<Vector3f> _endingDiscoAngVel;
+        private MemoryWatcher<float> _endingStuckEndingCount;
         private MemoryWatcher<int> _credits;
-        private MemoryWatcher<int> _ending_Count_Fade_Alpha;
-        private int _ending_Zending_Cam_Index;
-        Vector3f _ending_Whiteboard_Door_Origin = new Vector3f(1988f, -1792f, -1992f);
-        private static bool _ending_Confuse_Flag = false;
+        private MemoryWatcher<int> _endingCountFadeAlpha;
+        private int _endingZendingCamIndex;
+        Vector3f _endingWhiteboardDoorOrigin = new Vector3f(1988f, -1792f, -1992f);
+        private static bool _endingConfuseFlag = false;
 
         public TheStanleyParable()
         {
@@ -159,8 +163,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnTimerReset(bool resetflagto)
         {
             _resetFlag = resetflagto;
-            _ending_Serious_Count = 0;
-            _ending_Confuse_Flag = false;
+            _endingSeriousCount = 0;
+            _endingConfuseFlag = false;
         }
 
         public override void OnGameAttached(GameState state)
@@ -181,7 +185,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             _endings_Watcher.ResetAll();
 
-            _ending_Serious_Count = 0;
+            _endingSeriousCount = 0;
             _latest_Client_Cmd = new StringWatcher(engine.BaseAddress + _clientCommandInputOffset, 50);
             _endings_Watcher.Add(_latest_Client_Cmd);
             _credits = new MemoryWatcher<int>(client.BaseAddress + _drawCreditsOffset);
@@ -198,50 +202,50 @@ namespace LiveSplit.SourceSplit.GameSpecific
             {
                 case "map1":
                     {
-                        this._ending_Map1_Cam_Index = state.GetEntIndexByName("cam_black");
-                        this._ending_Heaven_Br_Index = state.GetEntIndexByName("427compbr");
-                        state.GameProcess.ReadValue(server.BaseAddress + _buttonPasses, out _ending_Heaven_BPass1);
-                        this._ending_Insane_Cam_Index = state.GetEntIndexByName("mariella_camera");
-                        this._ending_Song_Timer = new MemoryWatcher<float>(state.GetEntityByName("narratorerroryes") + _logicChoreoTimerOffset);
-                        this._ending_VO_Timer = new MemoryWatcher<float>(state.GetEntityByName("narratorerrorno") + _logicChoreoTimerOffset);
-                        _endings_Watcher.Add(_ending_Song_Timer);
-                        _endings_Watcher.Add(_ending_VO_Timer);
+                        this._endingMap1CamIndex = state.GetEntIndexByName("cam_black");
+                        this._endingHeavenBrIndex = state.GetEntIndexByName("427compbr");
+                        state.GameProcess.ReadValue(server.BaseAddress + _buttonPasses, out _endingHeavenBPass1);
+                        this._endingInsaneCamIndex = state.GetEntIndexByName("mariella_camera");
+                        this._endingSongTimer = new MemoryWatcher<float>(state.GetEntityByName("narratorerroryes") + _logicChoreoTimerOffset);
+                        this._endingVOTimer = new MemoryWatcher<float>(state.GetEntityByName("narratorerrorno") + _logicChoreoTimerOffset);
+                        _endings_Watcher.Add(_endingSongTimer);
+                        _endings_Watcher.Add(_endingVOTimer);
                         break;
                     }
                 case "map2":
                     {
-                        this._ending_Count_Cam_Index = state.GetEntIndexByName("cam_white");
-                        this._ending_Disco_AngVel = new MemoryWatcher<Vector3f>(state.GetEntityByName("emotionboothDrot") + _baseEntityAngleVelOffset);
-                        this._ending_Count_Fade_Alpha = new MemoryWatcher<int>(client.BaseAddress + 0xf63000);
-                        _endings_Watcher.Add(_ending_Disco_AngVel);
-                        _endings_Watcher.Add(_ending_Count_Fade_Alpha);
+                        this._endingCountCamIndex = state.GetEntIndexByName("cam_white");
+                        this._endingDiscoAngVel = new MemoryWatcher<Vector3f>(state.GetEntityByName("emotionboothDrot") + _baseEntityAngleVelOffset);
+                        this._endingCountFadeAlpha = new MemoryWatcher<int>(client.BaseAddress + 0xf63000);
+                        _endings_Watcher.Add(_endingDiscoAngVel);
+                        _endings_Watcher.Add(_endingCountFadeAlpha);
                         break;
                     }
                 case "redstair":
                     {
-                        this._ending_Escape_Cam_Index = state.GetEntIndexByName("blackcam");
+                        this._endingEscapeCamIndex = state.GetEntIndexByName("blackcam");
                         break;
                     }
                 case "babygame":
                     {
-                        this.ending_Art_Cam_Index = state.GetEntIndexByName("whitecamera");
+                        this.endingArtCamIndex = state.GetEntIndexByName("whitecamera");
                         break;
                     }
                 case "testchmb_a_00":
                     {
-                        _ending_Games_Cam_Index = state.GetEntIndexByName("blackoutend");
-                        _ending_Stuck_Ending_Count = new MemoryWatcher<float>(FindEntByName(state, "buttonboxendingcount") + _mathCounterCurValueOffset);
-                        _endings_Watcher.Add(_ending_Stuck_Ending_Count);
+                        _endingGamesCamIndex = state.GetEntIndexByName("blackoutend");
+                        _endingStuckEndingCount = new MemoryWatcher<float>(FindEntByName(state, "buttonboxendingcount") + _mathCounterCurValueOffset);
+                        _endings_Watcher.Add(_endingStuckEndingCount);
                         break;
                     }
                 case "seriousroom":
                     {
-                        _ending_Serious_Count += 1;
+                        _endingSeriousCount += 1;
                         break;
                     }
                 case "zending":
                     {
-                        _ending_Zending_Cam_Index = state.GetEntIndexByName("cam_dead");
+                        _endingZendingCamIndex = state.GetEntIndexByName("cam_dead");
                         break;
                     }
             }
@@ -253,7 +257,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             if (state.CurrentMap.ToLower() == "map" && EvaluateLatestClientCmd("tsp_reload 5", 12)) // confusion ending
             {
-                _ending_Confuse_Flag = true;
+                _endingConfuseFlag = true;
             }
         }
 
@@ -303,9 +307,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
                             }
                         }
 
-                        if (state.PlayerPosition.DistanceXY(_ending_Insane_Sector_Origin) <= 1353) // insane ending
+                        if (state.PlayerPosition.DistanceXY(_endingInsaneSectorOrigin) <= 1353) // insane ending
                         {
-                            if (EvaluateChangedViewIndex(state, _ending_Insane_Cam_Index, _ending_Map1_Cam_Index))
+                            if (EvaluateChangedViewIndex(state, _endingInsaneCamIndex, _endingMap1CamIndex))
                             {
                                 DefaultEnd("insane");
                                 EndOffsetTicks = 3;
@@ -313,7 +317,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                             }
 
                         }
-                        else if (EvaluateChangedViewIndex(state, 1, _ending_Map1_Cam_Index) && 
+                        else if (EvaluateChangedViewIndex(state, 1, _endingMap1CamIndex) && 
                             state.PrevPlayerPosition.Distance(_spawnPos) >= 5f)
                         {
                             DefaultEnd("map1 blackout");
@@ -331,9 +335,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                         if (buttonPresses >= 4)
                         {
-                            var newbr = state.GetEntInfoByIndex(_ending_Heaven_Br_Index);
+                            var newbr = state.GetEntInfoByIndex(_endingHeavenBrIndex);
 
-                            if (newbr.EntityPtr == IntPtr.Zero && (buttonPresses > _ending_Heaven_BPass1))
+                            if (newbr.EntityPtr == IntPtr.Zero && (buttonPresses > _endingHeavenBPass1))
                             {
                                 DefaultEnd("heaven");
                                 EndOffsetTicks = 1;
@@ -342,28 +346,28 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         }
 
                         // song ending
-                        if (_ending_Song_Timer.Current >= 33.333 && _ending_Song_Timer.Old < 33.333)
+                        if (_endingSongTimer.Current >= 33.333 && _endingSongTimer.Old < 33.333)
                         {
                             return DefaultEnd("song");
                         }
 
                         //voice over ending
-                        if (_ending_VO_Timer.Current >= 0.075 && _ending_VO_Timer.Old < 0.075)
+                        if (_endingVOTimer.Current >= 0.075 && _endingVOTimer.Old < 0.075)
                         {
                             return DefaultEnd("voice over");
                         }
                         
                         // whiteboard ending
-                        if (state.PlayerPosition.Distance(_ending_Whiteboard_Door_Origin) <= 800 && 
+                        if (state.PlayerPosition.Distance(_endingWhiteboardDoorOrigin) <= 800 && 
                             state.PlayerPosition.X >= 1993 && state.PrevPlayerPosition.X <= 1993)
                         {
                             return DefaultEnd("whiteboard");
                         }
 
                         // half of confusion ending
-                        if (_ending_Confuse_Flag)
+                        if (_endingConfuseFlag)
                         {
-                            _ending_Confuse_Flag = false;
+                            _endingConfuseFlag = false;
                             return DefaultEnd("confusion");
                         }
 
@@ -372,13 +376,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                 case "map2": //countdown, disco ending
                     {
-                        if (state.PlayerViewEntityIndex == _ending_Count_Cam_Index
-                            && _ending_Count_Fade_Alpha.Old <= 255 && _ending_Count_Fade_Alpha.Current == 255)
+                        if (state.PlayerViewEntityIndex == _endingCountCamIndex
+                            && _endingCountFadeAlpha.Old <= 255 && _endingCountFadeAlpha.Current == 255)
                         {
                             return DefaultEnd("countdown");
                         }
 
-                        if (_ending_Disco_AngVel.Current.Y == 20 && _ending_Disco_AngVel.Old.Y != 20)
+                        if (_endingDiscoAngVel.Current.Y == 20 && _endingDiscoAngVel.Old.Y != 20)
                         {
                             return DefaultEnd("secret disco end");
                         }
@@ -387,7 +391,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                 case "babygame": //art ending
                     {
-                        if (EvaluateChangedViewIndex(state, 1, ending_Art_Cam_Index))
+                        if (EvaluateChangedViewIndex(state, 1, endingArtCamIndex))
                         {
                             DefaultEnd("art");
                             EndOffsetTicks = 3;
@@ -410,7 +414,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                 case "redstair": //escape ending
                     {
-                        if (EvaluateChangedViewIndex(state, 1, _ending_Escape_Cam_Index))
+                        if (EvaluateChangedViewIndex(state, 1, _endingEscapeCamIndex))
                         {
                             DefaultEnd("escape");
                             EndOffsetTicks = 3;
@@ -430,14 +434,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                 case "testchmb_a_00": // games, stuck ending
                     {
-                        if (EvaluateChangedViewIndex(state, 1, _ending_Games_Cam_Index))
+                        if (EvaluateChangedViewIndex(state, 1, _endingGamesCamIndex))
                         {
                             DefaultEnd("games");
                             EndOffsetTicks = 3;
                             return GameSupportResult.ManualSplit;
                         }
 
-                        if (_ending_Stuck_Ending_Count.Old == 1 && _ending_Stuck_Ending_Count.Current == 2)
+                        if (_endingStuckEndingCount.Old == 1 && _endingStuckEndingCount.Current == 2)
                         {
                             return DefaultEnd("stuck");
                         }
@@ -454,7 +458,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     }
                 case "seriousroom": //serious ending
                     {
-                        if (_ending_Serious_Count == 3)
+                        if (_endingSeriousCount == 3)
                         {
                             return DefaultEnd("serious");
                         }
@@ -469,7 +473,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                             return GameSupportResult.PlayerLostControl;
                         }
 
-                        if (EvaluateChangedViewIndex(state, 1, _ending_Zending_Cam_Index))
+                        if (EvaluateChangedViewIndex(state, 1, _endingZendingCamIndex))
                         {
                             DefaultEnd("zending");
                             EndOffsetTicks = 4;

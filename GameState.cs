@@ -76,7 +76,7 @@ namespace LiveSplit.SourceSplit
 
         // warning: expensive -  7ms on i5
         // do not call frequently!
-        public IntPtr GetEntityByName(string name, bool fixfalse64bit = false)
+        public IntPtr GetEntityByName(string name)
         {
             const int MAX_ENTS = 2048; // TODO: is portal2's max higher?
 
@@ -85,18 +85,16 @@ namespace LiveSplit.SourceSplit
                 CEntInfoV2 info = this.GetEntInfoByIndex(i);
                 if (info.EntityPtr == IntPtr.Zero)
                     continue;
-
+                    
                 IntPtr namePtr;
-                // for some reason, for black mesa in nihilanth's fight the entity pointer returns a false 64bit number with the first half being FFFFFFFF...
-                IntPtr entPtr = fixfalse64bit ? (IntPtr)((uint)info.EntityPtr & 0xFFFFFFFF) : info.EntityPtr;
-                this.GameProcess.ReadPointer(entPtr + this.GameOffsets.BaseEntityTargetNameOffset, false, out namePtr);
+                this.GameProcess.ReadPointer(info.EntityPtr + this.GameOffsets.BaseEntityTargetNameOffset, false, out namePtr);
                 if (namePtr == IntPtr.Zero)
                     continue;
 
                 string n;
                 this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
                 if (n == name)
-                    return entPtr;
+                    return info.EntityPtr;
             }
 
             return IntPtr.Zero;
@@ -201,7 +199,7 @@ namespace LiveSplit.SourceSplit
     [StructLayout(LayoutKind.Sequential)]
     struct CEntInfoV1
     {
-        public int m_pEntity;
+        public uint m_pEntity;
         public int m_SerialNumber;
         public int m_pPrev;
         public int m_pNext;
@@ -210,7 +208,7 @@ namespace LiveSplit.SourceSplit
     [StructLayout(LayoutKind.Sequential)]
     struct CEntInfoV2
     {
-        public int m_pEntity;
+        public uint m_pEntity;
         public int m_SerialNumber;
         public int m_pPrev;
         public int m_pNext;

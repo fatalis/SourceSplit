@@ -35,7 +35,7 @@ namespace LiveSplit.SourceSplit
         private int _totalMapTicks;
         private int _totalTicks;
         private int _sessionTicksOffset;
-        private int _tickoffset;
+        private int _tickOffset;
         private DateTime? _gamePauseTime;
         private int _gamePauseTick;
         private GameTimingMethod _gameRecommendedTimingMethod;
@@ -324,7 +324,7 @@ namespace LiveSplit.SourceSplit
             _timer.Reset(); // make sure to reset for games that start from a quicksave (Aperture Tag)
             _timer.Start();
             _sessionTicksOffset += e.TicksOffset;
-            _tickoffset = e.TicksOffset;
+            _tickOffset = e.TicksOffset;
         }
 
         void gameMemory_OnPlayerLostControl(object sender, PlayerControlChangedEventArgs e)
@@ -341,9 +341,9 @@ namespace LiveSplit.SourceSplit
             if (!this.Settings.AutoStartEndResetEnabled)
                 return;
 
-            _tickoffset = e.TicksOffset;
+            _tickOffset = e.TicksOffset;
 
-            Debug.WriteLine("** time adjusted, " + _tickoffset + " ticks were added to time");
+            Debug.WriteLine("** time adjusted, " + _tickOffset + " ticks were added to time");
             this.DoSplitandRevertOffset();
         }
 
@@ -443,7 +443,7 @@ namespace LiveSplit.SourceSplit
             HotkeyProfile profile = _timer.CurrentState.Settings.HotkeyProfiles[_timer.CurrentState.CurrentHotkeyProfile];
             bool before = profile.DoubleTapPrevention;
             profile.DoubleTapPrevention = false;
-            _timer.CurrentState.SetGameTime(this.GameTime - TimeSpan.FromSeconds(_tickoffset * _intervalPerTick));
+            _timer.CurrentState.SetGameTime(this.GameTime - TimeSpan.FromSeconds(_tickOffset * _intervalPerTick));
             _timer.Split();
             _timer.CurrentState.SetGameTime(this.GameTime);
             profile.DoubleTapPrevention = before;

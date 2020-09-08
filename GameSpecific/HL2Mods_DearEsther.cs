@@ -1,7 +1,5 @@
-﻿using LiveSplit.ComponentUtil;
-using System;
+﻿using System;
 using System.Diagnostics;
-using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -11,25 +9,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending: when the final trigger is hit
 
         private bool _onceFlag;
-        private static bool _resetFlag;
-
-        private Vector3f _startPos = new Vector3f(3836f, 5620f, 350.395477f);
 
         private int _trigIndex;
 
         public HL2Mods_DearEsther()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
+            this.StartOnFirstMapLoad = true;
             this.FirstMap = "donnelley";
             this.LastMap = "Paul";
             this.RequiredProperties = PlayerProperties.Position;
         }
-
-        public override void OnTimerReset(bool resetflagto)
-        {
-            _resetFlag = resetflagto;
-        }
-
 
         public override void OnSessionStart(GameState state)
         {
@@ -47,14 +37,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
-
-            if (this.IsFirstMap && state.PlayerPosition.DistanceXY(_startPos) <= 0.05f && !_resetFlag)
-            {
-                _resetFlag = true;
-                _onceFlag = true;
-                Debug.WriteLine("dearesther start");
-                return GameSupportResult.PlayerGainedControl;
-            }
 
             if (this.IsLastMap)
             {

@@ -82,6 +82,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
+            // this code is hacky but the starting conditions do not help
             if (this.IsFirstMap && state.PlayerPosition.DistanceXY(_startPos) <= 3f)
             {
                 if (_isInCutscene.Changed && _isInCutscene.Old == 1 && _isInCutscene.Current == 0)

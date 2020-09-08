@@ -8,7 +8,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
     class HL2Mods_Ptsd1 : GameSupport
     {
         // how to match with demos:
-        // start: after player view entity changes (requires debug config and checks to avoid other changes)
+        // start: after player view entity changes
         // ending: when breen's banana hat (yes really) is killed
 
         private bool _onceFlag;

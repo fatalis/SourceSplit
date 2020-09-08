@@ -11,7 +11,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag = false;
 
         private int _camIndex;
-        private int _prop_Index;
+        private int _propIndex;
 
         public HL2Mods_DayHard()
         {
@@ -32,8 +32,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap)
             {
-                this._prop_Index = state.GetEntIndexByName("Patch3");
-                Debug.WriteLine("_prop_Index index is " + this._prop_Index);
+                this._propIndex = state.GetEntIndexByName("Patch3");
+                Debug.WriteLine("_propIndex index is " + this._propIndex);
             }
             _onceFlag = false; 
         }
@@ -56,9 +56,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             }
 
-            else if (this.IsLastMap && _prop_Index != -1)
+            else if (this.IsLastMap && _propIndex != -1)
             {
-                var newProp = state.GetEntInfoByIndex(_prop_Index);
+                var newProp = state.GetEntInfoByIndex(_propIndex);
 
                 if (newProp.EntityPtr == IntPtr.Zero)
                 {

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
 using LiveSplit.ComponentUtil;
 
@@ -13,14 +12,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending: first tick nihilanth's health is zero
 
         private bool _onceFlag;
-        private Vector3f _startPos = new Vector3f(113f, -1225f, 582f);
         private IntPtr _nihiPtr;
         private int _baseEntityHealthOffset = -1;
-        private bool _resetFlag;
 
         public BMSRetail()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
+            this.StartOnFirstMapLoad = true;
             this.FirstMap = "bm_c1a0a";
             this.LastMap = "bm_c4a4a";
             this.RequiredProperties = PlayerProperties.Position;
@@ -37,11 +35,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
 
-        public override void OnTimerReset(bool resetflagto)
-        {
-            _resetFlag = resetflagto;
-        }
-
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
@@ -50,7 +43,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                _nihiPtr = state.GetEntityByName("nihilanth", true);
+                _nihiPtr = state.GetEntityByName("nihilanth");
                 Debug.WriteLine("Nihilanth pointer = 0x" + _nihiPtr.ToString("X"));
             }
         }
@@ -60,15 +53,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            // map starts
-            if (this.IsFirstMap && !_resetFlag && state.PlayerPosition.DistanceXY(_startPos) <= 1.0f)
-            {
-                Debug.WriteLine("black mesa start");
-                _resetFlag = true;
-                _onceFlag = true;
-                return GameSupportResult.PlayerGainedControl;
-            }
-            else if (this.IsLastMap && _nihiPtr != IntPtr.Zero)
+            if (this.IsLastMap && _nihiPtr != IntPtr.Zero)
             {
                 int nihiHealth;
                 state.GameProcess.ReadValue(_nihiPtr + _baseEntityHealthOffset, out nihiHealth);
