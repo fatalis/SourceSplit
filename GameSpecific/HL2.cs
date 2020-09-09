@@ -38,15 +38,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "d1_trainstation_01";
-            this.FirstMap2 = "bmg1_experimental_fuel";
+            this.FirstMap2 = "tinje";
             this.LastMap = "d3_breen_01";
             this.RequiredProperties = PlayerProperties.Position;
         }
 
         public override void OnGameAttached(GameState state)
         {
-            this.FirstMap = "d1_trainstation_01";
-
             ProcessModuleWow64Safe server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
             Trace.Assert(server != null);
 
@@ -77,12 +75,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             // some of these mods are just maps that you put into half-life 2
             switch (state.CurrentMap.ToLower())
             {
-                default:
-                    this.FirstMap = "d1_trainstation_01";
-                    break;
-
                 case "tinje":
-                    this.FirstMap = "tinje";
                     this.StartOnFirstMapLoad = true;
                     _tinjeGuardHP = new MemoryWatcher<int>(state.GetEntityByName("end") + _baseEntityHealthOffset);
                     break;
@@ -165,7 +158,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         }
                         break;
                     }
-
 
                 case "tinje":
                     {
