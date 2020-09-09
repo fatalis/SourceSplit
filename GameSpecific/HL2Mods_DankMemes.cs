@@ -1,5 +1,4 @@
 ﻿using LiveSplit.ComponentUtil;
-using System;
 using System.Diagnostics;
 using System.Linq;
 
@@ -11,19 +10,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending: when "John Cena" (final antlion king _bossPtr) hp is <= 0 
 
         private bool _onceFlag;
-        private static bool _resetFlag;
 
         private int _baseEntityHealthOffset = -1;
 
-        private int _camIndex;
-        IntPtr _bossPtr;
+        private MemoryWatcher<int> _bossHP;
 
         public HL2Mods_DankMemes()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
+            this.StartOnFirstMapLoad = true;
             this.FirstMap = "Your_house";
             this.LastMap = "Dank_Boss";
-            this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
         public override void OnGameAttached(GameState state)
@@ -37,24 +34,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
 
-        public override void OnTimerReset(bool resetflagto)
-        {
-            _resetFlag = resetflagto;
-        }
-
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
 
-            if (this.IsFirstMap)
-            {
-                _camIndex = state.GetEntIndexByName("black_cam");
-            }
-
             if (this.IsLastMap)
-            {
-                _bossPtr = state.GetEntityByName("John_Cena");
-            }
+                _bossHP = new MemoryWatcher<int>(state.GetEntityByName("John_Cena") + _baseEntityHealthOffset);
+
             _onceFlag = false;
         }
 
@@ -64,19 +50,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && !_resetFlag && state.PlayerViewEntityIndex == _camIndex)
+            if (this.IsLastMap)
             {
-                _resetFlag = true;
-                Debug.WriteLine("dank memes start");
-                return GameSupportResult.PlayerGainedControl;
-            }
+                _bossHP.Update(state.GameProcess);
 
-            else if (this.IsLastMap)
-            {
-                int hp;
-                state.GameProcess.ReadValue(_bossPtr + _baseEntityHealthOffset, out hp);
-
-                if (hp <= 0)
+                if (_bossHP.Current <= 0 && _bossHP.Old > 0)
                 {
                     _onceFlag = true;
                     Debug.WriteLine("dank memes end");

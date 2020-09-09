@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Windows.Forms;
 using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
@@ -84,7 +83,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     _efBlockBrushIndex = state.GetEntIndexByName("dontrunaway");
                     _efDustmoteIndex = state.GetEntIndexByName("kokedepth");
                     break;
-
             }
         }
 
