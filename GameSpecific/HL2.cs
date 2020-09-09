@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows.Forms;
 using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
@@ -15,6 +16,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // start: when block brush is killed
         // end: when a dustmote entity is killed by the switch
 
+        // tinje:
+        // start: on map load
+        // end: when final guard is killed
+
         private bool _onceFlag;
 
         private static bool _expfuelStartFlag;
@@ -27,6 +32,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _efBlockBrushIndex;
         private int _efDustmoteIndex;
 
+        private MemoryWatcher<int> _tinjeGuardHP;
+
         public HL2()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
@@ -38,6 +45,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override void OnGameAttached(GameState state)
         {
+            this.FirstMap = "d1_trainstation_01";
+
             ProcessModuleWow64Safe server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
             Trace.Assert(server != null);
 
@@ -63,10 +72,26 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
                 state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out _prevActiveWeapon);
 
-            if (this.IsFirstMap2)
+            this.StartOnFirstMapLoad = false;
+
+            // some of these mods are just maps that you put into half-life 2
+            switch (state.CurrentMap.ToLower())
             {
-                _efBlockBrushIndex = state.GetEntIndexByName("dontrunaway");
-                _efDustmoteIndex = state.GetEntIndexByName("kokedepth");
+                default:
+                    this.FirstMap = "d1_trainstation_01";
+                    break;
+
+                case "tinje":
+                    this.FirstMap = "tinje";
+                    this.StartOnFirstMapLoad = true;
+                    _tinjeGuardHP = new MemoryWatcher<int>(state.GetEntityByName("end") + _baseEntityHealthOffset);
+                    break;
+
+                case "bmg1_experimental_fuel":
+                    _efBlockBrushIndex = state.GetEntIndexByName("dontrunaway");
+                    _efDustmoteIndex = state.GetEntIndexByName("kokedepth");
+                    break;
+
             }
         }
 
@@ -75,63 +100,87 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap)
+            switch (state.CurrentMap.ToLower())
             {
-                // "OnTrigger" "point_teleport_destination,Teleport,,0.1,-1"
-
-                // first tick player is moveable and on the train
-                if (state.PlayerPosition.DistanceXY(_startPos) <= 1.0)
-                {
-                    Debug.WriteLine("hl2 start");
-                    _onceFlag = true;
-                    return GameSupportResult.PlayerGainedControl;
-                }
-            }
-            else if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero
-                && _baseEntityHealthOffset != -1)
-            {
-                // "OnTrigger2" "weaponstrip_end_game,Strip,,0,-1"
-                // "OnTrigger2" "fade_blast_1,Fade,,0,-1"
-
-                int activeWeapon;
-                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out activeWeapon);
-
-                if (activeWeapon == -1 && _prevActiveWeapon != -1
-                    && state.PlayerPosition.Distance(new Vector3f(-2449.5f, -1380.2f, -446.0f)) > 256f) // ignore the initial strip that happens at around 2.19 seconds
-                {
-                    int health;
-                    state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseEntityHealthOffset, out health);
-
-                    if (health > 0)
+                default:
                     {
-                        Debug.WriteLine("hl2 end");
-                        _onceFlag = true;
-                        return GameSupportResult.PlayerLostControl;
+                        if (this.IsFirstMap) 
+                        {
+                            // "OnTrigger" "point_teleport_destination,Teleport,,0.1,-1"
+
+                            // first tick player is moveable and on the train
+                            if (state.PlayerPosition.DistanceXY(_startPos) <= 1.0)
+                            {
+                                Debug.WriteLine("hl2 start");
+                                _onceFlag = true;
+                                return GameSupportResult.PlayerGainedControl;
+                            }
+                        }
+                        else if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _baseEntityHealthOffset != -1)
+                        {
+                            // "OnTrigger2" "weaponstrip_end_game,Strip,,0,-1"
+                            // "OnTrigger2" "fade_blast_1,Fade,,0,-1"
+
+                            int activeWeapon;
+                            state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out activeWeapon);
+
+                            if (activeWeapon == -1 && _prevActiveWeapon != -1
+                                && state.PlayerPosition.Distance(new Vector3f(-2449.5f, -1380.2f, -446.0f)) > 256f) // ignore the initial strip that happens at around 2.19 seconds
+                            {
+                                int health;
+                                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseEntityHealthOffset, out health);
+
+                                if (health > 0)
+                                {
+                                    Debug.WriteLine("hl2 end");
+                                    _onceFlag = true;
+                                    return GameSupportResult.PlayerLostControl;
+                                }
+                            }
+
+                            _prevActiveWeapon = activeWeapon;
+                        }
+                        break;
                     }
-                }
 
-                _prevActiveWeapon = activeWeapon;
+                case "bmg1_experimental_fuel":
+                    {
+                        var newMote = state.GetEntInfoByIndex(_efDustmoteIndex);
+                        var newBrush = state.GetEntInfoByIndex(_efBlockBrushIndex);
+
+                        if (state.PlayerPosition.DistanceXY(new Vector3f(7784.5f, 7284f, -15107f)) >= 2 && state.PrevPlayerPosition.DistanceXY(new Vector3f(7784.5f, 7284f, -15107f)) < 2
+                            && newBrush.EntityPtr == IntPtr.Zero && !_expfuelStartFlag)
+                        {
+                            Debug.WriteLine("exp fuel start");
+                            _expfuelStartFlag = true;
+                            return GameSupportResult.PlayerGainedControl;
+                        }
+
+                        if (newMote.EntityPtr == IntPtr.Zero)
+                        {
+                            _onceFlag = true;
+                            _efDustmoteIndex = -1;
+                            Debug.WriteLine("exp fuel end");
+                            return GameSupportResult.PlayerLostControl;
+                        }
+                        break;
+                    }
+
+
+                case "tinje":
+                    {
+                        _tinjeGuardHP.Update(state.GameProcess);
+                        if (_tinjeGuardHP.Current <= 0 && _tinjeGuardHP.Old > 0)
+                        {
+                            _onceFlag = true;
+                            Debug.WriteLine("tinje end");
+                            return GameSupportResult.PlayerLostControl;
+                        }
+                        break;
+                    }
+
             }
-            else if (IsFirstMap2 && _efDustmoteIndex != -1)
-            {
-                var newMote = state.GetEntInfoByIndex(_efDustmoteIndex);
-                var newBrush = state.GetEntInfoByIndex(_efBlockBrushIndex);
 
-                if (state.PlayerPosition.DistanceXY(new Vector3f(7784.5f, 7284f, -15107f)) >= 2 && newBrush.EntityPtr == IntPtr.Zero && !_expfuelStartFlag)
-                { 
-                    Debug.WriteLine("exp fuel start");
-                    _expfuelStartFlag = true;
-                    return GameSupportResult.PlayerGainedControl;
-                }
-
-                if (newMote.EntityPtr == IntPtr.Zero)
-                {
-                    _efDustmoteIndex = -1;
-                    Debug.WriteLine("exp fuel end");
-                    return GameSupportResult.PlayerLostControl;
-                }
-             
-            }
 
             return GameSupportResult.DoNothing;
         }

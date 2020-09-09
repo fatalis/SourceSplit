@@ -12,7 +12,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag = false;
 
-        private MemoryWatcher<byte> _blockBrushDisabled;
         private MemoryWatcher<float> _playerMoveSpeed;
         private const int _brushDisabledOffset = 864;
 
