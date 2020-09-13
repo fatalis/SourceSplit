@@ -44,6 +44,10 @@ namespace LiveSplit.SourceSplit
         private SigScanTarget _hostStateTarget;
         private SigScanTarget _serverStateTarget;
 
+        private SigScanTarget _infraIsLoadingTarget;
+        private MemoryWatcher<byte> _infraIsLoading;
+        private bool _isInfra = false;
+
         private bool _gotTickRate;
 
         private int _timesOver;
@@ -65,6 +69,22 @@ namespace LiveSplit.SourceSplit
             // detect game offsets in a game/version-independent way by scanning for code signatures
 
             // TODO: refine hl2 2014 signatures once an update after the may 29th one is released
+
+            _infraIsLoadingTarget = new SigScanTarget();
+
+            // \x80\x3D\x2A\x2A\x2A\x2A\x00\x0F\x84\x2A\x2A\x2A\x2A\x56\xC6\x05\x2A\x2A\x2A\x2A\x00
+            _infraIsLoadingTarget.AddSignature(2,
+                "80 3D ?? ?? ?? ?? 00",     // CMP  loadingbyte,0x0
+                "0F 84 ?? ?? ?? ??",        // JZ   0x10028ebb
+                "56",                       // PUSH ESI
+                "C6 05 ?? ?? ?? ?? 00");    // MOV  byte ptr [0x10458c04],0x0
+            // \x80\x3D\x2A\x2A\x2A\x2A\x00\x0F\x84\x2A\x2A\x2A\x2A\x56\x57\xC6\x05\x2A\x2A\x2A\x2A\x00
+            _infraIsLoadingTarget.AddSignature(2,
+                "80 3D ?? ?? ?? ?? 00",     // CMP  loadingbyte,0x0
+                "0F 84 ?? ?? ?? ??",        // JZ   0x1002b7db
+                "56",                       // PUSH ESI
+                "57",                       // PUSH EDI
+                "C6 05 ?? ?? ?? ?? 00");    // MOV  byte ptr [0x1047ccd4],0x0
 
             // CBaseServer::(server_state_t)m_State
             _serverStateTarget = new SigScanTarget();
@@ -214,6 +234,14 @@ namespace LiveSplit.SourceSplit
                 "DD D8",                   // fstp    st
                 "76 ??",                   // jbe     short loc_101B8F6F
                 "80 ?? ?? ?? ?? ?? 00");   // cmp     map, 0
+            // infra
+            _curMapTarget.AddSignature(16,
+                "68 ?? ?? ?? ??",          // push    0x103603e0
+                "c6 ?? ?? ??",             // mov     byte ptr [EBP + -0x1],0x1
+                "ff ??",                   // call    ESI
+                "83 c4 ??",                // add     ESP,0x4
+                "80 ?? ?? ?? ?? ?? 00",    // cmp     map, 0x0
+                "B8 ?? ?? ?? ??");         // mov     EAX, map
 
             // CBaseEntityList::(CEntInfo)m_EntPtrArray
             _globalEntityListTarget = new SigScanTarget();
@@ -259,7 +287,6 @@ namespace LiveSplit.SourceSplit
             Debug.WriteLine("GameMemory finalizer");
         }
 #endif
-
         public void StartReading()
         {
             if (_thread != null && _thread.Status == TaskStatus.Running)
@@ -357,6 +384,8 @@ namespace LiveSplit.SourceSplit
                 && (offsets.SignOnStatePtr = scanner.Scan(_signOnStateTarget2)) == IntPtr.Zero)
                 return false;
 
+            _infraIsLoading = new MemoryWatcher<byte>(new DeepPointer(scanner.Scan(_infraIsLoadingTarget), 0x0));
+
             // required server stuff
             var serverScanner = new SignatureScanner(p, server.BaseAddress, server.ModuleMemorySize);
 
@@ -450,6 +479,8 @@ namespace LiveSplit.SourceSplit
             while (!game.HasExited && !cts.IsCancellationRequested)
             {
                 // iteration must never take longer than 1 tick
+                if (_isInfra)
+                    _infraIsLoading.Update(state.GameProcess);
 
                 this.UpdateGameState(state);
                 this.CheckGameState(state);
@@ -483,6 +514,9 @@ namespace LiveSplit.SourceSplit
             state.GameDir = new DirectoryInfo(absoluteGameDir).Name.ToLower();
             Debug.WriteLine("gameDir = " + state.GameDir);
 
+            if (state.GameDir == "infra")
+                _isInfra = true;
+
             state.CurrentMap = String.Empty;
 
             // inspect memory layout to determine CEntInfo's version
@@ -497,6 +531,7 @@ namespace LiveSplit.SourceSplit
                 Debug.WriteLine("running game-specific code for: " + state.GameDir);
                 state.GameSupport.OnGameAttached(state);
             }
+
             this.SendSetTimingMethodEvent(state.GameSupport?.GameTimingMethod ?? GameTimingMethod.EngineTicks);
         }
 
@@ -510,10 +545,33 @@ namespace LiveSplit.SourceSplit
             game.ReadValue(offsets.IntervalPerTickPtr, out state.IntervalPerTick);
 
             state.PrevSignOnState = state.SignOnState;
+
+            // infra's signonstate is unreliable because it isn't updated on the "load" command and some others
+            // so we'll have to settle with a loading byte
+            if (_isInfra)
+            {
+                switch (_infraIsLoading.Current)
+                {
+                    case 0:
+                        state.SignOnState = SignOnState.Full;
+                        break;
+
+                    case 1:
+                        state.SignOnState = SignOnState.None;
+                        break;
+                }
+            }
+
             game.ReadValue(offsets.SignOnStatePtr, out state.SignOnState);
 
             state.PrevHostState = state.HostState;
-            game.ReadValue(offsets.HostStatePtr, out state.HostState);
+            game.ReadValue(offsets.HostStatePtr, out int hoststate);
+
+            // in infra, hoststates above 1 are offset by 1
+            if (_isInfra)
+                state.HostState = (HostState)((hoststate > 1) ? hoststate - 1 : hoststate);
+            else
+                state.HostState = (HostState)hoststate;
 
             state.PrevServerState = state.ServerState;
             game.ReadValue(offsets.ServerStatePtr, out state.ServerState);
@@ -537,6 +595,14 @@ namespace LiveSplit.SourceSplit
 
                     // update map name
                     state.GameProcess.ReadString(state.GameOffsets.CurMapPtr, ReadStringType.ASCII, 64, out state.CurrentMap);
+                }
+                // in infra, when loading a save the current tick counter inherits the value stored in the save file
+                // and continue incrementing from there, however sometimes immediately after load the counter gets reset to the inherited value
+                // so we need to check if this happens
+                if (_isInfra && state.RawTickCount - state.TickBase < 0)
+                {
+                    Debug.WriteLine("based ticks is wrong by " + (state.RawTickCount - state.TickBase) + " rebasing to " + state.TickBase);
+                    state.TickBase = state.RawTickCount;
                 }
 
                 // update time and rebase it against the first signon state full tick
@@ -654,7 +720,7 @@ namespace LiveSplit.SourceSplit
                     || state.HostState == HostState.NewGame)
                 {
                     string levelName;
-                    state.GameProcess.ReadString(state.GameOffsets.HostStateLevelNamePtr, ReadStringType.ASCII, 256-1, out levelName);
+                    state.GameProcess.ReadString(state.GameOffsets.HostStateLevelNamePtr, ReadStringType.ASCII, 256 - 1, out levelName);
                     Debug.WriteLine("host state m_levelName changed to " + levelName);
 
                     if (state.HostState == HostState.NewGame)

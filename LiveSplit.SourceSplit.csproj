@@ -65,6 +65,7 @@
     <Compile Include="GameSpecific\HL2Mods_Crates.cs" />
     <Compile Include="GameSpecific\HL2Mods_Exit2.cs" />
     <Compile Include="GameSpecific\HL2Mods_DayHard.cs" />
+    <Compile Include="GameSpecific\Infra.cs" />
     <Compile Include="GameSpecific\TheBeginnersGuide.cs" />
     <Compile Include="GameSpecific\PortalTFV.cs" />
     <Compile Include="GameSpecific\TE120.cs" />

@@ -99,6 +99,7 @@ namespace LiveSplit.SourceSplit
             this.lbGameProcesses.Rows.Add("mm.exe");
             this.lbGameProcesses.Rows.Add("EYE.exe");
             this.lbGameProcesses.Rows.Add("bms.exe");
+            this.lbGameProcesses.Rows.Add("infra.exe");
             this.lbGameProcesses.Rows.Add("stanley.exe");
             this.lbGameProcesses.Rows.Add("hdtf.exe");
             this.lbGameProcesses.Rows.Add("beginnersguide.exe");

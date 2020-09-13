@@ -184,6 +184,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_ICE();
                 case "dababy":
                     return new HL2Mods_DaBaby();
+                case "infra":
+                    return new Infra();
             }
 
             return null;
