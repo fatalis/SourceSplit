@@ -731,6 +731,7 @@ namespace LiveSplit.SourceSplit
 
                             if (state.GameSupport.StartOnFirstMapLoad)
                             {
+                                // do a debug spew of the timer start
                                 Debug.WriteLine(state.GameDir + " start");
                                 this.HandleGameSupportResult(GameSupportResult.PlayerGainedControl, state);
                             }

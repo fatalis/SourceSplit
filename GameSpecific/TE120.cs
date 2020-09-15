@@ -55,7 +55,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
             }
 
-            else if (this.IsLastMap && state.PlayerFlags.HasFlag(FL.GODMODE))
+            // TODO: improve this to not rely on entity pointers
+            else if (this.IsLastMap && state.PlayerFlags.HasFlag(FL.GODMODE) && !state.PrevPlayerFlags.HasFlag(FL.GODMODE))
             {
                 this._stride1Ptr = state.GetEntityByName("tl_crush_1");
                 this._stride2Ptr = state.GetEntityByName("tl_crush_2");

@@ -104,21 +104,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 uint uVar4;
                 uint puVar3 = (uint)state.GameProcess.ReadPointer(prev + 724);
                 if (puVar3 == 0xffffffff)
-                {
                     uVar4 = 0x1fff;
-                }
                 else
-                {
                     uVar4 = puVar3 & 0xffff;
-                }
 
                 IntPtr iVar1 = (IntPtr)((uint)state.GameOffsets.GlobalEntityListPtr + uVar4 * 24);
                 IntPtr puVar2 = state.GameProcess.ReadPointer(iVar1 + 0xC);
 
                 if (iVar1 != IntPtr.Zero && puVar2 != IntPtr.Zero)
-                {
                     return state.GameProcess.ReadPointer(puVar2);
-                }
             }
             return IntPtr.Zero;
         }
@@ -261,7 +255,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             }
         }
 
-
         public override GameSupportResult OnUpdate(GameState state)
         {
             _endings_Watcher.UpdateAll(state.GameProcess);
@@ -290,13 +283,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                             // a check to prevent the game starting the game again right after you reset on the first map
                             // now this only happens if you're 10 units near the start point
-                            if (state.PlayerPosition.Distance(_startPos) <= 10f) 
+                            if (state.PlayerPosition.Distance(_startPos) <= 10f)
                             {
                                 bool wasPlayerInStartPoint      = state.PrevPlayerPosition.BitEqualsXY(_startPos);
                                 bool isPlayerOutsideStartPoint  = !state.PlayerPosition.BitEqualsXY(_startPos);
                                 bool isDoorAngleDifferent       = !doorAng.BitEquals(_doorStartAng); // for reluctant ending
                                 bool isViewAngleDifferent       = ang.Distance(_startAng) >= 0.1f;
-                                bool isPlayerTeleported         = state.PrevPlayerPosition.Distance(_spawnPos) >= 5f; 
+                                bool isPlayerTeleported         = state.PrevPlayerPosition.Distance(_spawnPos) >= 5f;
 
                                 if ((wasPlayerInStartPoint && (isPlayerOutsideStartPoint || isDoorAngleDifferent)) || isViewAngleDifferent && isPlayerTeleported)
                                 {
@@ -317,7 +310,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                             }
 
                         }
-                        else if (EvaluateChangedViewIndex(state, 1, _endingMap1CamIndex) && 
+                        else if (EvaluateChangedViewIndex(state, 1, _endingMap1CamIndex) &&
                             state.PrevPlayerPosition.Distance(_spawnPos) >= 5f)
                         {
                             DefaultEnd("map1 blackout");
@@ -356,10 +349,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         {
                             return DefaultEnd("voice over");
                         }
-                        
+
                         // whiteboard ending
-                        if (state.PlayerPosition.Distance(_endingWhiteboardDoorOrigin) <= 800 && 
-                            state.PlayerPosition.X >= 1993 && state.PrevPlayerPosition.X <= 1993)
+                        if (state.PlayerPosition.Distance(_endingWhiteboardDoorOrigin) <= 800 &&
+                            state.PlayerPosition.X >= 1993 && state.PrevPlayerPosition.X < 1993)
                         {
                             return DefaultEnd("whiteboard");
                         }
@@ -384,7 +377,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                         if (_endingDiscoAngVel.Current.Y == 20 && _endingDiscoAngVel.Old.Y != 20)
                         {
-                            return DefaultEnd("secret disco end");
+                            return DefaultEnd("secret disco");
                         }
                         break;
                     }
@@ -466,7 +459,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     }
                 case "zending": // space, zending ending
                     {
-                        if (state.PrevPlayerPosition.X <= -7000 && 
+                        if (state.PrevPlayerPosition.X <= -7000 &&
                             state.PlayerPosition.X >= -400)
                         {
                             Debug.WriteLine("space ending");

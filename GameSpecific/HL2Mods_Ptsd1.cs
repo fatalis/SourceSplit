@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
-using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -39,8 +37,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 this._breenIndex = state.GetEntIndexByName("banana2");
                 Debug.WriteLine("banana2 index is " + this._breenIndex);
             }
-        
-             _onceFlag = false;
+
+            _onceFlag = false;
         }
 
 

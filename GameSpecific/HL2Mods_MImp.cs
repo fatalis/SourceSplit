@@ -38,16 +38,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 this._camIndex = state.GetEntIndexByName("outro.camera");
                 Debug.WriteLine("_camIndex index is " + this._camIndex);
             }
-                _onceFlag = false;
+            _onceFlag = false;
         }
 
 
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (_onceFlag)
-            {
                 return GameSupportResult.DoNothing;
-            }
 
             if (this.IsFirstMap && this._trigIndex != -1)
             {
@@ -65,7 +63,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             else if (this.IsLastMap && _camIndex != -1)
             {
-                if (state.PlayerViewEntityIndex == _camIndex)
+                if (state.PlayerViewEntityIndex == _camIndex && state.PrevPlayerViewEntityIndex != _camIndex)
                 {
                     Debug.WriteLine("mimp end");
                     _onceFlag = true;

@@ -47,7 +47,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsFirstMap && _trainIndex != -1)
             {
                 var newTrig = state.GetEntInfoByIndex(_trainIndex);
-                
+
                 if (newTrig.EntityPtr == IntPtr.Zero)
                 {
                     _trainIndex = -1;

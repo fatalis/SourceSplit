@@ -15,7 +15,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _baseEntityHealthOffset = -1;
 
         private int _trigIndex;
-        private int _kleinerIndex;
+        private MemoryWatcher<int> _kleinerHP;
 
         public HL2Mods_Freakman1()
         {
@@ -47,8 +47,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap)
             {
-                _kleinerIndex = state.GetEntIndexByPos(0f, 0f, 1888f, 1f);
-                Debug.WriteLine("kleiner index is " + _kleinerIndex);
+                _kleinerHP = new MemoryWatcher<int>(state.GetEntInfoByIndex(state.GetEntIndexByPos(0f, 0f, 1888f, 1f)).EntityPtr + _baseEntityHealthOffset);
             }
         }
 
@@ -61,7 +60,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsFirstMap && _trigIndex != -1)
             {
                 var newTrig = state.GetEntInfoByIndex(_trigIndex);
-                
+
                 if (newTrig.EntityPtr == IntPtr.Zero)
                 {
                     _trigIndex = -1;
@@ -72,13 +71,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
             }
 
-            else if (this.IsLastMap && _kleinerIndex != -1)
+            else if (this.IsLastMap)
             {
-                var kleiner = state.GetEntInfoByIndex(_kleinerIndex);
-                int hp;
-                state.GameProcess.ReadValue(kleiner.EntityPtr + _baseEntityHealthOffset, out hp);
-
-                if (hp <= 0)
+                _kleinerHP.Update(state.GameProcess);
+                if (_kleinerHP.Current <= 0 && _kleinerHP.Old > 0)
                 {
                     _onceFlag = true;
                     Debug.WriteLine("freakman1 end");

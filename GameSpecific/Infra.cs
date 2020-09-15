@@ -2,7 +2,6 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -23,7 +22,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.StartOnFirstMapLoad = true;
             this.FirstMap = "infra_c1_m1_office";
-            this.RequiredProperties = PlayerProperties.Position;
         }
 
         public override void OnGameAttached(GameState state)
@@ -34,9 +32,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
             var scanner = new SignatureScanner(state.GameProcess, client.BaseAddress, client.ModuleMemorySize);
             var fadelisttarget = new SigScanTarget(2, "8D 88 ?? ?? ?? ?? 8B 01 8B 40 ?? 8D 55 ??");
 
+            IntPtr fadelistptr = scanner.Scan(fadelisttarget);
+
             // for some reason making this IntPtr makes it pick up an extra byte...
-            _fadeListPtr = new MemoryWatcher<uint>(state.GameProcess.ReadPointer(scanner.Scan(fadelisttarget)) + 0x4);
-            _fadeListSize = new MemoryWatcher<int>(state.GameProcess.ReadPointer(scanner.Scan(fadelisttarget)) + 0x10);
+            _fadeListPtr = new MemoryWatcher<uint>(state.GameProcess.ReadPointer(fadelistptr) + 0x4);
+            _fadeListSize = new MemoryWatcher<int>(state.GameProcess.ReadPointer(fadelistptr) + 0x10);
 
             _fadeListWatcher = new MemoryWatcherList() { _fadeListSize, _fadeListPtr };
         }

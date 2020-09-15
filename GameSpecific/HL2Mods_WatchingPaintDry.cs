@@ -1,6 +1,5 @@
-﻿using System;
+﻿using LiveSplit.ComponentUtil;
 using System.Diagnostics;
-using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -8,11 +7,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
     {
         // start (all categories): on chapter select
         // ending (ice): when the buttom moves
-        // ending (ee): 0.2 seconds (~ 14 ticks) after player is frozen by credits camera
+        // ending (ee): when color correction entity is disabled
 
         private bool _onceFlag;
 
+        // todo: maybe sigscan this?
+        private const int _baseColorCorrectEnabledOffset = 0x355;
+
         private MemoryWatcher<Vector3f> _crashButtonPos;
+        private MemoryWatcher<byte> _colorCorrectEnabled;
 
         public HL2Mods_WatchingPaintDry()
         {
@@ -21,7 +24,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.FirstMap = "wpd_st";
             this.FirstMap2 = "watchingpaintdry"; // the mod has 2 versions and for some reason the modder decided to start the 2nd with a completely different set of map names
             this.LastMap = "wpd_uni";
-            this.RequiredProperties = PlayerProperties.Flags | PlayerProperties.Position;
+            this.RequiredProperties = PlayerProperties.Position;
         }
 
         public override void OnSessionStart(GameState state)
@@ -31,6 +34,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (IsFirstMap || IsFirstMap2)
             {
                 this._crashButtonPos = new MemoryWatcher<Vector3f>(state.GetEntityByName("bonzibutton") + state.GameOffsets.BaseEntityAbsOriginOffset);
+            }
+            else if (IsLastMap)
+            {
+                this._colorCorrectEnabled = new MemoryWatcher<byte>(state.GetEntityByName("Color_Correction") + _baseColorCorrectEnabledOffset);
             }
             _onceFlag = false;
         }
@@ -54,12 +61,16 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
             }
 
-            else if (this.IsLastMap && state.PlayerFlags.HasFlag(FL.FROZEN))
+            else if (this.IsLastMap)
             {
+                _colorCorrectEnabled.Update(state.GameProcess);
+
+                if (_colorCorrectEnabled.Current == 0 && _colorCorrectEnabled.Old == 1)
+                {
                     Debug.WriteLine("wpd ee end");
                     _onceFlag = true;
-                    this.EndOffsetTicks = 134;
                     return GameSupportResult.PlayerLostControl;
+                }
             }
             return GameSupportResult.DoNothing;
         }

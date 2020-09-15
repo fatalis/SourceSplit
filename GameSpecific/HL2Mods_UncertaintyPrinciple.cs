@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using LiveSplit.ComponentUtil;
+﻿using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -36,9 +34,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (_onceFlag)
-            {
                 return GameSupportResult.DoNothing;
-            }
 
             if (this.IsFirstMap)
             {
@@ -56,7 +52,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("up end");
                     _onceFlag = true;
-                   return GameSupportResult.PlayerLostControl;
+                    return GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;

@@ -1,7 +1,6 @@
-﻿using System;
+﻿using LiveSplit.ComponentUtil;
 using System.Diagnostics;
 using System.Linq;
-using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -14,13 +13,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _baseEntityHealthOffset = -1;
         public static bool _resetFlag;
 
-        IntPtr _freemanPtr;
+        private MemoryWatcher<int> _freemanHP;
         Vector3f _startPos = new Vector3f(9928f, 12472f, -180f);
 
         public HL2Mods_SnipersEp()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "bestmod2013";
+            this.RequiredProperties = PlayerProperties.Position;
         }
 
         public override void OnGameAttached(GameState state)
@@ -39,7 +39,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             _resetFlag = resetflagto;
         }
 
-
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
@@ -48,29 +47,25 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                _freemanPtr = state.GetEntityByName("bar");
-                Debug.WriteLine("freeman ptr is 0x" + _freemanPtr.ToString("X"));
+                _freemanHP = new MemoryWatcher<int>(state.GetEntityByName("bar") + _baseEntityHealthOffset);
             }
         }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (_onceFlag)
-            {
                 return GameSupportResult.DoNothing;
-            }
 
             if (this.IsFirstMap)
             {
-                if (!state.PlayerPosition.BitEqualsXY(_startPos) && !_resetFlag)
+                if (state.PrevPlayerPosition.BitEqualsXY(_startPos) && !state.PlayerPosition.BitEqualsXY(_startPos) && !_resetFlag)
                 {
                     _resetFlag = true;
                     return GameSupportResult.PlayerGainedControl;
                 }
 
-                int hp;
-                state.GameProcess.ReadValue(_freemanPtr + _baseEntityHealthOffset, out hp);
-                if (hp <= 0)
+                _freemanHP.Update(state.GameProcess);
+                if (_freemanHP.Current <= 0 && _freemanHP.Old > 0)
                 {
                     Debug.WriteLine("snipersep end");
                     _onceFlag = true;

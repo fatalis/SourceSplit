@@ -1,7 +1,5 @@
 ﻿using LiveSplit.ComponentUtil;
-using System;
 using System.Diagnostics;
-using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -11,26 +9,18 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending: when the end text model's skin code is 10 and player view entity switches to the final camera
 
         private bool _onceFlag;
-        private static bool _resetFlag;
 
-        private int _counterIndex;
+        private MemoryWatcher<int> _counterSkin;
         private int _camIndex;
 
-        private Vector3f startpos = new Vector3f(-2587.32f, 0f, -3.32f);
-
-        private const int skinoffset = 872;
+        private const int _baseSkinOffset = 872;
 
         public HL2Mods_toomanycrates()
         {
             this.StartOnFirstMapLoad = true;
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "cratastrophy";
-            this.RequiredProperties = PlayerProperties.ViewEntity | PlayerProperties.Position;
-        }
-
-        public override void OnTimerReset(bool resetflagto)
-        {
-            _resetFlag = resetflagto;
+            this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
         public override void OnSessionStart(GameState state)
@@ -38,7 +28,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (IsFirstMap)
             {
-                _counterIndex = state.GetEntIndexByName("EndWords");
+                _counterSkin = new MemoryWatcher<int>(state.GetEntityByName("EndWords") + _baseSkinOffset);
                 _camIndex = state.GetEntIndexByName("EndCamera");
             }
             _onceFlag = false;
@@ -52,15 +42,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                var crate = state.GetEntInfoByIndex(_counterIndex);
-                int d;
-
-                state.GameProcess.ReadValue(crate.EntityPtr + skinoffset, out d);
-                    
-                if (d == 10 && state.PlayerViewEntityIndex == _camIndex)
+                _counterSkin.Update(state.GameProcess);
+                if (_counterSkin.Current == 10 && state.PlayerViewEntityIndex == _camIndex && state.PrevPlayerViewEntityIndex == 1)
                 {
                     _onceFlag = true;
-                    Debug.WriteLine("toomanycrates start");
+                    Debug.WriteLine("toomanycrates end");
                     return GameSupportResult.PlayerLostControl;
                 }
             }

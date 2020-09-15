@@ -186,6 +186,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_DaBaby();
                 case "infra":
                     return new Infra();
+                case "yearlongalarm":
+                    return new HL2Mods_YearLongAlarm();
             }
 
             return null;

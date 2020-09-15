@@ -35,7 +35,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 this._propIndex = state.GetEntIndexByName("Patch3");
                 Debug.WriteLine("_propIndex index is " + this._propIndex);
             }
-            _onceFlag = false; 
+            _onceFlag = false;
         }
 
 
