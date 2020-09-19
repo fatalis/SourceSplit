@@ -51,11 +51,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
             _watcher.Add(_isInCutscene);
         }
 
-        public override void OnTimerReset(bool resetflagto)
+        public override void OnTimerReset(bool resetFlagTo)
         {
             _onceFlag = false;
-            _resetFlag = resetflagto;
-            _resetFlag2 = resetflagto;
+            _resetFlag = resetFlagTo;
+            _resetFlag2 = resetFlagTo;
         }
 
         public override void OnSessionStart(GameState state)
@@ -115,6 +115,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 IntPtr blockerNew = state.GetEntInfoByIndex(_blocker_Index).EntityPtr;
                 if (blockerNew == IntPtr.Zero)
                 {
+                    _onceFlag = true;
                     Debug.WriteLine("hdtf tutorial end");
                     return GameSupportResult.PlayerLostControl;
                 }

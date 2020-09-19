@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class HL2Mods_toomanycrates : GameSupport
+    class HL2Mods_TooManyCrates : GameSupport
     {
         // start: on first map
         // ending: when the end text model's skin code is 10 and player view entity switches to the final camera
@@ -15,7 +15,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private const int _baseSkinOffset = 872;
 
-        public HL2Mods_toomanycrates()
+        public HL2Mods_TooManyCrates()
         {
             this.StartOnFirstMapLoad = true;
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;

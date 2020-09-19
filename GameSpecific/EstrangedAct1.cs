@@ -58,9 +58,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap && this._trig2Index != -1)
             {
-                var newtrig2 = state.GetEntInfoByIndex(_trig2Index);
+                var newTrig2 = state.GetEntInfoByIndex(_trig2Index);
 
-                if (newtrig2.EntityPtr == IntPtr.Zero)
+                if (newTrig2.EntityPtr == IntPtr.Zero)
                 {
                     _trig2Index = -1;
                     Debug.WriteLine("estranged1 end");

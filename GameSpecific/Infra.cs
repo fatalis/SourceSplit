@@ -34,6 +34,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             IntPtr fadelistptr = scanner.Scan(fadelisttarget);
 
+            if (fadelistptr != IntPtr.Zero)
+                Debug.WriteLine("Fade list pointer found at 0x" + fadelistptr.ToString("X"));
+
             // for some reason making this IntPtr makes it pick up an extra byte...
             _fadeListPtr = new MemoryWatcher<uint>(state.GameProcess.ReadPointer(fadelistptr) + 0x4);
             _fadeListSize = new MemoryWatcher<int>(state.GameProcess.ReadPointer(fadelistptr) + 0x10);
@@ -42,26 +45,27 @@ namespace LiveSplit.SourceSplit.GameSpecific
         }
 
         // env_fades don't hold any live fade information and instead they network over fade infos to the client which add it to a list
+        // fade speed is pretty much the only thing we can use to differentiate one from others
         // this function will find a fade with a specified speed and then return the timestamp for when the fade ends
         public float FindFadeEndTime(GameState state, float speed)
         {
-            float tmpspeed;
+            float tmpSpeed;
             for (int i = 0; i < _fadeListSize.Current; i++)
             {
-                tmpspeed = new DeepPointer((IntPtr)_fadeListPtr.Current, 0x4 * i).Deref<float>(state.GameProcess);
-                if (tmpspeed != speed)
+                tmpSpeed = state.GameProcess.ReadValue<float>(state.GameProcess.ReadPointer((IntPtr)_fadeListPtr.Current) + 0x4 * i);
+                if (tmpSpeed != speed)
                     continue;
                 else
-                    return new DeepPointer((IntPtr)_fadeListPtr.Current, 0x4 * i + 0x4).Deref<float>(state.GameProcess); ;
+                    return state.GameProcess.ReadValue<float>(state.GameProcess.ReadPointer((IntPtr)_fadeListPtr.Current) + 0x4 * i + 0x4);
             }
             return 0;
         }
 
-        public GameSupportResult DefaultEnd(GameState state, float fadespeed, string ending)
+        public GameSupportResult DefaultEnd(GameState state, float fadeSpeed, string ending)
         {
-            float splittime = FindFadeEndTime(state, fadespeed);
+            float splitTime = FindFadeEndTime(state, fadeSpeed);
             // this is how the game actually knows when a fade has finished as well
-            if (splittime != 0f && Math.Abs(splittime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
+            if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
             {
                 _onceFlag = true;
                 Debug.WriteLine("infra " + ending + " ending");
@@ -76,7 +80,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             _onceFlag = false;
         }
-
 
         public override GameSupportResult OnUpdate(GameState state)
         {

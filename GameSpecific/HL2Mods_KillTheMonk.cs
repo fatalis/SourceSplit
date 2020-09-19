@@ -4,23 +4,23 @@ using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class HL2Mods_SnipersEp : GameSupport
+    class HL2Mods_KillTheMonk : GameSupport
     {
-        //start: when player moves (excluding an on-the-spot jump)
-        //end: when "gordon" is killed (hp is <= 0)
+        // start: when the player's view entity index changes back to 1
+        // ending: when the monk's hp drop to 0
 
         private bool _onceFlag;
         private int _baseEntityHealthOffset = -1;
-        public static bool _resetFlag;
 
-        private MemoryWatcher<int> _freemanHP;
-        Vector3f _startPos = new Vector3f(9928f, 12472f, -180f);
+        private int _camIndex;
+        private MemoryWatcher<int> _monkHP;
 
-        public HL2Mods_SnipersEp()
+        public HL2Mods_KillTheMonk()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "bestmod2013";
-            this.RequiredProperties = PlayerProperties.Position;
+            this.FirstMap = "ktm_c01_01";
+            this.LastMap = "ktm_c03_02";
+            this.RequiredProperties = PlayerProperties.ParentEntity;
         }
 
         public override void OnGameAttached(GameState state)
@@ -29,27 +29,26 @@ namespace LiveSplit.SourceSplit.GameSpecific
             Trace.Assert(server != null);
 
             var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
-
             if (GameMemory.GetBaseEntityMemberOffset("m_iHealth", state.GameProcess, scanner, out _baseEntityHealthOffset))
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
-        }
-
-        public override void OnTimerReset(bool resetFlagTo)
-        {
-            _resetFlag = resetFlagTo;
         }
 
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
 
-            _onceFlag = false;
-
-            if (this.IsFirstMap)
+            if (IsFirstMap)
             {
-                _freemanHP = new MemoryWatcher<int>(state.GetEntityByName("bar") + _baseEntityHealthOffset);
+                _camIndex = state.GetEntIndexByName("blackout_cam");
             }
+            else if (IsLastMap && _baseEntityHealthOffset != -1)
+            {
+                _monkHP = new MemoryWatcher<int>(state.GetEntityByName("Monk") + _baseEntityHealthOffset);
+            }
+
+            _onceFlag = false;
         }
+
 
         public override GameSupportResult OnUpdate(GameState state)
         {
@@ -58,20 +57,26 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                if (state.PrevPlayerPosition.BitEqualsXY(_startPos) && !state.PlayerPosition.BitEqualsXY(_startPos) && !_resetFlag)
+                if (state.PrevPlayerViewEntityIndex == _camIndex && state.PlayerViewEntityIndex == 1)
                 {
-                    _resetFlag = true;
+                    _onceFlag = true;
+                    Debug.WriteLine("kill the monk start");
                     return GameSupportResult.PlayerGainedControl;
                 }
+            }
 
-                _freemanHP.Update(state.GameProcess);
-                if (_freemanHP.Current <= 0 && _freemanHP.Old > 0)
+            else if (IsLastMap)
+            {
+                _monkHP.Update(state.GameProcess);
+
+                if (_monkHP.Current <= 0 && _monkHP.Old > 0)
                 {
-                    Debug.WriteLine("snipersep end");
+                    Debug.WriteLine("kill the monk end");
                     _onceFlag = true;
                     return GameSupportResult.PlayerLostControl;
                 }
             }
+
             return GameSupportResult.DoNothing;
         }
     }

@@ -101,18 +101,19 @@ namespace LiveSplit.SourceSplit.GameSpecific
             }
             else
             {
-                uint uVar4;
-                uint puVar3 = (uint)state.GameProcess.ReadPointer(prev + 724);
-                if (puVar3 == 0xffffffff)
-                    uVar4 = 0x1fff;
+                // these variable names are guesses!
+                uint index;
+                uint entInfo = (uint)state.GameProcess.ReadPointer(prev + 724);
+                if (entInfo == 0xffffffff)
+                    index = 0x1fff;
                 else
-                    uVar4 = puVar3 & 0xffff;
+                    index = entInfo & 0xffff;
 
-                IntPtr iVar1 = (IntPtr)((uint)state.GameOffsets.GlobalEntityListPtr + uVar4 * 24);
-                IntPtr puVar2 = state.GameProcess.ReadPointer(iVar1 + 0xC);
+                IntPtr ptr1 = (IntPtr)((uint)state.GameOffsets.GlobalEntityListPtr + index * 24);
+                IntPtr ptr2 = state.GameProcess.ReadPointer(ptr1 + 0xC);
 
-                if (iVar1 != IntPtr.Zero && puVar2 != IntPtr.Zero)
-                    return state.GameProcess.ReadPointer(puVar2);
+                if (ptr1 != IntPtr.Zero && ptr2 != IntPtr.Zero)
+                    return state.GameProcess.ReadPointer(ptr2);
             }
             return IntPtr.Zero;
         }

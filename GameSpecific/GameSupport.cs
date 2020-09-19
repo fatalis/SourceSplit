@@ -60,7 +60,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // called when attached to a new game process
         public virtual void OnGameAttached(GameState state) { }
 
-        public virtual void OnTimerReset(bool resetflagto) { }
+        public virtual void OnTimerReset(bool resetFlagTo) { }
 
         // called on the first tick when player is fully in the game (according to demos)
         public virtual void OnSessionStart(GameState state)
@@ -165,7 +165,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "freakman-kleinerlife":
                     return new HL2Mods_Freakman2();
                 case "crates":
-                    return new HL2Mods_toomanycrates();
+                    return new HL2Mods_TooManyCrates();
                 case "te120":
                     return new TE120();
                 case "dear esther":
@@ -188,6 +188,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new Infra();
                 case "yearlongalarm":
                     return new HL2Mods_YearLongAlarm();
+                case "killthemonk":
+                    return new HL2Mods_KillTheMonk();
             }
 
             return null;

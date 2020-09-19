@@ -55,9 +55,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
 
-        public override void OnTimerReset(bool resetflagto)
+        public override void OnTimerReset(bool resetFlagTo)
         {
-            _expfuelStartFlag = resetflagto;
+            _expfuelStartFlag = resetFlagTo;
         }
 
         public override void OnSessionStart(GameState state)

@@ -70,6 +70,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 var newGunship2 = state.GetEntInfoByIndex(_gunship2Index);
 
                 // there are 2 gunships, one at the start and one at the end, any of them killed will count as an ending
+
                 // the 1st gunship is what you're intended to fight but its only spawned upon touching a trigger
                 if (newTrig.EntityPtr == IntPtr.Zero && _oldTrig.EntityPtr != IntPtr.Zero)
                     _gunship1HP = new MemoryWatcher<int>(state.GetEntityByName("gunship") + _baseEntityHealthOffset);
