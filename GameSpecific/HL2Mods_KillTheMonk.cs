@@ -20,7 +20,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "ktm_c01_01";
             this.LastMap = "ktm_c03_02";
-            this.RequiredProperties = PlayerProperties.ParentEntity;
+            this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
         public override void OnGameAttached(GameState state)
@@ -48,7 +48,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             _onceFlag = false;
         }
-
 
         public override GameSupportResult OnUpdate(GameState state)
         {

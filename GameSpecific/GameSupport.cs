@@ -190,6 +190,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_YearLongAlarm();
                 case "killthemonk":
                     return new HL2Mods_KillTheMonk();
+                case "logistique":
+                    return new HL2Mods_Logistique();
             }
 
             return null;

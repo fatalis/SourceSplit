@@ -369,7 +369,7 @@ namespace LiveSplit.SourceSplit
             {
                 if (_gamePauseTime != null)
                 {
-                    Debug.WriteLine("pause done, adding  " + TimeSpan.FromSeconds((DateTime.Now - _gamePauseTime.Value).TotalSeconds));
+                    Debug.WriteLine("pause done, adding " + TimeSpan.FromSeconds((DateTime.Now - _gamePauseTime.Value).TotalSeconds));
                     _sessionTicksOffset -= FakeTicks(_gamePauseTime.Value, DateTime.Now);
                 }
                 _gamePauseTime = null;

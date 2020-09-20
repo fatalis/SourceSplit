@@ -21,7 +21,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.StartOnFirstMapLoad = true;
             this.FirstMap = "bm_c1a0a";
             this.LastMap = "bm_c4a4a";
-            this.RequiredProperties = PlayerProperties.Position;
         }
 
         public override void OnGameAttached(GameState state)

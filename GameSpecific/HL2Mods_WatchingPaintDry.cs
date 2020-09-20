@@ -24,7 +24,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.FirstMap = "wpd_st";
             this.FirstMap2 = "watchingpaintdry"; // the mod has 2 versions and for some reason the modder decided to start the 2nd with a completely different set of map names
             this.LastMap = "wpd_uni";
-            this.RequiredProperties = PlayerProperties.Position;
         }
 
         public override void OnSessionStart(GameState state)

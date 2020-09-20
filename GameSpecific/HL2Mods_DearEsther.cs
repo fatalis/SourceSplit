@@ -18,7 +18,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.StartOnFirstMapLoad = true;
             this.FirstMap = "donnelley";
             this.LastMap = "Paul";
-            this.RequiredProperties = PlayerProperties.Position;
         }
 
         public override void OnSessionStart(GameState state)

@@ -19,7 +19,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "hdrtest"; //beta%
             this.LastMap = "d2_lostcoast";
-            this.RequiredProperties = PlayerProperties.Position;
         }
 
         public override void OnSessionStart(GameState state)

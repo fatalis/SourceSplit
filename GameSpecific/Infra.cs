@@ -2,9 +2,22 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
+    // taken from source sdk
+    [StructLayout(LayoutKind.Sequential)]
+    public struct ScreenFadeInfo
+    {
+        public float Speed;            // How fast to fade (tics / second) (+ fade in, - fade out)
+        public float End;              // When the fading hits maximum
+        public float Reset;            // When to reset to not fading (for fadeout and hold)
+        public byte r, g, b, alpha;    // Fade color
+        public int Flags;              // Fading flags
+    };
+
     class Infra : GameSupport
     {
         // how to match with demos:
@@ -49,14 +62,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // this function will find a fade with a specified speed and then return the timestamp for when the fade ends
         public float FindFadeEndTime(GameState state, float speed)
         {
-            float tmpSpeed;
+            ScreenFadeInfo fadeInfo;
             for (int i = 0; i < _fadeListSize.Current; i++)
             {
-                tmpSpeed = state.GameProcess.ReadValue<float>(state.GameProcess.ReadPointer((IntPtr)_fadeListPtr.Current) + 0x4 * i);
-                if (tmpSpeed != speed)
+                fadeInfo = state.GameProcess.ReadValue<ScreenFadeInfo>(state.GameProcess.ReadPointer((IntPtr)_fadeListPtr.Current) + 0x4 * i);
+                if (fadeInfo.Speed != speed)
                     continue;
                 else
-                    return state.GameProcess.ReadValue<float>(state.GameProcess.ReadPointer((IntPtr)_fadeListPtr.Current) + 0x4 * i + 0x4);
+                    return fadeInfo.End;
             }
             return 0;
         }

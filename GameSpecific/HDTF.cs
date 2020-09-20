@@ -29,7 +29,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.FirstMap = "a0c0p1";
             this.FirstMap2 = "a0c0p0"; // boot camp
             this.LastMap = "a4c1p2";
-            this.RequiredProperties = PlayerProperties.ALL;
+            this.RequiredProperties = PlayerProperties.Position;
         }
         public override void OnGameAttached(GameState state)
         {

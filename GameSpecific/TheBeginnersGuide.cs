@@ -21,7 +21,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.StartOnFirstMapLoad = true;
             this.FirstMap = "whisper";
             this.LastMap = "nomansland2";
-            this.RequiredProperties = PlayerProperties.Position;
         }
 
         public override void OnGameAttached(GameState state)
