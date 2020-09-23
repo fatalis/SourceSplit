@@ -26,7 +26,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private string _ebEndMap = "bm_c3a2i";
         private bool _xenStart = false;
 
-        private IntPtr _nihiPtr;
+        private MemoryWatcher<int> _nihiHP;
         private int _ebCamIndex;
         private int _xenCamIndex;
 
@@ -95,10 +95,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                _nihiPtr = state.GetEntityByName("nihilanth");
-                Debug.WriteLine("Nihilanth pointer = 0x" + _nihiPtr.ToString("X"));
+                IntPtr nihiPtr = state.GetEntityByName("nihilanth");
+                Debug.WriteLine("Nihilanth pointer = 0x" + nihiPtr.ToString("X"));
+                _nihiHP = new MemoryWatcher<int>(nihiPtr + _baseEntityHealthOffset);
             }
         }
+
 
         // aside from full game, bms also has earthbound and xen only, whose start and end conflict those of 
         // normal full game, so we'll let the runner choose whether we'll start or stop through tracking console commands
@@ -106,6 +108,23 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // this command buffer only responses to unknown commands in terms of user-inputted ones from the console
 
         // format: ebend<arg>, xenstart<arg>, eg: ebend1, xenstart0, characters are also accepted which will be interpreted as true
+        public void HandleArg(string command, string name, ref bool target)
+        {
+            string arg = command.Substring(command.Length - 1, 1);
+            if (arg != "0") target = true;
+            else target = false;
+
+            Debug.WriteLine(name + " is " + ((arg != "0") ? "Enabled" : "Disabled"));
+
+            // play the warning sound to let people know its toggled
+            SystemSounds.Asterisk.Play();
+        }
+
+        public bool CheckCommand(string cmd, string targetCmd)
+        {
+            return cmd.Length - 1 == (targetCmd).Length && cmd.Substring(0, cmd.Length - 1) == targetCmd;
+        }
+
         public void HandleInputCommand(GameState state, bool ignoreChanged = false)
         {
             if (!_handleInputCommandEnabled)
@@ -114,25 +133,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
             _command.Update(state.GameProcess);
             if (ignoreChanged || _command.Changed)
             {
-                if (_command.Current.Length == 7 && _command.Current.Substring(0, _command.Current.Length - 2) == "ebend")
+                // remove any carriage returns
+                string cleanedCmd = _command.Current.Replace("\n", "").Replace("\r", "").ToLower();
+                if (CheckCommand(cleanedCmd, "ebend"))
                 {
-                    string arg = _command.Current.Substring(5, 1);
-                    if (arg != "0") _ebEnd = true;
-                    else _ebEnd = false;
-
-                    Debug.WriteLine("Earthbound Auto-end is " + (_ebEnd ? "Enabled" : "Disabled"));
-
-                    // play the warning sound to let people know its toggled
-                    SystemSounds.Asterisk.Play();
+                    HandleArg(cleanedCmd, "Earthbound Auto-end", ref _ebEnd);
                 }
-                else if (_command.Current.Length == 9 && _command.Current.Substring(0, _command.Current.Length - 1) == "xenstart")
+                else if (CheckCommand(cleanedCmd, "xenstart"))
                 {
-                    string arg = _command.Current.Substring(8, 1);
-                    if (arg != "0") _xenStart = true;
-                    else _xenStart = false;
-
-                    Debug.WriteLine("Xen Auto-start is " + (_xenStart ? "Enabled" : "Disabled"));
-                    SystemSounds.Asterisk.Play();
+                    HandleArg(cleanedCmd, "Xen Auto-start", ref _xenStart);
                 }
             }
         }
@@ -144,11 +153,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsLastMap && _nihiPtr != IntPtr.Zero)
+            if (this.IsLastMap)
             {
-                int nihiHealth;
-                state.GameProcess.ReadValue(_nihiPtr + _baseEntityHealthOffset, out nihiHealth);
-                if (nihiHealth <= 0)
+                _nihiHP.Update(state.GameProcess);
+                if (_nihiHP.Current <= 0 && _nihiHP.Old > 0)
                 {
                     Debug.WriteLine("black mesa end");
                     _onceFlag = true;
