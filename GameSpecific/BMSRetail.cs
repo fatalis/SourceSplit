@@ -19,14 +19,18 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _baseEntityHealthOffset = -1;
         private const int _serverModernModuleSize = 0x9D6000;
         private const int _serverModModuleSize = 0x81B000;
+        private const int _nihiPhaseCounterOffset = 0x1a6e4;
+
 
         private StringWatcher _command;
         private bool _handleInputCommandEnabled = true;
         private bool _ebEnd = false;
         private string _ebEndMap = "bm_c3a2i";
         private bool _xenStart = false;
+        private bool _nihiSplit = false;
 
         private MemoryWatcher<int> _nihiHP;
+        private MemoryWatcher<int> _nihiPhaseCounter;
         private int _ebCamIndex;
         private int _xenCamIndex;
 
@@ -70,7 +74,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (_handleInputCommandEnabled)
             {
-                _command = new StringWatcher(commandPtr + 0x11, 9);
+                _command = new StringWatcher(commandPtr + 0x11, 20);
 
                 // if livesplit is loaded after the player has put in a valid command, then check
                 HandleInputCommand(state, true);
@@ -97,7 +101,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
             {
                 IntPtr nihiPtr = state.GetEntityByName("nihilanth");
                 Debug.WriteLine("Nihilanth pointer = 0x" + nihiPtr.ToString("X"));
+
                 _nihiHP = new MemoryWatcher<int>(nihiPtr + _baseEntityHealthOffset);
+                _nihiPhaseCounter = new MemoryWatcher<int>(nihiPtr + _nihiPhaseCounterOffset);
             }
         }
 
@@ -108,7 +114,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // this command buffer only responses to unknown commands in terms of user-inputted ones from the console
 
         // format: ebend<arg>, xenstart<arg>, eg: ebend1, xenstart0, characters are also accepted which will be interpreted as true
-        public void HandleArg(string command, string name, ref bool target)
+        void HandleArg(string command, string name, ref bool target)
         {
             string arg = command.Substring(command.Length - 1, 1);
             if (arg != "0") target = true;
@@ -120,12 +126,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
             SystemSounds.Asterisk.Play();
         }
 
-        public bool CheckCommand(string cmd, string targetCmd)
+        bool CheckCommand(string cmd, string targetCmd)
         {
             return cmd.Length - 1 == (targetCmd).Length && cmd.Substring(0, cmd.Length - 1) == targetCmd;
         }
 
-        public void HandleInputCommand(GameState state, bool ignoreChanged = false)
+        void HandleInputCommand(GameState state, bool ignoreChanged = false)
         {
             if (!_handleInputCommandEnabled)
                 return;
@@ -142,6 +148,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 else if (CheckCommand(cleanedCmd, "xenstart"))
                 {
                     HandleArg(cleanedCmd, "Xen Auto-start", ref _xenStart);
+                }
+                else if (CheckCommand(cleanedCmd, "nihisplit"))
+                {
+                    HandleArg(cleanedCmd, "Nihilanth splits", ref _nihiSplit);
                 }
             }
         }
@@ -161,6 +171,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     Debug.WriteLine("black mesa end");
                     _onceFlag = true;
                     return GameSupportResult.PlayerLostControl;
+                }
+
+                if (_nihiSplit)
+                {
+                    _nihiPhaseCounter.Update(state.GameProcess);
+
+                    if (_nihiPhaseCounter.Current - _nihiPhaseCounter.Old == 1 && _nihiPhaseCounter.Old != 0)
+                    {
+                        Debug.WriteLine("black mesa nihilanth phase " + _nihiPhaseCounter.Old + " end");
+                        return GameSupportResult.PlayerLostControl;
+                    }
                 }
             }
             else if (_ebEnd && state.CurrentMap.ToLower() == _ebEndMap)
