@@ -17,22 +17,30 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
 
         private int _baseEntityHealthOffset = -1;
+        private int _baseEffectsFlagsOffset = -1;
         private const int _serverModernModuleSize = 0x9D6000;
         private const int _serverModModuleSize = 0x81B000;
         private const int _nihiPhaseCounterOffset = 0x1a6e4;
 
-
         private StringWatcher _command;
         private bool _handleInputCommandEnabled = true;
-        private bool _ebEnd = false;
+
         private string _ebEndMap = "bm_c3a2i";
+        private bool _ebEnd = false;
+        private int _ebCamIndex;
+
+        private const string _xenStartMap = "bm_c4a1a";
         private bool _xenStart = false;
         private bool _nihiSplit = false;
-
         private MemoryWatcher<int> _nihiHP;
         private MemoryWatcher<int> _nihiPhaseCounter;
-        private int _ebCamIndex;
         private int _xenCamIndex;
+
+        private const string _hcStartMap = "hc_t0a0";
+        private Vector3f _hcStartDoorTargPos = new Vector3f(4152.7f, -2853.1f, 105f);
+        private MemoryWatcher<Vector3f> _hcStartDoorPos;
+        private const string _hcEndMap = "hc_t0a3";
+        private MemoryWatcher<uint> _hcEndSpriteFlags;
 
         public BMSRetail()
         {
@@ -59,6 +67,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (GameMemory.GetBaseEntityMemberOffset("m_iHealth", state.GameProcess, scanner, out _baseEntityHealthOffset))
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
+
+            if (GameMemory.GetBaseEntityMemberOffset("m_fEffects", state.GameProcess, scanner, out _baseEffectsFlagsOffset))
+                Debug.WriteLine("CBaseEntity::m_fEffects offset = 0x" + _baseEffectsFlagsOffset.ToString("X"));
 
 
             _handleInputCommandEnabled = true;
@@ -92,12 +103,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 _ebCamIndex = state.GetEntIndexByName("locked_in");
             }
 
-            if (state.CurrentMap.ToLower() == "bm_c4a1a")
+            else if (state.CurrentMap.ToLower() == _xenStartMap)
             {
                 _xenCamIndex = state.GetEntIndexByName("stand_viewcontrol");
             }
 
-            if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
+            else if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
                 IntPtr nihiPtr = state.GetEntityByName("nihilanth");
                 Debug.WriteLine("Nihilanth pointer = 0x" + nihiPtr.ToString("X"));
@@ -105,14 +116,19 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 _nihiHP = new MemoryWatcher<int>(nihiPtr + _baseEntityHealthOffset);
                 _nihiPhaseCounter = new MemoryWatcher<int>(nihiPtr + _nihiPhaseCounterOffset);
             }
+
+            else if (state.CurrentMap.ToLower() == _hcStartMap)
+            {
+                _hcStartDoorPos = new MemoryWatcher<Vector3f>(state.GetEntityByName("tram_door_door_out") + state.GameOffsets.BaseEntityAbsOriginOffset);
+            }
+
+            else if (state.CurrentMap.ToLower() == _hcEndMap)
+            {
+                _hcEndSpriteFlags = new MemoryWatcher<uint>(state.GetEntityByName("spr_camera_flash") + _baseEffectsFlagsOffset);
+            }
         }
 
-
-        // aside from full game, bms also has earthbound and xen only, whose start and end conflict those of 
-        // normal full game, so we'll let the runner choose whether we'll start or stop through tracking console commands
-        // search the command buffer if the runner has put in any commands
-        // this command buffer only responses to unknown commands in terms of user-inputted ones from the console
-
+        // allow disabling and enabling of features through monitoring specific console input
         // format: ebend<arg>, xenstart<arg>, eg: ebend1, xenstart0, characters are also accepted which will be interpreted as true
         void HandleArg(string command, string name, ref bool target)
         {
@@ -193,13 +209,37 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerLostControl;
                 }
             }
-            else if (_xenStart && state.CurrentMap.ToLower() == "bm_c4a1a")
+            else if (_xenStart && state.CurrentMap.ToLower() == _xenStartMap)
             {
                 if (state.PlayerViewEntityIndex == 1 && state.PrevPlayerViewEntityIndex == _xenCamIndex)
                 {
                     Debug.WriteLine("bms xen start");
                     _onceFlag = true;
                     return GameSupportResult.PlayerGainedControl;
+                }
+            }
+            else if (state.CurrentMap.ToLower() == _hcStartMap)
+            {
+                _hcStartDoorPos.Update(state.GameProcess);
+
+                if (_hcStartDoorPos.Old.Distance(_hcStartDoorTargPos) > 0.05f
+                    && _hcStartDoorPos.Current.Distance(_hcStartDoorTargPos) <= 0.05f)
+                {
+                    Debug.WriteLine("bms hc mod start");
+                    _onceFlag = true;
+                    return GameSupportResult.PlayerGainedControl;
+                }
+            }
+            else if (state.CurrentMap.ToLower() == _hcEndMap)
+            {
+                _hcEndSpriteFlags.Update(state.GameProcess);
+
+                if (state.TickCount >= 10 && (_hcEndSpriteFlags.Old & 0x20) == 0 &&
+                    (_hcEndSpriteFlags.Current & 0x20) != 0)
+                {
+                    Debug.WriteLine("bms hc mod end");
+                    _onceFlag = true;
+                    return GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;
