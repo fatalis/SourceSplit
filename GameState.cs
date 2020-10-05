@@ -170,6 +170,24 @@ namespace LiveSplit.SourceSplit
             return pos;
         }
 
+        // env_fades don't hold any live fade information and instead they network over fade infos to the client which add it to a list
+        // fade speed is pretty much the only thing we can use to differentiate one from others
+        // this function will find a fade with a specified speed and then return the timestamp for when the fade ends
+        public float FindFadeEndTime(float speed)
+        {
+            ScreenFadeInfo fadeInfo;
+            int fadeListSize = GameProcess.ReadValue<int>(GameOffsets.FadeListPtr + 0x10);
+            uint fadeListHeader = GameProcess.ReadValue<uint>(GameOffsets.FadeListPtr + 0x4);
+            for (int i = 0; i < fadeListSize; i++)
+            {
+                fadeInfo = GameProcess.ReadValue<ScreenFadeInfo>(GameProcess.ReadPointer((IntPtr)fadeListHeader) + 0x4 * i);
+                if (fadeInfo.Speed != speed)
+                    continue;
+                else
+                    return fadeInfo.End;
+            }
+            return 0;
+        }
     }
 
     struct GameOffsets
@@ -182,6 +200,7 @@ namespace LiveSplit.SourceSplit
         public IntPtr GlobalEntityListPtr;
         public IntPtr GameDirPtr;
         public IntPtr HostStatePtr;
+        public IntPtr FadeListPtr;
         // note: only valid during host states: NewGame, ChangeLevelSP, ChangeLevelMP
         public IntPtr HostStateLevelNamePtr => this.HostStatePtr + (4 * 8); // note: this may not work pre-ep1 (ancient engine)
         public IntPtr ServerStatePtr;
@@ -227,4 +246,15 @@ namespace LiveSplit.SourceSplit
             return ret;
         }
     }
+
+    // taken from source sdk
+    [StructLayout(LayoutKind.Sequential)]
+    public struct ScreenFadeInfo
+    {
+        public float Speed;            // How fast to fade (tics / second) (+ fade in, - fade out)
+        public float End;              // When the fading hits maximum
+        public float Reset;            // When to reset to not fading (for fadeout and hold)
+        public byte r, g, b, alpha;    // Fade color
+        public int Flags;              // Fading flags
+    };
 }

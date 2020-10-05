@@ -175,6 +175,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "dayhard":
                     return new HL2Mods_DayHard();
                 case "thestanleyparable":
+                case "thestanleyparabledemo":
                     return new TheStanleyParable();
                 case "hdtf":
                     return new HDTF();

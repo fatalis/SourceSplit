@@ -1,23 +1,8 @@
-﻿using LiveSplit.ComponentUtil;
-using System;
+﻿using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    // taken from source sdk
-    [StructLayout(LayoutKind.Sequential)]
-    public struct ScreenFadeInfo
-    {
-        public float Speed;            // How fast to fade (tics / second) (+ fade in, - fade out)
-        public float End;              // When the fading hits maximum
-        public float Reset;            // When to reset to not fading (for fadeout and hold)
-        public byte r, g, b, alpha;    // Fade color
-        public int Flags;              // Fading flags
-    };
-
     class Infra : GameSupport
     {
         // how to match with demos:
@@ -26,10 +11,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag = false;
 
-        private MemoryWatcher<int> _fadeListSize;
-        private MemoryWatcher<uint> _fadeListPtr;
-        private MemoryWatcherList _fadeListWatcher = new MemoryWatcherList();
-
         public Infra()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
@@ -37,46 +18,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.FirstMap = "infra_c1_m1_office";
         }
 
-        public override void OnGameAttached(GameState state)
-        {
-            ProcessModuleWow64Safe client = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "client.dll");
-            Trace.Assert(client != null);
-
-            var scanner = new SignatureScanner(state.GameProcess, client.BaseAddress, client.ModuleMemorySize);
-            var fadelisttarget = new SigScanTarget(2, "8D 88 ?? ?? ?? ?? 8B 01 8B 40 ?? 8D 55 ??");
-
-            IntPtr fadelistptr = scanner.Scan(fadelisttarget);
-
-            if (fadelistptr != IntPtr.Zero)
-                Debug.WriteLine("Fade list pointer found at 0x" + fadelistptr.ToString("X"));
-
-            // for some reason making this IntPtr makes it pick up an extra byte...
-            _fadeListPtr = new MemoryWatcher<uint>(state.GameProcess.ReadPointer(fadelistptr) + 0x4);
-            _fadeListSize = new MemoryWatcher<int>(state.GameProcess.ReadPointer(fadelistptr) + 0x10);
-
-            _fadeListWatcher = new MemoryWatcherList() { _fadeListSize, _fadeListPtr };
-        }
-
-        // env_fades don't hold any live fade information and instead they network over fade infos to the client which add it to a list
-        // fade speed is pretty much the only thing we can use to differentiate one from others
-        // this function will find a fade with a specified speed and then return the timestamp for when the fade ends
-        public float FindFadeEndTime(GameState state, float speed)
-        {
-            ScreenFadeInfo fadeInfo;
-            for (int i = 0; i < _fadeListSize.Current; i++)
-            {
-                fadeInfo = state.GameProcess.ReadValue<ScreenFadeInfo>(state.GameProcess.ReadPointer((IntPtr)_fadeListPtr.Current) + 0x4 * i);
-                if (fadeInfo.Speed != speed)
-                    continue;
-                else
-                    return fadeInfo.End;
-            }
-            return 0;
-        }
-
         public GameSupportResult DefaultEnd(GameState state, float fadeSpeed, string ending)
         {
-            float splitTime = FindFadeEndTime(state, fadeSpeed);
+            float splitTime = state.FindFadeEndTime(fadeSpeed);
             // this is how the game actually knows when a fade has finished as well
             if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
             {
@@ -96,8 +40,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            _fadeListWatcher.UpdateAll(state.GameProcess);
-
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 

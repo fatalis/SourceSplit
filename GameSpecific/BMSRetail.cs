@@ -14,8 +14,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending: first tick nihilanth's health is zero
         // earthbound ending: when view entity changes to the ending camera's
 
+        // hc mod start: when the tram door is opening
+        // hc mod end: when the flash sprites disappears
+
         private bool _onceFlag;
 
+        // offsets and binary sized
         private int _baseEntityHealthOffset = -1;
         private int _baseEffectsFlagsOffset = -1;
         private const int _serverModernModuleSize = 0x9D6000;
@@ -25,10 +29,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private StringWatcher _command;
         private bool _handleInputCommandEnabled = true;
 
+        // earthbound start
         private string _ebEndMap = "bm_c3a2i";
         private bool _ebEnd = false;
         private int _ebCamIndex;
 
+        // xen start & run end
         private const string _xenStartMap = "bm_c4a1a";
         private bool _xenStart = false;
         private bool _nihiSplit = false;
@@ -36,6 +42,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private MemoryWatcher<int> _nihiPhaseCounter;
         private int _xenCamIndex;
 
+        // hc mod start & end
         private const string _hcStartMap = "hc_t0a0";
         private Vector3f _hcStartDoorTargPos = new Vector3f(4152.7f, -2853.1f, 105f);
         private MemoryWatcher<Vector3f> _hcStartDoorPos;
@@ -172,6 +179,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
             }
         }
 
+        public GameSupportResult DefaultEnd(string endingname)
+        {
+            _onceFlag = true;
+            Debug.WriteLine(endingname);
+            return GameSupportResult.PlayerLostControl;
+        }
+
         public override GameSupportResult OnUpdate(GameState state)
         {
             HandleInputCommand(state);
@@ -184,9 +198,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 _nihiHP.Update(state.GameProcess);
                 if (_nihiHP.Current <= 0 && _nihiHP.Old > 0)
                 {
-                    Debug.WriteLine("black mesa end");
-                    _onceFlag = true;
-                    return GameSupportResult.PlayerLostControl;
+                    return DefaultEnd("black mesa end");
                 }
 
                 if (_nihiSplit)
@@ -204,18 +216,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
             {
                 if (state.PlayerViewEntityIndex == _ebCamIndex && state.PrevPlayerViewEntityIndex == 1)
                 {
-                    Debug.WriteLine("bms eb end");
-                    _onceFlag = true;
-                    return GameSupportResult.PlayerLostControl;
+                    return DefaultEnd("bms eb end");
                 }
             }
             else if (_xenStart && state.CurrentMap.ToLower() == _xenStartMap)
             {
                 if (state.PlayerViewEntityIndex == 1 && state.PrevPlayerViewEntityIndex == _xenCamIndex)
                 {
-                    Debug.WriteLine("bms xen start");
-                    _onceFlag = true;
-                    return GameSupportResult.PlayerGainedControl;
+                    return DefaultEnd("bms xen start");
                 }
             }
             else if (state.CurrentMap.ToLower() == _hcStartMap)
@@ -225,9 +233,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 if (_hcStartDoorPos.Old.Distance(_hcStartDoorTargPos) > 0.05f
                     && _hcStartDoorPos.Current.Distance(_hcStartDoorTargPos) <= 0.05f)
                 {
-                    Debug.WriteLine("bms hc mod start");
-                    _onceFlag = true;
-                    return GameSupportResult.PlayerGainedControl;
+                    return DefaultEnd("bms hc mod start");
                 }
             }
             else if (state.CurrentMap.ToLower() == _hcEndMap)
@@ -237,9 +243,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 if (state.TickCount >= 10 && (_hcEndSpriteFlags.Old & 0x20) == 0 &&
                     (_hcEndSpriteFlags.Current & 0x20) != 0)
                 {
-                    Debug.WriteLine("bms hc mod end");
-                    _onceFlag = true;
-                    return GameSupportResult.PlayerLostControl;
+                    return DefaultEnd("bms hc mod end");
                 }
             }
             return GameSupportResult.DoNothing;

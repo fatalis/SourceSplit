@@ -2,40 +2,57 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
     class TheStanleyParable : GameSupport
     {
-        // FOR THE RETAIL HD REMAKE
-        // TODO: add original mod and demo version support
+        // DEMO:
+        // start:           when the player's view entity index is 1 AND the player's position changed OR their view angle changed OR their view angle is different when they gain control
+        // end:             when the player's view entity changes to final camera
 
-        // start: when player first moves OR their view angle first changes OR when they close the door while standing still AND they mustve been teleported
-
+        // MOD
+        // start:           when the player just left the start position OR the player moved their view AND their view index is 1
         // endings:
-        // freedom:     when player's parent entity handle changes from nothing
-        // countdown:   when the player's view entity changes to the final whiteout camera AND the screen's fade alpha reaches 255
-        // art:         when the player's view entity changes to the final camera
-        // reluctant:   when the player's view entity changes to the final blackout camera AND the player is within 10 units of the 427 room
-        // escape:      when the player's view entity changes to the final camera
-        // broom:       when tsp_broompass is entered   
-        // choice:      when stanley_drawcredits is set to 1
-        // confusion:   when the cmd point_clientcommand entity gets fed "tsp_reload 5", this only gets detected in onsessionend, the split happens on map1
-        // games:       when the player's view entity changes to the final blackout camera
-        // heaven:      when the tsp_buttonpass counter is 4 or higher AND it is increased when the final button in _stanley's room is pressed
-        // insane:      when the player's view entity changes to the final blackout camera AND the player is wihtin the rooms before the cutscene
-        // museum:      when the cmd point_clientcommand entity gets fed "StopSound"
-        // serious:     when you've visited the seriousroom map 3 times
-        // disco:       when the y axis speed of the entity that rotates the text is 20
-        // stuck:       when the ending math_counter goes from 1 to 2
-        // song:        when the timer on the target logic_choreographed_scene entity hits 33.333, which is when the song plays
-        // voice over:  when the timer on the target logic_choreographed_scene entity hits 0.075, which is when the narrator exclaims "Ah"
-        // space:       when the previous player's X pos is less than -7000 and current is higher than -400
-        // zending:     when the player view entity switches from the player to the final camera
-        // whiteboard:  when the previous player's X pos is =< 1993 and current is >= 1993
+            // freedom:     when the player's view entity changes to final camera
+            // countdown:   3 ticks before when "stopsound" is sent to client command buffer
+            // museum:      when the pod reaches within 0.05 units of the final path_track
+            // insane:      when the player's view entity changes from insane camera's to final blackout camera's
+            // games:       when the game text buffer is filled with "The End"
+            // apartment:   when the player's view entity changes to final blackout camera AND the player is inside the room
+
+        // HD REMAKE:
+        // start:           when player first moves OR their view angle first changes OR when they close the door while standing still AND they mustve been teleported
+        // endings:
+            // freedom:     when player's parent entity handle changes from nothing
+            // countdown:   when the player's view entity changes to the final whiteout camera AND the screen's fade alpha reaches 255
+            // art:         when the player's view entity changes to the final camera
+            // reluctant:   when the player's view entity changes to the final blackout camera AND the player is within 10 units of the 427 room
+            // escape:      when the player's view entity changes to the final camera
+            // broom:       when tsp_broompass is entered   
+            // choice:      when stanley_drawcredits is set to 1
+            // confusion:   when the cmd point_clientcommand entity gets fed "tsp_reload 5" OR the choreo timer is over 150, this only gets detected in onsessionend, the split happens on map1
+            // games:       when the player's view entity changes to the final blackout camera
+            // heaven:      when the tsp_buttonpass counter is 4 or higher AND it is increased when the final button in _stanley's room is pressed
+            // insane:      when the player's view entity changes to the final blackout camera AND the player is wihtin the rooms before the cutscene
+            // museum:      when the cmd point_clientcommand entity gets fed "StopSound"
+            // serious:     when you've visited the seriousroom map 3 times
+            // disco:       when the y axis speed of the entity that rotates the text is 20
+            // stuck:       when the ending math_counter goes from 1 to 2
+            // song:        when the timer on the target logic_choreographed_scene entity hits 33.333, which is when the song plays
+            // voice over:  when the timer on the target logic_choreographed_scene entity hits 0.075, which is when the narrator exclaims "Ah"
+            // space:       when the previous player's X pos is less than -7000 and current is higher than -400
+            // zending:     when the player view entity switches from the player to the final camera
+            // whiteboard:  when the previous player's X pos is =< 1993 and current is >= 1993
 
         private bool _onceFlag;
         public static bool _resetFlag;
+        public static bool _resetFlagDemo;
+        public static bool _resetFlagMod;
+
+        private bool _isMod = false;
+        private const int _modClientModuleSize = 0x4cb000;
 
         ProcessModuleWow64Safe client;
         ProcessModuleWow64Safe engine;
@@ -45,23 +62,31 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _baseEntityAngleOffset = -1;
         private int _baseEntityAngleVelOffset = -1;
         private const int _angleOffset = 2812;
+        private const int _modAngleOffset = 0x40fe98;
         private const int _drawCreditsOffset = 16105320;
-        private const int _clientCommandInputOffset = 6726216;
         private const int _buttonPasses = 8263812;
         private const int _logicChoreoTimerOffset = 0x3b4;
         private const int _mathCounterCurValueOffset = 0x368;
 
-
         // start
+        private MemoryWatcher<Vector3f> _playerViewAng;
         //Vector3f oldpos = new Vector3f(-154.778f, -205.209f, 0f); TODO: add 2nd start position which is where you end up after the intro cutscene
-        Vector3f _startPos = new Vector3f(-200f, -208f, 0.03125f);
-        Vector3f _startAng = new Vector3f(0f, 90f, 0f);
-        Vector3f _spawnPos = new Vector3f(5152f, 776f, 3328f);
-        Vector3f _doorStartAng = new Vector3f(0f, 360f, 0f);
+        private Vector3f _startPos = new Vector3f(-200f, -208f, 0.03125f);
+        private Vector3f _startAng = new Vector3f(0f, 90f, 0f);
+        private Vector3f _spawnPos = new Vector3f(5152f, 776f, 3328f);
+        private Vector3f _doorStartAng = new Vector3f(0f, 360f, 0f);
+
+        // demo start
+        private Vector3f _demoStartPos = new Vector3f(-1284f, 404f, -107f);
+        private Vector3f _demoStartAng = new Vector3f(0f, -180f, 0f);
+
+        // mod start
+        private Vector3f _modStartPos = new Vector3f(-334f, 182f, 44f);
+        private Vector3f _modStartAng = new Vector3f(0f, -71.57f, 0f);
 
         // endings
-        private MemoryWatcherList _endings_Watcher = new MemoryWatcherList();
-        private StringWatcher _latest_Client_Cmd;
+        private MemoryWatcherList _endingsWatcher = new MemoryWatcherList();
+        private StringWatcher _latestClientCmd;
 
         private MemoryWatcher<float> _endingSongTimer;
         private MemoryWatcher<float> _endingVOTimer;
@@ -72,7 +97,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _endingCountCamIndex;
         private int endingArtCamIndex;
         private int _endingGamesCamIndex;
-        Vector3f _endingInsaneSectorOrigin = new Vector3f(-6072f, 888f, 0);
+        private Vector3f _endingInsaneSectorOrigin = new Vector3f(-6072f, 888f, 0);
         private int _endingInsaneCamIndex;
         private static int _endingSeriousCount;
         private MemoryWatcher<Vector3f> _endingDiscoAngVel;
@@ -80,20 +105,31 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private MemoryWatcher<int> _credits;
         private MemoryWatcher<int> _endingCountFadeAlpha;
         private int _endingZendingCamIndex;
-        Vector3f _endingWhiteboardDoorOrigin = new Vector3f(1988f, -1792f, -1992f);
+        private Vector3f _endingWhiteboardDoorOrigin = new Vector3f(1988f, -1792f, -1992f);
+        private MemoryWatcher<float> _endingConfuseTimer;
         private static bool _endingConfuseFlag = false;
+
+        // demo ending
+        private int _demoEndingCamIndex;
+
+        // mod endings
+        private int _modEndingFreedomCamIndex;
+        private int _modEndingGenericCamIndex;
+        private int _modEndingInsaneCamIndex;
+        private Vector3f _modEndingMuseumPodEndPos = new Vector3f(196f, 2812f, 994.772f);
+        private MemoryWatcher<Vector3f> _modEndingMuseumPodPos;
+        private StringWatcher _modLatestGameText;
+        private Vector3f _modEndingApartmentSectorOrigin = new Vector3f(-3524f, 1368f, -620f);
 
         public TheStanleyParable()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            //this.FirstMap = "map1"; <= we go back to this map a lot so its better to just disable this
-            //this.LastMap = NAH;
             this.RequiredProperties = PlayerProperties.ViewEntity | PlayerProperties.Position | PlayerProperties.ParentEntity;
         }
 
         // recreation of the findnextentity function to get access to server-side entities that aren't networked over to the client
         // which can't be found using the old functions
-        IntPtr GetNextEntPtr(GameState state, IntPtr prev)
+        private IntPtr GetNextEntPtr(GameState state, IntPtr prev)
         {
             if (prev == IntPtr.Zero)
             {
@@ -118,7 +154,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             return IntPtr.Zero;
         }
 
-        IntPtr FindEntByName(GameState state, string name)
+        private IntPtr FindEntByName(GameState state, string name)
         {
             IntPtr entPtr = GetNextEntPtr(state, IntPtr.Zero);
             while (entPtr != IntPtr.Zero)
@@ -134,30 +170,44 @@ namespace LiveSplit.SourceSplit.GameSpecific
         }
 
         // Shorthands
-        public GameSupportResult DefaultEnd(string endingname)
+        private GameSupportResult DefaultEnd(string endingname, int endoffset = 0)
         {
+            this.EndOffsetTicks = endoffset;
             _onceFlag = true;
             Debug.WriteLine(endingname + " ending");
             return GameSupportResult.PlayerLostControl;
         }
 
-        public bool EvaluateLatestClientCmd(string cmd, int length)
+        private bool EvaluateLatestClientCmd(string cmd, int length)
         {
-            if (_latest_Client_Cmd.Old == null || _latest_Client_Cmd.Current.Length < length)
+            if (_latestClientCmd.Old == null || _latestClientCmd.Current.Length < length)
             {
                 return false;
             }
-            return _latest_Client_Cmd.Current.Substring(0, length).ToLower() == cmd.ToLower() && _latest_Client_Cmd.Old.Substring(0, length).ToLower() != cmd.ToLower();
+            return _latestClientCmd.Current.Substring(0, length).ToLower() == cmd.ToLower() && _latestClientCmd.Old.Substring(0, length).ToLower() != cmd.ToLower();
         }
 
-        public bool EvaluateChangedViewIndex(GameState state, int prev, int now)
+        private bool EvaluateChangedViewIndex(GameState state, int prev, int now)
         {
             return state.PrevPlayerViewEntityIndex == prev && state.PlayerViewEntityIndex == now;
         }
 
+        private GameSupportResult DefaultFadeEnd(GameState state, float fadeSpeed, string ending)
+        {
+            float splitTime = state.FindFadeEndTime(fadeSpeed);
+
+            Debug.WriteLine(splitTime);
+            if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
+            {
+                return DefaultEnd(ending);
+            }
+            else
+                return GameSupportResult.DoNothing;
+        }
+
         public override void OnTimerReset(bool resetflagto)
         {
-            _resetFlag = resetflagto;
+            _resetFlag = _resetFlagDemo = _resetFlagMod = resetflagto;
             _endingSeriousCount = 0;
             _endingConfuseFlag = false;
         }
@@ -168,24 +218,51 @@ namespace LiveSplit.SourceSplit.GameSpecific
             client = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "client.dll");
             engine = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "engine.dll");
 
+            // the 2 versions of tsp run such different engines and these offsets are so obscure it's impossible to sigscan them cleanly
+            if (client.ModuleMemorySize <= _modClientModuleSize)
+                _isMod = true;
+
             Trace.Assert(server != null && client != null && engine != null);
 
-            var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
+            var serverScanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
 
-            if (GameMemory.GetBaseEntityMemberOffset("m_angAbsRotation", state.GameProcess, scanner, out _baseEntityAngleOffset))
+            if (GameMemory.GetBaseEntityMemberOffset("m_angAbsRotation", state.GameProcess, serverScanner, out _baseEntityAngleOffset))
                 Debug.WriteLine("CBaseEntity::m_angAbsRotation offset = 0x" + _baseEntityAngleOffset.ToString("X"));
 
-            if (GameMemory.GetBaseEntityMemberOffset("m_vecAngVelocity", state.GameProcess, scanner, out _baseEntityAngleVelOffset))
+            if (GameMemory.GetBaseEntityMemberOffset("m_vecAngVelocity", state.GameProcess, serverScanner, out _baseEntityAngleVelOffset))
                 Debug.WriteLine("CBaseEntity::m_vecAngVelocity offset = 0x" + _baseEntityAngleVelOffset.ToString("X"));
 
-            _endings_Watcher.ResetAll();
+            SigScanTarget _latest_Client_Trg = new SigScanTarget(0, Encoding.ASCII.GetBytes("ClientCommand, 0 length string supplied."));
+            _latest_Client_Trg.OnFound = (proc, scanner, ptr) =>
+            {
+                byte[] b = BitConverter.GetBytes(ptr.ToInt32());
+                var target = new SigScanTarget(2,
+                    $"80 3D ?? ?? ?? ?? 00 75 ?? 68 {b[0]:X02} {b[1]:X02} {b[2]:X02} {b[3]:X02}"); // cmp byte ptr [clientcmdptr],00 
+                IntPtr ptrPtr = scanner.Scan(target);
+                if (ptrPtr == IntPtr.Zero)
+                    return IntPtr.Zero;
+                IntPtr ret;
+                proc.ReadPointer(ptrPtr, out ret);
+                Debug.WriteLine("CVEngineServer::ClientCommand szOut ptr is 0x" + ret.ToString("X"));
+                return ret;
+            };
+
+            var engineScanner = new SignatureScanner(state.GameProcess, engine.BaseAddress, engine.ModuleMemorySize);
+
+            _endingsWatcher.ResetAll();
 
             _endingSeriousCount = 0;
-            _latest_Client_Cmd = new StringWatcher(engine.BaseAddress + _clientCommandInputOffset, 50);
-            _endings_Watcher.Add(_latest_Client_Cmd);
-            _credits = new MemoryWatcher<int>(client.BaseAddress + _drawCreditsOffset);
-            _endings_Watcher.Add(_credits);
+            _latestClientCmd = new StringWatcher(engineScanner.Scan(_latest_Client_Trg), 50);
+            _endingsWatcher.Add(_latestClientCmd);
 
+            _credits = new MemoryWatcher<int>(client.BaseAddress + _drawCreditsOffset);
+            _endingsWatcher.Add(_credits);
+
+            if (_isMod)
+            {
+                _modLatestGameText = new StringWatcher(engine.BaseAddress + 0x502618, 128);
+                _endingsWatcher.Add(_modLatestGameText);
+            }
         }
 
 
@@ -193,8 +270,36 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             base.OnSessionStart(state);
 
+            _endingsWatcher.Remove(_playerViewAng);
+            if (!_isMod)
+                _playerViewAng = new MemoryWatcher<Vector3f>(state.PlayerEntInfo.EntityPtr + _angleOffset);
+            else
+                _playerViewAng = new MemoryWatcher<Vector3f>(client.BaseAddress + _modAngleOffset);
+
+            _endingsWatcher.Add(_playerViewAng);
+
+
             switch (state.CurrentMap.ToLower())
             {
+                case "stanley":
+                    {
+                        this._modEndingFreedomCamIndex = state.GetEntIndexByName("freedom_camera");
+                        this._modEndingMuseumPodPos = new MemoryWatcher<Vector3f>(state.GetEntityByName("alt_pris_train") + state.GameOffsets.BaseEntityAbsOriginOffset);
+                        this._modEndingGenericCamIndex = state.GetEntIndexByName("camera_credits");
+                        this._modEndingInsaneCamIndex = state.GetEntIndexByName("mariella_camera");
+                        _endingsWatcher.Add(_modEndingMuseumPodPos);
+                        break;
+                    }
+                case "thedemo":
+                    {
+                        this._demoEndingCamIndex = state.GetEntIndexByName("democredits1");
+                        break;
+                    }
+                case "map":
+                    {
+                        this._endingConfuseTimer = new MemoryWatcher<float>(state.GetEntityByName("con23") + _logicChoreoTimerOffset);
+                        break;
+                    }
                 case "map1":
                     {
                         this._endingMap1CamIndex = state.GetEntIndexByName("cam_black");
@@ -203,8 +308,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         this._endingInsaneCamIndex = state.GetEntIndexByName("mariella_camera");
                         this._endingSongTimer = new MemoryWatcher<float>(state.GetEntityByName("narratorerroryes") + _logicChoreoTimerOffset);
                         this._endingVOTimer = new MemoryWatcher<float>(state.GetEntityByName("narratorerrorno") + _logicChoreoTimerOffset);
-                        _endings_Watcher.Add(_endingSongTimer);
-                        _endings_Watcher.Add(_endingVOTimer);
+                        _endingsWatcher.Add(_endingSongTimer);
+                        _endingsWatcher.Add(_endingVOTimer);
                         break;
                     }
                 case "map2":
@@ -212,8 +317,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         this._endingCountCamIndex = state.GetEntIndexByName("cam_white");
                         this._endingDiscoAngVel = new MemoryWatcher<Vector3f>(state.GetEntityByName("emotionboothDrot") + _baseEntityAngleVelOffset);
                         this._endingCountFadeAlpha = new MemoryWatcher<int>(client.BaseAddress + 0xf63000);
-                        _endings_Watcher.Add(_endingDiscoAngVel);
-                        _endings_Watcher.Add(_endingCountFadeAlpha);
+                        _endingsWatcher.Add(_endingDiscoAngVel);
+                        _endingsWatcher.Add(_endingCountFadeAlpha);
                         break;
                     }
                 case "redstair":
@@ -230,7 +335,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     {
                         _endingGamesCamIndex = state.GetEntIndexByName("blackoutend");
                         _endingStuckEndingCount = new MemoryWatcher<float>(FindEntByName(state, "buttonboxendingcount") + _mathCounterCurValueOffset);
-                        _endings_Watcher.Add(_endingStuckEndingCount);
+                        _endingsWatcher.Add(_endingStuckEndingCount);
                         break;
                     }
                 case "seriousroom":
@@ -250,17 +355,21 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override void OnSessionEnd(GameState state)
         {
-            if (state.CurrentMap.ToLower() == "map" && EvaluateLatestClientCmd("tsp_reload 5", 12)) // confusion ending
+            // confusion ending
+            if (state.CurrentMap.ToLower() == "map")
             {
-                _endingConfuseFlag = true;
+                _endingConfuseTimer.Update(state.GameProcess);
+
+                if (EvaluateLatestClientCmd("tsp_reload 5", 12) || _endingConfuseTimer.Current >= 105f)
+                {
+                    _endingConfuseFlag = true;
+                }
             }
         }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            _endings_Watcher.UpdateAll(state.GameProcess);
-
-            Debug.WriteLine(state.PlayerEntInfo.EntityPtr.ToString("X"));
+            _endingsWatcher.UpdateAll(state.GameProcess);
 
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
@@ -272,27 +381,116 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         return GameSupportResult.DoNothing;
                     }
 
+                // demo freedom, countdown, insane, museum, apartment
+                case "stanley":
+                    {
+                        // start
+                        if (!_resetFlagMod)
+                        {
+                            bool hasPlayerJustLeftStartPoint = !state.PlayerPosition.BitEqualsXY(_modStartPos) && state.PrevPlayerPosition.BitEqualsXY(_modStartPos);
+                            bool hasPlayerMovedView = state.PlayerPosition.BitEqualsXY(_modStartPos)
+                                                                && _playerViewAng.Old.DistanceXY(_modStartAng) <= 0.05f && _playerViewAng.Current.DistanceXY(_modStartAng) > 0.05f;
+                            bool isViewEntityCorrect = state.PlayerViewEntityIndex == 1;
+
+                            if ((hasPlayerJustLeftStartPoint || hasPlayerMovedView) && isViewEntityCorrect)
+                            {
+                                _resetFlagDemo = true;
+                                Debug.WriteLine("mod start");
+                                return GameSupportResult.PlayerGainedControl;
+                            }
+                        }
+
+                        // freedom ending
+                        if (EvaluateChangedViewIndex(state, 1, _modEndingFreedomCamIndex))
+                        {
+                            return DefaultEnd("mod freedom");
+                        }
+
+                        // countdown ending
+                        if (EvaluateLatestClientCmd("stopsound", 9))
+                        {
+                            return DefaultEnd("mod countdown", 4);
+                        }
+
+                        // museum ending
+                        if (_modEndingMuseumPodPos.Current.DistanceXY(_modEndingMuseumPodEndPos) <= 0.05f &&
+                            _modEndingMuseumPodPos.Old.DistanceXY(_modEndingMuseumPodEndPos) > 0.05f)
+                        {
+                            return DefaultEnd("mod museum");
+                        }
+
+                        // insane ending
+                        if (EvaluateChangedViewIndex(state, _modEndingInsaneCamIndex, _modEndingGenericCamIndex))
+                        {
+                            return DefaultEnd("mod insane");
+                        }
+
+                        // apartment ending
+                        if (EvaluateChangedViewIndex(state, 1, _modEndingGenericCamIndex) &&
+                            state.PlayerPosition.DistanceXY(_modEndingApartmentSectorOrigin) <= 281f &&
+                            state.PlayerPosition.Z <= -544f)
+                        {
+                            return DefaultEnd("mod apartment");
+                        }
+
+                        break;
+                    }
+                // demo games
+                case "trainstation":
+                    {
+                        if (_modLatestGameText.Current.Length == 7 && _modLatestGameText.Changed &&
+                            _modLatestGameText.Current.Substring(0, 7).ToLower() == "the end")
+                        {
+                            return DefaultEnd("mod games");
+                        }
+                        break;
+                    }
+
+                // tsp demo start and end
+                case "thedemo":
+                    {
+                        if (!_resetFlagDemo)
+                        {
+                            bool hasPlayerJustLeftStartPoint = state.PrevPlayerPosition.BitEqualsXY(_demoStartPos) && !state.PlayerPosition.BitEqualsXY(_demoStartPos);
+                            bool isPlayerViewEntityCorrect = state.PlayerViewEntityIndex == 1;
+                            bool hasPlayerMovedView = _playerViewAng.Old.BitEquals(_demoStartAng) && !_playerViewAng.Current.BitEquals(_demoStartAng);
+                            bool isViewAngleChangedEarly = state.PrevPlayerPosition.BitEqualsXY(_demoStartPos)
+                                                                && isPlayerViewEntityCorrect && state.PrevPlayerViewEntityIndex != 1
+                                                                && !_playerViewAng.Current.BitEquals(_demoStartAng);
+
+                            if ((hasPlayerJustLeftStartPoint || hasPlayerMovedView || isViewAngleChangedEarly) && isPlayerViewEntityCorrect)
+                            {
+                                _resetFlagDemo = true;
+                                Debug.WriteLine("stanley demo start");
+                                return GameSupportResult.PlayerGainedControl;
+                            }
+                        }
+
+                        if (EvaluateChangedViewIndex(state, 1, _demoEndingCamIndex))
+                        {
+                            return DefaultEnd("stanley demo");
+                        }
+                        break;
+                    }
+
                 case "map1": // beginning, death, reluctant, whiteboard, broom closet, song, voice over, cold feet, insane, apartment, heaven ending
                     {
                         if (!_resetFlag)
                         {
-                            Vector3f ang;
-                            Vector3f doorAng;
-
-                            state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _angleOffset, out ang);
-                            state.GameProcess.ReadValue(state.GetEntityByName("427door") + _baseEntityAngleOffset, out doorAng);
+                            state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _angleOffset, out Vector3f ang);
+                            state.GameProcess.ReadValue(state.GetEntityByName("427door") + _baseEntityAngleOffset, out Vector3f doorAng);
 
                             // a check to prevent the game starting the game again right after you reset on the first map
                             // now this only happens if you're 10 units near the start point
                             if (state.PlayerPosition.Distance(_startPos) <= 10f)
                             {
-                                bool wasPlayerInStartPoint      = state.PrevPlayerPosition.BitEqualsXY(_startPos);
-                                bool isPlayerOutsideStartPoint  = !state.PlayerPosition.BitEqualsXY(_startPos);
-                                bool isDoorAngleDifferent       = !doorAng.BitEquals(_doorStartAng); // for reluctant ending
-                                bool isViewAngleDifferent       = ang.Distance(_startAng) >= 0.1f;
-                                bool isPlayerTeleported         = state.PrevPlayerPosition.Distance(_spawnPos) >= 5f;
+                                bool wasPlayerInStartPoint = state.PrevPlayerPosition.BitEqualsXY(_startPos);
+                                bool isPlayerOutsideStartPoint = !state.PlayerPosition.BitEqualsXY(_startPos);
+                                bool isDoorAngleDifferent = !doorAng.BitEquals(_doorStartAng); // for reluctant ending
+                                bool hasPlayerViewAngleChanged = !isPlayerOutsideStartPoint && _playerViewAng.Old.BitEquals(_startAng) && !_playerViewAng.Current.BitEquals(_startAng);
+                                bool isPlayerTeleported = state.PrevPlayerPosition.Distance(_spawnPos) >= 5f;
 
-                                if ((wasPlayerInStartPoint && (isPlayerOutsideStartPoint || isDoorAngleDifferent)) || isViewAngleDifferent && isPlayerTeleported)
+                                if ((wasPlayerInStartPoint && (isPlayerOutsideStartPoint || isDoorAngleDifferent)) || hasPlayerViewAngleChanged && isPlayerTeleported)
                                 {
                                     _resetFlag = true;
                                     Debug.WriteLine("stanley start");
@@ -324,8 +522,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                             return DefaultEnd("broom");
                         }
 
-                        int buttonPresses; // heaven ending
-                        state.GameProcess.ReadValue(server.BaseAddress + _buttonPasses, out buttonPresses);
+                        // heaven ending
+                        state.GameProcess.ReadValue(server.BaseAddress + _buttonPasses, out int buttonPresses);
 
                         if (buttonPresses >= 4)
                         {
@@ -370,10 +568,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                 case "map2": //countdown, disco ending
                     {
-                        if (state.PlayerViewEntityIndex == _endingCountCamIndex
-                            && _endingCountFadeAlpha.Old <= 255 && _endingCountFadeAlpha.Current == 255)
+                        if (state.PlayerViewEntityIndex == _endingCountCamIndex)
                         {
-                            return DefaultEnd("countdown");
+                            // some really weird floating point inprecision happening here for some reason...
+                            return DefaultFadeEnd(state, -5222.399902f, "countdown");
                         }
 
                         if (_endingDiscoAngVel.Current.Y == 20 && _endingDiscoAngVel.Old.Y != 20)

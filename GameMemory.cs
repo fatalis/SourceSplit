@@ -43,6 +43,7 @@ namespace LiveSplit.SourceSplit
         private SigScanTarget _gameDirTarget;
         private SigScanTarget _hostStateTarget;
         private SigScanTarget _serverStateTarget;
+        private SigScanTarget _fadeListTarget;
 
         private SigScanTarget _infraIsLoadingTarget;
         private MemoryWatcher<byte> _infraIsLoading;
@@ -85,6 +86,16 @@ namespace LiveSplit.SourceSplit
                 "56",                       // PUSH ESI
                 "57",                       // PUSH EDI
                 "C6 05 ?? ?? ?? ?? 00");    // MOV  byte ptr [0x1047ccd4],0x0
+
+            _fadeListTarget = new SigScanTarget();
+            _fadeListTarget.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
+
+            // CViewEffects::m_FadeList
+            _fadeListTarget.AddSignature(2, 
+                "8D 88 ?? ?? ?? ??",        // LEA ECX,[EAX + fadeList]
+                "8B 01",                    // MOV EAX,dword ptr [ECX]
+                "8B 40 ??",                 // MOV EAX,dword ptr [EAX + 0xc]
+                "8D 55 ??");                // LEA EDX,[EBP + -0x2c]
 
             // CBaseServer::(server_state_t)m_State
             _serverStateTarget = new SigScanTarget();
@@ -392,6 +403,14 @@ namespace LiveSplit.SourceSplit
             if ((offsets.GlobalEntityListPtr = serverScanner.Scan(_globalEntityListTarget)) == IntPtr.Zero)
                 return false;
 
+            // optional client fade list
+            ProcessModuleWow64Safe client = p.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "client.dll");
+            if (client != null)
+            {
+                var clientScanner = new SignatureScanner(p, client.BaseAddress, client.ModuleMemorySize);
+                offsets.FadeListPtr = clientScanner.Scan(_fadeListTarget);
+            }
+
             // entity offsets
             if ( !GetBaseEntityMemberOffset("m_fFlags", p, serverScanner, out offsets.BaseEntityFlagsOffset)
                 || !GetBaseEntityMemberOffset("m_vecAbsOrigin", p, serverScanner, out offsets.BaseEntityAbsOriginOffset)
@@ -415,6 +434,7 @@ namespace LiveSplit.SourceSplit
             Debug.WriteLine("CBaseServer::m_szMapname ptr = 0x" + offsets.CurMapPtr.ToString("X"));
             Debug.WriteLine("CGlobalVarsBase::curtime ptr = 0x" + offsets.CurTimePtr.ToString("X"));
             Debug.WriteLine("CBaseClientState::m_nSignonState ptr = 0x" + offsets.SignOnStatePtr.ToString("X"));
+            Debug.WriteLine("CViewEffects::m_FadeList ptr = 0x" + offsets.FadeListPtr.ToString("X"));
             Debug.WriteLine("CBaseEntityList::(CEntInfo)m_EntPtrArray ptr = 0x" + offsets.GlobalEntityListPtr.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_fFlags offset = 0x" + offsets.BaseEntityFlagsOffset.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_vecAbsOrigin offset = 0x" + offsets.BaseEntityAbsOriginOffset.ToString("X"));
