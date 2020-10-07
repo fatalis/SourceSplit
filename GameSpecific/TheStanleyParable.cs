@@ -70,6 +70,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         // start
         private MemoryWatcher<Vector3f> _playerViewAng;
+        private MemoryWatcher<Vector3f> _startDoorAng;
         //Vector3f oldpos = new Vector3f(-154.778f, -205.209f, 0f); TODO: add 2nd start position which is where you end up after the intro cutscene
         private Vector3f _startPos = new Vector3f(-200f, -208f, 0.03125f);
         private Vector3f _startAng = new Vector3f(0f, 90f, 0f);
@@ -78,7 +79,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         // demo start
         private Vector3f _demoStartPos = new Vector3f(-1284f, 404f, -107f);
-        private Vector3f _demoStartAng = new Vector3f(0f, -180f, 0f);
+        private Vector3f _demoStartAng = new Vector3f(0f, 180f, 0f);
 
         // mod start
         private Vector3f _modStartPos = new Vector3f(-334f, 182f, 44f);
@@ -175,7 +176,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.EndOffsetTicks = endoffset;
             _onceFlag = true;
             Debug.WriteLine(endingname + " ending");
-            return GameSupportResult.PlayerLostControl;
+
+            if (endoffset != 0)
+                return GameSupportResult.ManualSplit;
+            else
+                return GameSupportResult.PlayerLostControl;
         }
 
         private bool EvaluateLatestClientCmd(string cmd, int length)
@@ -190,6 +195,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool EvaluateChangedViewIndex(GameState state, int prev, int now)
         {
             return state.PrevPlayerViewEntityIndex == prev && state.PlayerViewEntityIndex == now;
+        }
+
+        private Vector3f Vector3fAbs(Vector3f A)
+        {
+            Vector3f B = new Vector3f();
+            B.X = Math.Abs(A.X);
+            B.Y = Math.Abs(A.Y);
+            B.Z = Math.Abs(A.Z);
+            return B;
         }
 
         private GameSupportResult DefaultFadeEnd(GameState state, float fadeSpeed, string ending)
@@ -302,6 +316,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     }
                 case "map1":
                     {
+                        this._startDoorAng = new MemoryWatcher<Vector3f>(state.GetEntityByName("427door") + _baseEntityAngleOffset);
+                        _endingsWatcher.Add(_startDoorAng);
                         this._endingMap1CamIndex = state.GetEntIndexByName("cam_black");
                         this._endingHeavenBrIndex = state.GetEntIndexByName("427compbr");
                         state.GameProcess.ReadValue(server.BaseAddress + _buttonPasses, out _endingHeavenBPass1);
@@ -387,10 +403,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         // start
                         if (!_resetFlagMod)
                         {
-                            bool hasPlayerJustLeftStartPoint = !state.PlayerPosition.BitEqualsXY(_modStartPos) && state.PrevPlayerPosition.BitEqualsXY(_modStartPos);
-                            bool hasPlayerMovedView = state.PlayerPosition.BitEqualsXY(_modStartPos)
-                                                                && _playerViewAng.Old.DistanceXY(_modStartAng) <= 0.05f && _playerViewAng.Current.DistanceXY(_modStartAng) > 0.05f;
-                            bool isViewEntityCorrect = state.PlayerViewEntityIndex == 1;
+                            bool hasPlayerJustLeftStartPoint    = !state.PlayerPosition.BitEqualsXY(_modStartPos) && state.PrevPlayerPosition.BitEqualsXY(_modStartPos);
+                            bool hasPlayerMovedView             = state.PlayerPosition.BitEqualsXY(_modStartPos)
+                                                                && _playerViewAng.Old.Distance(_modStartAng) <= 0.0005f && _playerViewAng.Current.Distance(_modStartAng) > 0.0005f;
+                            bool isViewEntityCorrect            = state.PlayerViewEntityIndex == 1;
 
                             if ((hasPlayerJustLeftStartPoint || hasPlayerMovedView) && isViewEntityCorrect)
                             {
@@ -451,12 +467,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     {
                         if (!_resetFlagDemo)
                         {
-                            bool hasPlayerJustLeftStartPoint = state.PrevPlayerPosition.BitEqualsXY(_demoStartPos) && !state.PlayerPosition.BitEqualsXY(_demoStartPos);
-                            bool isPlayerViewEntityCorrect = state.PlayerViewEntityIndex == 1;
-                            bool hasPlayerMovedView = _playerViewAng.Old.BitEquals(_demoStartAng) && !_playerViewAng.Current.BitEquals(_demoStartAng);
-                            bool isViewAngleChangedEarly = state.PrevPlayerPosition.BitEqualsXY(_demoStartPos)
+                            bool hasPlayerJustLeftStartPoint    = state.PrevPlayerPosition.BitEqualsXY(_demoStartPos) && !state.PlayerPosition.BitEqualsXY(_demoStartPos);
+                            bool isPlayerViewEntityCorrect      = state.PlayerViewEntityIndex == 1;
+                            bool hasPlayerMovedView             = Vector3fAbs(_playerViewAng.Old).Distance(_demoStartAng) <= 0.0005f 
+                                                                && Vector3fAbs(_playerViewAng.Current).Distance(_demoStartAng) > 0.0005f;
+                            bool isViewAngleChangedEarly        = state.PrevPlayerPosition.BitEqualsXY(_demoStartPos)
                                                                 && isPlayerViewEntityCorrect && state.PrevPlayerViewEntityIndex != 1
-                                                                && !_playerViewAng.Current.BitEquals(_demoStartAng);
+                                                                && Vector3fAbs(_playerViewAng.Current).Distance(_demoStartAng) > 0.0005f;
+
+                            Debug.WriteLine(_playerViewAng.Current.Distance(_demoStartAng));
 
                             if ((hasPlayerJustLeftStartPoint || hasPlayerMovedView || isViewAngleChangedEarly) && isPlayerViewEntityCorrect)
                             {
@@ -477,20 +496,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     {
                         if (!_resetFlag)
                         {
-                            state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _angleOffset, out Vector3f ang);
-                            state.GameProcess.ReadValue(state.GetEntityByName("427door") + _baseEntityAngleOffset, out Vector3f doorAng);
-
                             // a check to prevent the game starting the game again right after you reset on the first map
                             // now this only happens if you're 10 units near the start point
                             if (state.PlayerPosition.Distance(_startPos) <= 10f)
                             {
-                                bool wasPlayerInStartPoint = state.PrevPlayerPosition.BitEqualsXY(_startPos);
-                                bool isPlayerOutsideStartPoint = !state.PlayerPosition.BitEqualsXY(_startPos);
-                                bool isDoorAngleDifferent = !doorAng.BitEquals(_doorStartAng); // for reluctant ending
-                                bool hasPlayerViewAngleChanged = !isPlayerOutsideStartPoint && _playerViewAng.Old.BitEquals(_startAng) && !_playerViewAng.Current.BitEquals(_startAng);
-                                bool isPlayerTeleported = state.PrevPlayerPosition.Distance(_spawnPos) >= 5f;
+                                bool wasPlayerInStartPoint      = state.PrevPlayerPosition.BitEqualsXY(_startPos);
+                                bool isPlayerOutsideStartPoint  = !state.PlayerPosition.BitEqualsXY(_startPos);
+                                bool hasDoorAngleChanged        = _startDoorAng.Old.BitEquals(_doorStartAng) && !_startDoorAng.Current.BitEquals(_doorStartAng); // for reluctant ending
+                                bool hasPlayerViewAngleChanged  = !isPlayerOutsideStartPoint && _playerViewAng.Old.Distance(_startAng) <= 0.0005f && _playerViewAng.Current.Distance(_startAng) > 0.0005f; // some fp imprecision here
+                                bool isPlayerTeleported         = state.PrevPlayerPosition.Distance(_spawnPos) >= 5f;
 
-                                if ((wasPlayerInStartPoint && (isPlayerOutsideStartPoint || isDoorAngleDifferent)) || hasPlayerViewAngleChanged && isPlayerTeleported)
+                                if ((wasPlayerInStartPoint && (isPlayerOutsideStartPoint || hasDoorAngleChanged)) || hasPlayerViewAngleChanged && isPlayerTeleported)
                                 {
                                     _resetFlag = true;
                                     Debug.WriteLine("stanley start");
@@ -503,18 +519,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         {
                             if (EvaluateChangedViewIndex(state, _endingInsaneCamIndex, _endingMap1CamIndex))
                             {
-                                DefaultEnd("insane");
-                                EndOffsetTicks = 3;
-                                return GameSupportResult.ManualSplit;
+                                return DefaultEnd("insane", 3);
                             }
 
                         }
                         else if (EvaluateChangedViewIndex(state, 1, _endingMap1CamIndex) &&
                             state.PrevPlayerPosition.Distance(_spawnPos) >= 5f)
                         {
-                            DefaultEnd("map1 blackout");
-                            EndOffsetTicks = 4;
-                            return GameSupportResult.ManualSplit;
+                            return DefaultEnd("map1 blackout", 4);
                         }
 
                         if (EvaluateLatestClientCmd("tsp_broompass", 13)) // broom closet ending
@@ -531,9 +543,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                             if (newbr.EntityPtr == IntPtr.Zero && (buttonPresses > _endingHeavenBPass1))
                             {
-                                DefaultEnd("heaven");
-                                EndOffsetTicks = 1;
-                                return GameSupportResult.ManualSplit;
+                                return DefaultEnd("heaven", 1);
                             }
                         }
 
@@ -585,9 +595,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     {
                         if (EvaluateChangedViewIndex(state, 1, endingArtCamIndex))
                         {
-                            DefaultEnd("art");
-                            EndOffsetTicks = 3;
-                            return GameSupportResult.ManualSplit;
+                            return DefaultEnd("art", 3);
                         }
                         break;
                     }
@@ -597,9 +605,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         if (state.PlayerParentEntityHandle != -1
                             && state.PrevPlayerParentEntityHandle == -1)
                         {
-                            DefaultEnd("freedom");
-                            EndOffsetTicks = 2;
-                            return GameSupportResult.ManualSplit;
+                            return DefaultEnd("freedom", 2);
                         }
                         break;
                     }
@@ -628,9 +634,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     {
                         if (EvaluateChangedViewIndex(state, 1, _endingGamesCamIndex))
                         {
-                            DefaultEnd("games");
-                            EndOffsetTicks = 3;
-                            return GameSupportResult.ManualSplit;
+                            return DefaultEnd("games", 3);
                         }
 
                         if (_endingStuckEndingCount.Old == 1 && _endingStuckEndingCount.Current == 2)
@@ -667,9 +671,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                         if (EvaluateChangedViewIndex(state, 1, _endingZendingCamIndex))
                         {
-                            DefaultEnd("zending");
-                            EndOffsetTicks = 4;
-                            return GameSupportResult.ManualSplit;
+                            return DefaultEnd("zending", 4);
                         }
                         break;
                     }
