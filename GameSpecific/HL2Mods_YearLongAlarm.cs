@@ -86,7 +86,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 _gunship2HP.Update(state.GameProcess);
 
                 if (_gunship1HP.Old > 0 && _gunship1HP.Current <= 0 ||
-                    (_gunship2HP.Old > 0 && _gunship2HP.Current < 0))
+                    (_gunship2HP.Old > 0 && _gunship2HP.Current <= 0))
                 {
                     Debug.WriteLine("year long alarm end");
                     _onceFlag = true;
