@@ -49,6 +49,8 @@ namespace LiveSplit.SourceSplit
         private MemoryWatcher<byte> _infraIsLoading;
         private bool _isInfra = false;
 
+        public static bool IsHLS = false;
+
         private bool _gotTickRate;
 
         private int _timesOver;
@@ -109,6 +111,16 @@ namespace LiveSplit.SourceSplit
                 "0F 8F ?? ?? 00 00",       // jg      loc_200087FB
                 "83 3d ?? ?? ?? ?? 02",    // cmp     m_State, 2
                 "7D");                     // jge     short loc_200085FD
+
+            // except HLS -7...
+            // state (old 2003 naming)
+            // \xB9\x2A\x2A\x2A\x2A\xE8\x2A\x2A\x2A\x2A\xD9\x1D\x2A\x2A\x2A\x2A\xA1\x2A\x2A\x2A\x2A\x8B\x38
+            _serverStateTarget.AddSignature(1,
+                "B9 ?? ?? ?? ??",          // MOV     ECX, state
+                "E8 ?? ?? ?? ??",          // CALL    0x200fecb0
+                "D9 1D ?? ?? ?? ??",       // FSTP    dword ptr [0x207c9f44]
+                "A1 ?? ?? ?? ??",          // MOV     EAX,[0x20a40e5c]
+                "8B 38");                  // MOV     EDI,dword ptr [EAX]
 
             // TODO: find a generic curTime signature
             // frameTime->curtime WIP sig, 76% success
@@ -178,6 +190,13 @@ namespace LiveSplit.SourceSplit
                 "E8 ?? ?? ?? ??",          // call    sub_100CE390
                 "8B 0D ?? ?? ?? ??",       // mov     ecx, dword_1043686C
                 "D9 1D");                  // fstp    frametime
+            // HLS -7
+            // \xA3\x2A\x2A\x2A\x2A\xE8\x2A\x2A\x2A\x2A\xD9\x1D\x2A\x2A\x2A\x2A\x8B\x44\x24\x2A
+            _curTimeTarget.AddSignature(12,
+                "A3 ?? ?? ?? ??",          // MOV     intervalpertick,EAX
+                "E8 ?? ?? ?? ??",          // CALL    0x20034da0
+                "D9 1D ?? ?? ?? ??",       // FSTP    curtime
+                "8B 44 24 ??");            // MOV     EAX,dword ptr [ESP + 0x48]
 
             // CBaseClientState::m_nSignOnState (older engines)
             _signOnStateTarget1 = new SigScanTarget();
@@ -191,6 +210,14 @@ namespace LiveSplit.SourceSplit
                 "C3",                      // retn
                 "83 3D ?? ?? ?? ?? 02",    // cmp     CBaseClientState__m_nSignonState, 2
                 "B8 ?? ?? ?? ??");         // mov     eax, offset MultiByteStr
+
+            // HLS -7
+            // \xA1\x2A\x2A\x2A\x2A\x85\xC0\x75\x2A\xB8\x2A\x2A\x2A\x2A
+            _signOnStateTarget1.AddSignature(1,
+                "A1 ?? ?? ?? ??",          // MOV     EAX, state
+                "85 C0",                   // TEST    EAX,EAX
+                "75 ??",                   // JNZ     0x2001492f
+                "B8 ?? ?? ?? ??");         // MOV     EAX,0x20193f74
 
             // CBaseClientState::m_nSignOnState
             _signOnStateTarget2 = new SigScanTarget();
@@ -209,7 +236,7 @@ namespace LiveSplit.SourceSplit
                 "83 7E 18 00",             // cmp     dword ptr [esi+18h], 0
                 "74 2D",                   // jz      short loc_693D4DFC
                 "8B 0D ?? ?? ?? ??",       // mov     ecx, baseclientstate
-                "8B 49 18");               // mov     mov     ecx, [ecx+18h]
+                "8B 49 18");               // mov     ecx, [ecx+18h]
 
             // CBaseServer::m_szMapname[64]
             _curMapTarget = new SigScanTarget();
@@ -253,6 +280,15 @@ namespace LiveSplit.SourceSplit
                 "83 c4 ??",                // add     ESP,0x4
                 "80 ?? ?? ?? ?? ?? 00",    // cmp     map, 0x0
                 "B8 ?? ?? ?? ??");         // mov     EAX, map
+
+            // name[64] (old 2003 naming)
+            // \xA0\x2A\x2A\x2A\x2A\x84\xC0\x74\x2A\xB8\x2A\x2A\x2A\x2A
+            // hls -7
+            _curMapTarget.AddSignature(1,
+                "A0 ?? ?? ?? ??",          // MOV     AL, name[64]
+                "84 C0",                   // TEST    AL, AL
+                "74 ??",                   // JZ      0x20090dca
+                "B8 ?? ?? ?? ??");         // MOV     EAX,0x207cab64
 
             // CBaseEntityList::(CEntInfo)m_EntPtrArray
             _globalEntityListTarget = new SigScanTarget();
@@ -415,7 +451,8 @@ namespace LiveSplit.SourceSplit
             if ( !GetBaseEntityMemberOffset("m_fFlags", p, serverScanner, out offsets.BaseEntityFlagsOffset)
                 || !GetBaseEntityMemberOffset("m_vecAbsOrigin", p, serverScanner, out offsets.BaseEntityAbsOriginOffset)
                 || !GetBaseEntityMemberOffset("m_iName", p, serverScanner, out offsets.BaseEntityTargetNameOffset)
-                || !GetBaseEntityMemberOffset("m_hViewEntity", p, serverScanner, out offsets.BasePlayerViewEntity))
+                // HLS -7 doesn't define m_hViewEntity as a convenient field so for the time being this is ignored
+                || (!GetBaseEntityMemberOffset("m_hViewEntity", p, serverScanner, out offsets.BasePlayerViewEntity) && IsHLS))
                 return false;
 
             // find m_pParent offset. the string "m_pParent" occurs more than once so we have to do something else
@@ -534,8 +571,15 @@ namespace LiveSplit.SourceSplit
             state.GameDir = new DirectoryInfo(absoluteGameDir).Name.ToLower();
             Debug.WriteLine("gameDir = " + state.GameDir);
 
-            if (state.GameDir == "infra")
-                _isInfra = true;
+            switch (state.GameDir)
+            {
+                case "infra":
+                    _isInfra = true;
+                    break;
+                case "hl1":
+                    IsHLS = true;
+                    break;
+            }
 
             state.CurrentMap = String.Empty;
 
@@ -555,6 +599,68 @@ namespace LiveSplit.SourceSplit
             this.SendSetTimingMethodEvent(state.GameSupport?.GameTimingMethod ?? GameTimingMethod.EngineTicks);
         }
 
+        HostState GetHostState(Process game, GameOffsets offsets)
+        {
+            game.ReadValue(offsets.HostStatePtr, out int hostState);
+
+            // in infra, hoststates above 1 are offset by 1
+            if (_isInfra)
+                return (HostState)((hostState > 1) ? hostState - 1 : hostState);
+            else
+                return (HostState)hostState;
+        }
+
+        SignOnState GetSignOnState(Process game, GameOffsets offsets)
+        {
+            game.ReadValue(offsets.SignOnStatePtr, out int signOnState);
+
+            // infra's signonstate is unreliable because it isn't updated on the "load" command and some others
+            // so we'll have to settle with a loading byte
+            if (_isInfra)
+            {
+                switch (_infraIsLoading.Current)
+                {
+                    case 0:
+                        return SignOnState.Full;
+
+                    case 1:
+                        return SignOnState.None;
+
+                    default:
+                        return (SignOnState)signOnState;
+                }
+            }
+            // HLS -7 has a completely different signonstate structure with only 5 entries
+            else if (IsHLS) 
+            {
+                if (signOnState <= 1)
+                    return SignOnState.None;
+                else
+                {
+                    if (signOnState == 4)
+                        return SignOnState.Full;
+                    return SignOnState.Connected;
+                }
+            }
+            else return (SignOnState)signOnState;
+        }
+
+        ServerState GetServerState(Process game, GameOffsets offsets)
+        {
+            game.ReadValue(offsets.ServerStatePtr, out int serverState);
+
+            if (IsHLS)
+            {
+                // this is actually how the game knows if it's paused or not..., hls -7's serverstate enum doesn't have
+                // paused as an entry for some reason
+                game.ReadValue(offsets.CurTimePtr + 0x4, out float curFrameTime);
+                if (curFrameTime == 0f)
+                    return ServerState.Paused;
+                return (ServerState)serverState;
+            }
+            else return (ServerState)serverState;
+        }
+
         void UpdateGameState(GameState state)
         {
             Process game = state.GameProcess;
@@ -565,36 +671,13 @@ namespace LiveSplit.SourceSplit
             game.ReadValue(offsets.IntervalPerTickPtr, out state.IntervalPerTick);
 
             state.PrevSignOnState = state.SignOnState;
-
-            // infra's signonstate is unreliable because it isn't updated on the "load" command and some others
-            // so we'll have to settle with a loading byte
-            if (_isInfra)
-            {
-                switch (_infraIsLoading.Current)
-                {
-                    case 0:
-                        state.SignOnState = SignOnState.Full;
-                        break;
-
-                    case 1:
-                        state.SignOnState = SignOnState.None;
-                        break;
-                }
-            }
-
-            game.ReadValue(offsets.SignOnStatePtr, out state.SignOnState);
+            state.SignOnState = GetSignOnState(game, offsets);
 
             state.PrevHostState = state.HostState;
-            game.ReadValue(offsets.HostStatePtr, out int hoststate);
-
-            // in infra, hoststates above 1 are offset by 1
-            if (_isInfra)
-                state.HostState = (HostState)((hoststate > 1) ? hoststate - 1 : hoststate);
-            else
-                state.HostState = (HostState)hoststate;
+            state.HostState = GetHostState(game, offsets);
 
             state.PrevServerState = state.ServerState;
-            game.ReadValue(offsets.ServerStatePtr, out state.ServerState);
+            state.ServerState = GetServerState(game, offsets);
 
             bool firstTick = false;
 

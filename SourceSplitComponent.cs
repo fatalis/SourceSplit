@@ -217,7 +217,7 @@ namespace LiveSplit.SourceSplit
             _totalMapTicks = 0;
             _gamePauseTime = null;
 
-            if (_gameMemory._state.GameSupport != null)
+            if (_gameMemory._state != null && _gameMemory._state.GameSupport != null)
                 _gameMemory._state.GameSupport.OnTimerReset(true);
 
 
@@ -242,7 +242,7 @@ namespace LiveSplit.SourceSplit
 
             // some game has unspecific starts like if the player's position isn't something which
             // can be repeated easily by accident, so this is a _onceflag but reset on timer reset.
-            if (_gameMemory._state.GameSupport != null)
+            if (_gameMemory._state != null && _gameMemory._state.GameSupport != null)
                 _gameMemory._state.GameSupport.OnTimerReset(false);
         }
 

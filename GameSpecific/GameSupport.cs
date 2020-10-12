@@ -193,6 +193,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_KillTheMonk();
                 case "logistique":
                     return new HL2Mods_Logistique();
+                case "hl1":
+                    return new HLS();
             }
 
             return null;

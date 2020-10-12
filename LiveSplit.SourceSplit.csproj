@@ -59,6 +59,7 @@
     <Compile Include="GameSpecific\HL2Ep1.cs" />
     <Compile Include="GameSpecific\HL2Ep2.cs" />
     <Compile Include="GameSpecific\HDTF.cs" />
+    <Compile Include="GameSpecific\HLS.cs" />
     <Compile Include="GameSpecific\HL2Mods_Logistique.cs" />
     <Compile Include="GameSpecific\HL2Mods_KillTheMonk.cs" />
     <Compile Include="GameSpecific\HL2Mods_YearLongAlarm.cs" />
