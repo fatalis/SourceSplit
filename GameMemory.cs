@@ -115,6 +115,9 @@ namespace LiveSplit.SourceSplit
             // except HLS -7...
             // state (old 2003 naming)
             // \xB9\x2A\x2A\x2A\x2A\xE8\x2A\x2A\x2A\x2A\xD9\x1D\x2A\x2A\x2A\x2A\xA1\x2A\x2A\x2A\x2A\x8B\x38
+            _serverStateTarget.OnFound = (proc, scanner, ptr) => {
+                IsHLS = true;
+                return !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr; };
             _serverStateTarget.AddSignature(1,
                 "B9 ?? ?? ?? ??",          // MOV     ECX, state
                 "E8 ?? ?? ?? ??",          // CALL    0x200fecb0
@@ -355,12 +358,21 @@ namespace LiveSplit.SourceSplit
             _thread.Wait();
         }
 
+        // reset flags set for special games
+        void ResetGameSpecificFlags()
+        {
+            _isInfra = false;
+            IsHLS = false;
+        }
+
         void MemoryReadThread(CancellationTokenSource cts)
         {
             // force windows timer resolution to 1ms. it probably already is though, from the game.
             timeBeginPeriod(1);
             // we do a lot of timing critical stuff so this may help out
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
+
+            ResetGameSpecificFlags();
 
             while (true)
             {
@@ -451,8 +463,8 @@ namespace LiveSplit.SourceSplit
             if ( !GetBaseEntityMemberOffset("m_fFlags", p, serverScanner, out offsets.BaseEntityFlagsOffset)
                 || !GetBaseEntityMemberOffset("m_vecAbsOrigin", p, serverScanner, out offsets.BaseEntityAbsOriginOffset)
                 || !GetBaseEntityMemberOffset("m_iName", p, serverScanner, out offsets.BaseEntityTargetNameOffset)
-                // HLS -7 doesn't define m_hViewEntity as a convenient field so for the time being this is ignored
-                || (!GetBaseEntityMemberOffset("m_hViewEntity", p, serverScanner, out offsets.BasePlayerViewEntity) && IsHLS))
+                // HLS -7 doesn't define m_hViewEntity as a field so for the time being this is ignored
+                || (!GetBaseEntityMemberOffset("m_hViewEntity", p, serverScanner, out offsets.BasePlayerViewEntity) && !IsHLS))
                 return false;
 
             // find m_pParent offset. the string "m_pParent" occurs more than once so we have to do something else
@@ -536,8 +548,6 @@ namespace LiveSplit.SourceSplit
             while (!game.HasExited && !cts.IsCancellationRequested)
             {
                 // iteration must never take longer than 1 tick
-                if (_isInfra)
-                    _infraIsLoading.Update(state.GameProcess);
 
                 this.UpdateGameState(state);
                 this.CheckGameState(state);
@@ -575,9 +585,6 @@ namespace LiveSplit.SourceSplit
             {
                 case "infra":
                     _isInfra = true;
-                    break;
-                case "hl1":
-                    IsHLS = true;
                     break;
             }
 
@@ -618,6 +625,9 @@ namespace LiveSplit.SourceSplit
             // so we'll have to settle with a loading byte
             if (_isInfra)
             {
+                if (_isInfra)
+                    _infraIsLoading.Update(game);
+
                 switch (_infraIsLoading.Current)
                 {
                     case 0:
@@ -699,10 +709,9 @@ namespace LiveSplit.SourceSplit
                     // update map name
                     state.GameProcess.ReadString(state.GameOffsets.CurMapPtr, ReadStringType.ASCII, 64, out state.CurrentMap);
                 }
-                // in infra, when loading a save the current tick counter inherits the value stored in the save file
-                // and continue incrementing from there, however sometimes immediately after load the counter gets reset to the inherited value
-                // so we need to check if this happens
-                if (_isInfra && state.RawTickCount - state.TickBase < 0)
+                // some games take their tick count from what save that was loaded, so we need checks for the weirdness
+                // that comes with that
+                if ((IsHLS || _isInfra ) && state.RawTickCount - state.TickBase < 0)
                 {
                     Debug.WriteLine("based ticks is wrong by " + (state.RawTickCount - state.TickBase) + " rebasing to " + state.TickBase);
                     state.TickBase = state.RawTickCount;
