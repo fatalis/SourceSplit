@@ -115,9 +115,6 @@ namespace LiveSplit.SourceSplit
             // except HLS -7...
             // state (old 2003 naming)
             // \xB9\x2A\x2A\x2A\x2A\xE8\x2A\x2A\x2A\x2A\xD9\x1D\x2A\x2A\x2A\x2A\xA1\x2A\x2A\x2A\x2A\x8B\x38
-            _serverStateTarget.OnFound = (proc, scanner, ptr) => {
-                IsHLS = true;
-                return !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr; };
             _serverStateTarget.AddSignature(1,
                 "B9 ?? ?? ?? ??",          // MOV     ECX, state
                 "E8 ?? ?? ?? ??",          // CALL    0x200fecb0
@@ -408,6 +405,24 @@ namespace LiveSplit.SourceSplit
             timeEndPeriod(1);
         }
 
+        string GetGameDir(Process p, GameOffsets offsets)
+        {
+            string absoluteGameDir;
+            p.ReadString(offsets.GameDirPtr, ReadStringType.UTF8, 260, out absoluteGameDir);
+
+            switch (new DirectoryInfo(absoluteGameDir).Name.ToLower())
+            {
+                case "infra":
+                    _isInfra = true;
+                    break;
+                case "hl1":
+                    IsHLS = true;
+                    break;
+            }
+
+            return absoluteGameDir;
+        }
+
         // TODO: log fails
         bool TryGetGameProcess(out Process p, out GameOffsets offsets)
         {
@@ -443,7 +458,11 @@ namespace LiveSplit.SourceSplit
                 && (offsets.SignOnStatePtr = scanner.Scan(_signOnStateTarget2)) == IntPtr.Zero)
                 return false;
 
-            _infraIsLoading = new MemoryWatcher<byte>(new DeepPointer(scanner.Scan(_infraIsLoadingTarget), 0x0));
+            // get the game dir now to evaluate game-specific stuff
+            GetGameDir(p, offsets);
+
+            if (_isInfra)
+                _infraIsLoading = new MemoryWatcher<byte>(new DeepPointer(scanner.Scan(_infraIsLoadingTarget), 0x0));
 
             // required server stuff
             var serverScanner = new SignatureScanner(p, server.BaseAddress, server.ModuleMemorySize);
@@ -576,17 +595,8 @@ namespace LiveSplit.SourceSplit
 
         void InitGameState(GameState state)
         {
-            string absoluteGameDir;
-            state.GameProcess.ReadString(state.GameOffsets.GameDirPtr, ReadStringType.UTF8, 260, out absoluteGameDir);
-            state.GameDir = new DirectoryInfo(absoluteGameDir).Name.ToLower();
+            state.GameDir = new DirectoryInfo(GetGameDir(state.GameProcess, state.GameOffsets)).Name.ToLower();
             Debug.WriteLine("gameDir = " + state.GameDir);
-
-            switch (state.GameDir)
-            {
-                case "infra":
-                    _isInfra = true;
-                    break;
-            }
 
             state.CurrentMap = String.Empty;
 
@@ -625,8 +635,7 @@ namespace LiveSplit.SourceSplit
             // so we'll have to settle with a loading byte
             if (_isInfra)
             {
-                if (_isInfra)
-                    _infraIsLoading.Update(game);
+                _infraIsLoading.Update(game);
 
                 switch (_infraIsLoading.Current)
                 {
@@ -713,7 +722,7 @@ namespace LiveSplit.SourceSplit
                 // that comes with that
                 if ((IsHLS || _isInfra ) && state.RawTickCount - state.TickBase < 0)
                 {
-                    Debug.WriteLine("based ticks is wrong by " + (state.RawTickCount - state.TickBase) + " rebasing to " + state.TickBase);
+                    Debug.WriteLine("based ticks is wrong by " + (state.RawTickCount - state.TickBase) + " rebasing from " + state.TickBase);
                     state.TickBase = state.RawTickCount;
                 }
 

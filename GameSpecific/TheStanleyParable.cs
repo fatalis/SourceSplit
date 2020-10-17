@@ -53,6 +53,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _isMod = false;
         private const int _modClientModuleSize = 0x4cb000;
+        private const float _angleEpsilon = 0.0005f;
 
         ProcessModuleWow64Safe client;
         ProcessModuleWow64Safe engine;
@@ -204,6 +205,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
             B.Y = Math.Abs(A.Y);
             B.Z = Math.Abs(A.Z);
             return B;
+        }
+
+        private bool EvaluateChangedViewAngle(Vector3f prev, Vector3f now, Vector3f target)
+        {
+            return prev.Distance(target) <= _angleEpsilon && now.Distance(target) > _angleEpsilon;
         }
 
         private GameSupportResult DefaultFadeEnd(GameState state, float fadeSpeed, string ending)
@@ -405,7 +411,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         {
                             bool hasPlayerJustLeftStartPoint    = !state.PlayerPosition.BitEqualsXY(_modStartPos) && state.PrevPlayerPosition.BitEqualsXY(_modStartPos);
                             bool hasPlayerMovedView             = state.PlayerPosition.BitEqualsXY(_modStartPos)
-                                                                && _playerViewAng.Old.Distance(_modStartAng) <= 0.0005f && _playerViewAng.Current.Distance(_modStartAng) > 0.0005f;
+                                                                && EvaluateChangedViewAngle(_playerViewAng.Old, _playerViewAng.Current, _modStartAng);
                             bool isViewEntityCorrect            = state.PlayerViewEntityIndex == 1;
 
                             if ((hasPlayerJustLeftStartPoint || hasPlayerMovedView) && isViewEntityCorrect)
@@ -469,11 +475,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         {
                             bool hasPlayerJustLeftStartPoint    = state.PrevPlayerPosition.BitEqualsXY(_demoStartPos) && !state.PlayerPosition.BitEqualsXY(_demoStartPos);
                             bool isPlayerViewEntityCorrect      = state.PlayerViewEntityIndex == 1;
-                            bool hasPlayerMovedView             = Vector3fAbs(_playerViewAng.Old).Distance(_demoStartAng) <= 0.0005f 
-                                                                && Vector3fAbs(_playerViewAng.Current).Distance(_demoStartAng) > 0.0005f;
+                            bool hasPlayerMovedView             = EvaluateChangedViewAngle(Vector3fAbs(_playerViewAng.Old), Vector3fAbs(_playerViewAng.Current), _demoStartAng);
                             bool isViewAngleChangedEarly        = state.PrevPlayerPosition.BitEqualsXY(_demoStartPos)
-                                                                && isPlayerViewEntityCorrect && state.PrevPlayerViewEntityIndex != 1
-                                                                && Vector3fAbs(_playerViewAng.Current).Distance(_demoStartAng) > 0.0005f;
+                                                                && EvaluateChangedViewAngle(Vector3fAbs(_playerViewAng.Old), Vector3fAbs(_playerViewAng.Current), _demoStartAng);
 
                             Debug.WriteLine(_playerViewAng.Current.Distance(_demoStartAng));
 
@@ -503,7 +507,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                                 bool wasPlayerInStartPoint      = state.PrevPlayerPosition.BitEqualsXY(_startPos);
                                 bool isPlayerOutsideStartPoint  = !state.PlayerPosition.BitEqualsXY(_startPos);
                                 bool hasDoorAngleChanged        = _startDoorAng.Old.BitEquals(_doorStartAng) && !_startDoorAng.Current.BitEquals(_doorStartAng); // for reluctant ending
-                                bool hasPlayerViewAngleChanged  = !isPlayerOutsideStartPoint && _playerViewAng.Old.Distance(_startAng) <= 0.0005f && _playerViewAng.Current.Distance(_startAng) > 0.0005f; // some fp imprecision here
+                                bool hasPlayerViewAngleChanged  = !isPlayerOutsideStartPoint && EvaluateChangedViewAngle(_playerViewAng.Old, _playerViewAng.Current, _startAng);
                                 bool isPlayerTeleported         = state.PrevPlayerPosition.Distance(_spawnPos) >= 5f;
 
                                 if ((wasPlayerInStartPoint && (isPlayerOutsideStartPoint || hasDoorAngleChanged)) || hasPlayerViewAngleChanged && isPlayerTeleported)
