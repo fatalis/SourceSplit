@@ -19,7 +19,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private bool _onceFlag;
 
-        // offsets and binary sized
+        // offsets and binary sizes
         private int _baseEntityHealthOffset = -1;
         private int _baseEffectsFlagsOffset = -1;
         private const int _serverModernModuleSize = 0x9D6000;
@@ -37,6 +37,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // xen start & run end
         private const string _xenStartMap = "bm_c4a1a";
         private bool _xenStart = false;
+        private bool _xenSplit = false;
         private bool _nihiSplit = false;
         private MemoryWatcher<int> _nihiHP;
         private MemoryWatcher<int> _nihiPhaseCounter;
@@ -168,9 +169,26 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     HandleArg(cleanedCmd, "Earthbound Auto-end", ref _ebEnd);
                 }
-                else if (CheckCommand(cleanedCmd, "xenstart"))
+                else if (cleanedCmd.Contains("xen"))
                 {
-                    HandleArg(cleanedCmd, "Xen Auto-start", ref _xenStart);
+                    if (cleanedCmd.Contains("start"))
+                    {
+                        HandleArg(cleanedCmd, "Xen Auto-start", ref _xenStart);
+                        if (_xenStart)
+                        {
+                            Debug.WriteLine("Xen Auto-split is now disabled");
+                            _xenSplit = false;
+                        }
+                    }
+                    else if (cleanedCmd.Contains("split"))
+                    {
+                        HandleArg(cleanedCmd, "Xen Auto-split", ref _xenSplit);
+                        if (_xenSplit)
+                        {
+                            Debug.WriteLine("Xen Auto-start is now disabled");
+                            _xenStart = false;
+                        }
+                    }    
                 }
                 else if (CheckCommand(cleanedCmd, "nihisplit"))
                 {
@@ -219,11 +237,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return DefaultEnd("bms eb end");
                 }
             }
-            else if (_xenStart && state.CurrentMap.ToLower() == _xenStartMap)
+            else if ((_xenStart || _xenSplit) && state.CurrentMap.ToLower() == _xenStartMap)
             {
                 if (state.PlayerViewEntityIndex == 1 && state.PrevPlayerViewEntityIndex == _xenCamIndex)
                 {
-                    return DefaultEnd("bms xen start");
+                    _onceFlag = true;
+                    Debug.WriteLine("bms xen start");
+                    return _xenStart ? GameSupportResult.PlayerGainedControl : GameSupportResult.PlayerLostControl;
                 }
             }
             else if (state.CurrentMap.ToLower() == _hcStartMap)
