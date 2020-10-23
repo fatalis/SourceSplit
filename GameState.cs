@@ -78,7 +78,7 @@ namespace LiveSplit.SourceSplit
         // do not call frequently!
         public IntPtr GetEntityByName(string name)
         {
-            const int MAX_ENTS = 2048; // TODO: is portal2's max higher?
+            const int MAX_ENTS = 4096; // TODO: is portal2's max higher?
 
             for (int i = 0; i < MAX_ENTS; i++)
             {
