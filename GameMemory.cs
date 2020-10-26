@@ -43,6 +43,7 @@ namespace LiveSplit.SourceSplit
         private SigScanTarget _gameDirTarget;
         private SigScanTarget _hostStateTarget;
         private SigScanTarget _serverStateTarget;
+        private SigScanTarget _serverStateTarget2;
         private SigScanTarget _fadeListTarget;
 
         private SigScanTarget _infraIsLoadingTarget;
@@ -112,10 +113,24 @@ namespace LiveSplit.SourceSplit
                 "83 3d ?? ?? ?? ?? 02",    // cmp     m_State, 2
                 "7D");                     // jge     short loc_200085FD
 
-            // except HLS -7...
+            // except HLS OE...
+            // \x83\x3D\x2A\x2A\x2A\x2A\x02\xA1\x2A\x2A\x2A\x2A\x7D\x2A\xA1\x2A\x2A\x2A\x2A\x89\x86\x2A\x2A\x2A\x2A
+            _serverStateTarget.AddSignature(2,
+                "83 3D ?? ?? ?? ?? 02",     // CMP  state,0x2
+                "A1 ?? ?? ?? ??",           // MOV  EAX,[0x20554d0c]
+                "7D ??",                    // JGE  0x2006811c
+                "A1 ?? ?? ?? ??",           // MOV  EAX,[0x2037cf68]
+                "89 86 ?? ?? ?? ??");       // MOV  dword ptr [ESI + 0x220],EAX
+
+            // and HLS -7...
+            _serverStateTarget2 = new SigScanTarget();
+            _serverStateTarget2.OnFound = (proc, scanner, ptr) => {
+                IsHLS = true;
+                return !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr; };
+
             // state (old 2003 naming)
             // \xB9\x2A\x2A\x2A\x2A\xE8\x2A\x2A\x2A\x2A\xD9\x1D\x2A\x2A\x2A\x2A\xA1\x2A\x2A\x2A\x2A\x8B\x38
-            _serverStateTarget.AddSignature(1,
+            _serverStateTarget2.AddSignature(1,
                 "B9 ?? ?? ?? ??",          // MOV     ECX, state
                 "E8 ?? ?? ?? ??",          // CALL    0x200fecb0
                 "D9 1D ?? ?? ?? ??",       // FSTP    dword ptr [0x207c9f44]
@@ -369,8 +384,6 @@ namespace LiveSplit.SourceSplit
             // we do a lot of timing critical stuff so this may help out
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
 
-            ResetGameSpecificFlags();
-
             while (true)
             {
                 try
@@ -415,9 +428,6 @@ namespace LiveSplit.SourceSplit
                 case "infra":
                     _isInfra = true;
                     break;
-                case "hl1":
-                    IsHLS = true;
-                    break;
             }
 
             return absoluteGameDir;
@@ -429,7 +439,7 @@ namespace LiveSplit.SourceSplit
 #if DEBUG
             var sw = Stopwatch.StartNew();
 #endif
-
+            ResetGameSpecificFlags();
             string[] procs = _settings.GameProcesses.Select(x => x.ToLower().Replace(".exe", String.Empty)).ToArray();
             p = Process.GetProcesses().FirstOrDefault(x => procs.Contains(x.ProcessName.ToLower()));
             offsets = new GameOffsets();
@@ -447,11 +457,12 @@ namespace LiveSplit.SourceSplit
             // required engine stuff
             var scanner = new SignatureScanner(p, engine.BaseAddress, engine.ModuleMemorySize);
 
-            if ((offsets.CurMapPtr = scanner.Scan(_curMapTarget)) == IntPtr.Zero
+            if (((offsets.ServerStatePtr = scanner.Scan(_serverStateTarget)) == IntPtr.Zero &&
+                (offsets.ServerStatePtr = scanner.Scan(_serverStateTarget2)) == IntPtr.Zero)
+                || (offsets.CurMapPtr = scanner.Scan(_curMapTarget)) == IntPtr.Zero
                 || (offsets.CurTimePtr = scanner.Scan(_curTimeTarget)) == IntPtr.Zero
                 || (offsets.GameDirPtr = scanner.Scan(_gameDirTarget)) == IntPtr.Zero
-                || (offsets.HostStatePtr = scanner.Scan(_hostStateTarget)) == IntPtr.Zero
-                || (offsets.ServerStatePtr = scanner.Scan(_serverStateTarget)) == IntPtr.Zero)
+                || (offsets.HostStatePtr = scanner.Scan(_hostStateTarget)) == IntPtr.Zero)
                 return false;
 
             if ((offsets.SignOnStatePtr = scanner.Scan(_signOnStateTarget1)) == IntPtr.Zero
