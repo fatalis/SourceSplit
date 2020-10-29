@@ -230,6 +230,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             _resetFlag = _resetFlagDemo = _resetFlagMod = resetflagto;
             _endingSeriousCount = 0;
             _endingConfuseFlag = false;
+            _startAng.X = _demoStartAng.X = 0f;
         }
 
         public override void OnGameAttached(GameState state)
@@ -473,13 +474,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     {
                         if (!_resetFlagDemo)
                         {
+                            if (Math.Abs(_playerViewAng.Old.X - _playerViewAng.Current.X) < _angleEpsilon && _playerViewAng.Current.Y == _demoStartAng.Y)
+                                _demoStartAng.X = _playerViewAng.Current.X;
+
                             bool hasPlayerJustLeftStartPoint    = state.PrevPlayerPosition.BitEqualsXY(_demoStartPos) && !state.PlayerPosition.BitEqualsXY(_demoStartPos);
                             bool isPlayerViewEntityCorrect      = state.PlayerViewEntityIndex == 1;
                             bool hasPlayerMovedView             = EvaluateChangedViewAngle(Vector3fAbs(_playerViewAng.Old), Vector3fAbs(_playerViewAng.Current), _demoStartAng);
                             bool isViewAngleChangedEarly        = state.PrevPlayerPosition.BitEqualsXY(_demoStartPos)
                                                                 && EvaluateChangedViewAngle(Vector3fAbs(_playerViewAng.Old), Vector3fAbs(_playerViewAng.Current), _demoStartAng);
-
-                            Debug.WriteLine(_playerViewAng.Current.Distance(_demoStartAng));
 
                             if ((hasPlayerJustLeftStartPoint || hasPlayerMovedView || isViewAngleChangedEarly) && isPlayerViewEntityCorrect)
                             {
@@ -500,6 +502,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     {
                         if (!_resetFlag)
                         {
+                            // your view angle slowly drifts upward for some reason so we'll have to readjust
+                            if (Math.Abs(_playerViewAng.Old.X - _playerViewAng.Current.X) < _angleEpsilon && _playerViewAng.Current.Y == _startAng.Y)
+                                _startAng.X = _playerViewAng.Current.X;
+
                             // a check to prevent the game starting the game again right after you reset on the first map
                             // now this only happens if you're 10 units near the start point
                             if (state.PlayerPosition.Distance(_startPos) <= 10f)
