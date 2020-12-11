@@ -50,7 +50,7 @@ namespace LiveSplit.SourceSplit
         private MemoryWatcher<byte> _infraIsLoading;
         private bool _isInfra = false;
 
-        public static bool IsHLS = false;
+        public static bool Source2003 = false;
 
         private bool _gotTickRate;
 
@@ -122,10 +122,10 @@ namespace LiveSplit.SourceSplit
                 "A1 ?? ?? ?? ??",           // MOV  EAX,[0x2037cf68]
                 "89 86 ?? ?? ?? ??");       // MOV  dword ptr [ESI + 0x220],EAX
 
-            // and HLS -7...
+            // and source 2003 leak...
             _serverStateTarget2 = new SigScanTarget();
             _serverStateTarget2.OnFound = (proc, scanner, ptr) => {
-                IsHLS = true;
+                Source2003 = true;
                 return !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr; };
 
             // state (old 2003 naming)
@@ -205,7 +205,7 @@ namespace LiveSplit.SourceSplit
                 "E8 ?? ?? ?? ??",          // call    sub_100CE390
                 "8B 0D ?? ?? ?? ??",       // mov     ecx, dword_1043686C
                 "D9 1D");                  // fstp    frametime
-            // HLS -7
+            // source 2003 leak
             // \xA3\x2A\x2A\x2A\x2A\xE8\x2A\x2A\x2A\x2A\xD9\x1D\x2A\x2A\x2A\x2A\x8B\x44\x24\x2A
             _curTimeTarget.AddSignature(12,
                 "A3 ?? ?? ?? ??",          // MOV     intervalpertick,EAX
@@ -226,7 +226,7 @@ namespace LiveSplit.SourceSplit
                 "83 3D ?? ?? ?? ?? 02",    // cmp     CBaseClientState__m_nSignonState, 2
                 "B8 ?? ?? ?? ??");         // mov     eax, offset MultiByteStr
 
-            // HLS -7
+            // source 2003 leak
             // \xA1\x2A\x2A\x2A\x2A\x85\xC0\x75\x2A\xB8\x2A\x2A\x2A\x2A
             _signOnStateTarget1.AddSignature(1,
                 "A1 ?? ?? ?? ??",          // MOV     EAX, state
@@ -298,7 +298,7 @@ namespace LiveSplit.SourceSplit
 
             // name[64] (old 2003 naming)
             // \xA0\x2A\x2A\x2A\x2A\x84\xC0\x74\x2A\xB8\x2A\x2A\x2A\x2A
-            // hls -7
+            // source 2003 leak
             _curMapTarget.AddSignature(1,
                 "A0 ?? ?? ?? ??",          // MOV     AL, name[64]
                 "84 C0",                   // TEST    AL, AL
@@ -371,10 +371,10 @@ namespace LiveSplit.SourceSplit
         }
 
         // reset flags set for special games
-        void ResetGameSpecificFlags()
+        void ResetSpecificFlags()
         {
             _isInfra = false;
-            IsHLS = false;
+            Source2003 = false;
         }
 
         void MemoryReadThread(CancellationTokenSource cts)
@@ -439,7 +439,7 @@ namespace LiveSplit.SourceSplit
 #if DEBUG
             var sw = Stopwatch.StartNew();
 #endif
-            ResetGameSpecificFlags();
+            ResetSpecificFlags();
             string[] procs = _settings.GameProcesses.Select(x => x.ToLower().Replace(".exe", String.Empty)).ToArray();
             p = Process.GetProcesses().FirstOrDefault(x => procs.Contains(x.ProcessName.ToLower()));
             offsets = new GameOffsets();
@@ -493,8 +493,8 @@ namespace LiveSplit.SourceSplit
             if ( !GetBaseEntityMemberOffset("m_fFlags", p, serverScanner, out offsets.BaseEntityFlagsOffset)
                 || !GetBaseEntityMemberOffset("m_vecAbsOrigin", p, serverScanner, out offsets.BaseEntityAbsOriginOffset)
                 || !GetBaseEntityMemberOffset("m_iName", p, serverScanner, out offsets.BaseEntityTargetNameOffset)
-                // HLS -7 doesn't define m_hViewEntity as a field so for the time being this is ignored
-                || (!GetBaseEntityMemberOffset("m_hViewEntity", p, serverScanner, out offsets.BasePlayerViewEntity) && !IsHLS))
+                // source 2003 leak doesn't define m_hViewEntity as a field so for the time being this is ignored
+                || (!GetBaseEntityMemberOffset("m_hViewEntity", p, serverScanner, out offsets.BasePlayerViewEntity) && !Source2003))
                 return false;
 
             // find m_pParent offset. the string "m_pParent" occurs more than once so we have to do something else
@@ -660,8 +660,8 @@ namespace LiveSplit.SourceSplit
                         return (SignOnState)signOnState;
                 }
             }
-            // HLS -7 has a completely different signonstate structure with only 5 entries
-            else if (IsHLS) 
+            // source 2003 leak has a completely different signonstate structure with only 5 entries
+            else if (Source2003) 
             {
                 if (signOnState <= 1)
                     return SignOnState.None;
@@ -679,9 +679,9 @@ namespace LiveSplit.SourceSplit
         {
             game.ReadValue(offsets.ServerStatePtr, out int serverState);
 
-            if (IsHLS)
+            if (Source2003)
             {
-                // this is actually how the game knows if it's paused or not..., hls -7's serverstate enum doesn't have
+                // this is actually how the game knows if it's paused or not..., source 2003 leak's serverstate enum doesn't have
                 // paused as an entry for some reason
                 game.ReadValue(offsets.CurTimePtr + 0x4, out float curFrameTime);
                 if (curFrameTime == 0f)
@@ -729,9 +729,7 @@ namespace LiveSplit.SourceSplit
                     // update map name
                     state.GameProcess.ReadString(state.GameOffsets.CurMapPtr, ReadStringType.ASCII, 64, out state.CurrentMap);
                 }
-                // some games take their tick count from what save that was loaded, so we need checks for the weirdness
-                // that comes with that
-                if ((IsHLS || _isInfra ) && state.RawTickCount - state.TickBase < 0)
+                if ((Source2003 || _isInfra) && state.RawTickCount - state.TickBase < 0)
                 {
                     Debug.WriteLine("based ticks is wrong by " + (state.RawTickCount - state.TickBase) + " rebasing from " + state.TickBase);
                     state.TickBase = state.RawTickCount;

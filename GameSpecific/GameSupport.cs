@@ -195,6 +195,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_Logistique();
                 case "hl1":
                     return new HLS();
+                case "backwardsmod":
+                    return new HL2Mods_BackwardsMod();
             }
 
             return null;

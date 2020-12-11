@@ -12,7 +12,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
         private MemoryWatcher<int> _gunshipHP;
 
-        private Vector3f _startPos = new Vector3f(-1296f, -1296f, 101f);
         private int _baseEntityHealthOffset = -1;
 
         public HL2Mods_ICE()

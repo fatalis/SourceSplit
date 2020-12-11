@@ -203,7 +203,7 @@ namespace LiveSplit.SourceSplit
         public IntPtr FadeListPtr;
         // note: only valid during host states: NewGame, ChangeLevelSP, ChangeLevelMP
         // note: this may not work pre-ep1 (ancient engine), HLS -7 is a good example
-        public IntPtr HostStateLevelNamePtr => this.HostStatePtr + (4 * (GameMemory.IsHLS ? 2 : 8));
+        public IntPtr HostStateLevelNamePtr => this.HostStatePtr + (4 * (GameMemory.Source2003 ? 2 : 8));
         public IntPtr ServerStatePtr;
 
         public CEntInfoSize EntInfoSize;
