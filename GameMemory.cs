@@ -45,6 +45,8 @@ namespace LiveSplit.SourceSplit
         private SigScanTarget _serverStateTarget;
         private SigScanTarget _serverStateTarget2;
         private SigScanTarget _fadeListTarget;
+        private SigScanTarget _eventQueueTarget;
+        private SigScanTarget _eventQueueTarget2;
 
         private SigScanTarget _infraIsLoadingTarget;
         private MemoryWatcher<byte> _infraIsLoading;
@@ -341,6 +343,25 @@ namespace LiveSplit.SourceSplit
                 proc.ReadPointer(ptrPtr, out ret);
                 return ret;
             };
+
+            // CEventQueue::m_Events
+            _eventQueueTarget = new SigScanTarget();
+            _eventQueueTarget.OnFound = (proc, scanner, ptr) => proc.ReadPointer(ptr, out ptr) ? ptr : IntPtr.Zero;
+            // source 2007 and newer
+            _eventQueueTarget.AddSignature(1,
+                "A1 ?? ?? ?? ??",           // MOV  EAX,[m_Events]
+                "85 C0",                    // TEST EAX,EAX
+                "74 ??",                    // JZ   LAB_10425dd5
+                "56",                       // PUSH ESI
+                "8D 9B 00 00 00 00");       // LEA  EBX,[EBX]
+
+            // source 2006
+            _eventQueueTarget2 = new SigScanTarget();
+            _eventQueueTarget2.OnFound = (proc, scanner, ptr) => proc.ReadPointer(ptr, out ptr) ? ptr + 0x30 : IntPtr.Zero;
+            _eventQueueTarget2.AddSignature(1,
+               "B9 ?? ?? ?? ??",            // MOV  ECX,DAT_22570180
+               "E8 ?? ?? ?? ??",            // CALL FUN_22258f40
+               "45");                       // INC EBP
         }
 
 #if DEBUG
@@ -481,6 +502,9 @@ namespace LiveSplit.SourceSplit
             if ((offsets.GlobalEntityListPtr = serverScanner.Scan(_globalEntityListTarget)) == IntPtr.Zero)
                 return false;
 
+            if ((offsets.EventQueuePtr = serverScanner.Scan(_eventQueueTarget)) == IntPtr.Zero)
+                offsets.EventQueuePtr = serverScanner.Scan(_eventQueueTarget2);
+
             // optional client fade list
             ProcessModuleWow64Safe client = p.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "client.dll");
             if (client != null)
@@ -520,6 +544,7 @@ namespace LiveSplit.SourceSplit
             Debug.WriteLine("CBaseEntity::m_iName offset = 0x" + offsets.BaseEntityTargetNameOffset.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_pParent offset = 0x" + offsets.BaseEntityParentHandleOffset.ToString("X"));
             Debug.WriteLine("CBasePlayer::m_hViewEntity offset = 0x" + offsets.BasePlayerViewEntity.ToString("X"));
+            Debug.WriteLine("CEventQueue::m_Events ptr = 0x" + offsets.EventQueuePtr.ToString("X"));
 
 #if DEBUG
             Debug.WriteLine("TryGetGameProcess took: " + sw.Elapsed);

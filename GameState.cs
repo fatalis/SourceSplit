@@ -188,6 +188,35 @@ namespace LiveSplit.SourceSplit
             }
             return 0;
         }
+        
+        // todo: add more input types and combinations to ensure correct result
+        public float FindOutputFireTime(string targetName)
+        {
+            if (GameProcess.ReadPointer(GameOffsets.EventQueuePtr) == IntPtr.Zero)
+                return 0;
+
+            EventQueuePrioritizedEvent ioevent;
+            GameProcess.ReadValue(GameProcess.ReadPointer(GameOffsets.EventQueuePtr), out ioevent);
+
+            for (int i = 0; i < 100; i++) // 100 might not be enough for some maps?
+            {
+                string tempname = GameProcess.ReadString((IntPtr)ioevent.m_iTarget, 256);
+                if (tempname == targetName)
+                    return ioevent.m_flFireTime;
+                else
+                {
+                    IntPtr nextptr = (IntPtr)ioevent.m_pNext;
+                    if (nextptr != IntPtr.Zero)
+                    {
+                        GameProcess.ReadValue(nextptr, out ioevent);
+                        continue;
+                    }
+                    else return 0; // end early if we've hit the end of the list
+                }
+            }
+
+            return 0;
+        }
     }
 
     struct GameOffsets
@@ -205,6 +234,7 @@ namespace LiveSplit.SourceSplit
         // note: this may not work pre-ep1 (ancient engine), HLS -7 is a good example
         public IntPtr HostStateLevelNamePtr => this.HostStatePtr + (4 * (GameMemory.Source2003 ? 2 : 8));
         public IntPtr ServerStatePtr;
+        public IntPtr EventQueuePtr;
 
         public CEntInfoSize EntInfoSize;
 
@@ -257,5 +287,22 @@ namespace LiveSplit.SourceSplit
         public float Reset;            // When to reset to not fading (for fadeout and hold)
         public byte r, g, b, alpha;    // Fade color
         public int Flags;              // Fading flags
+    };
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct EventQueuePrioritizedEvent
+    {
+        public float m_flFireTime;
+        public uint m_iTarget;
+        public uint m_iTargetInput;
+        public uint m_pActivator;
+        public uint m_pCaller;
+        public int m_iOutputID;
+        public uint m_pEntTarget;
+        // variant_t m_VariantValue, only relevant values
+        // most notable is v_union which stores the parameters of the i/o event
+        public uint v_union, v_eval, v_fieldtype, v_tostringfunc, v_CVariantSaveDataOpsclass;
+        public uint m_pNext;
+        public uint m_pPrev;
     };
 }

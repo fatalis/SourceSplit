@@ -32,7 +32,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             // escape:      when the player's view entity changes to the final camera
             // broom:       when tsp_broompass is entered   
             // choice:      when stanley_drawcredits is set to 1
-            // confusion:   when the cmd point_clientcommand entity gets fed "tsp_reload 5" OR the choreo timer is over 150, this only gets detected in onsessionend, the split happens on map1
+            // confusion:   when the output to end the map is fired
             // games:       when the player's view entity changes to the final blackout camera
             // heaven:      when the tsp_buttonpass counter is 4 or higher AND it is increased when the final button in _stanley's room is pressed
             // insane:      when the player's view entity changes to the final blackout camera AND the player is wihtin the rooms before the cutscene
@@ -108,8 +108,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private MemoryWatcher<int> _endingCountFadeAlpha;
         private int _endingZendingCamIndex;
         private Vector3f _endingWhiteboardDoorOrigin = new Vector3f(1988f, -1792f, -1992f);
-        private MemoryWatcher<float> _endingConfuseTimer;
-        private static bool _endingConfuseFlag = false;
 
         // demo ending
         private int _demoEndingCamIndex;
@@ -229,7 +227,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             _resetFlag = _resetFlagDemo = _resetFlagMod = resetflagto;
             _endingSeriousCount = 0;
-            _endingConfuseFlag = false;
             _startAng.X = _demoStartAng.X = 0f;
         }
 
@@ -316,11 +313,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         this._demoEndingCamIndex = state.GetEntIndexByName("democredits1");
                         break;
                     }
-                case "map":
-                    {
-                        this._endingConfuseTimer = new MemoryWatcher<float>(state.GetEntityByName("con23") + _logicChoreoTimerOffset);
-                        break;
-                    }
                 case "map1":
                     {
                         this._startDoorAng = new MemoryWatcher<Vector3f>(state.GetEntityByName("427door") + _baseEntityAngleOffset);
@@ -374,20 +366,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             }
 
             _onceFlag = false;
-        }
-
-        public override void OnSessionEnd(GameState state)
-        {
-            // confusion ending
-            if (state.CurrentMap.ToLower() == "map")
-            {
-                _endingConfuseTimer.Update(state.GameProcess);
-
-                if (EvaluateLatestClientCmd("tsp_reload 5", 12) || _endingConfuseTimer.Current >= 105f)
-                {
-                    _endingConfuseFlag = true;
-                }
-            }
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -576,13 +554,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                             return DefaultEnd("whiteboard");
                         }
 
-                        // half of confusion ending
-                        if (_endingConfuseFlag)
-                        {
-                            _endingConfuseFlag = false;
-                            return DefaultEnd("confusion");
-                        }
-
                         break;
                     }
 
@@ -682,6 +653,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         if (EvaluateChangedViewIndex(state, 1, _endingZendingCamIndex))
                         {
                             return DefaultEnd("zending", 4);
+                        }
+                        break;
+                    }
+                case "map":
+                    {
+                        float splitTime = state.FindOutputFireTime("cmd");
+                        if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
+                        {
+                            return DefaultEnd("confusion", 4);
                         }
                         break;
                     }
