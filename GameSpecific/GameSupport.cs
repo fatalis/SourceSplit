@@ -204,6 +204,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_TheLostCity();
                 case "entropyzero":
                     return new HL2Mods_EntropyZero();
+                case "deeperdown":
+                    return new HL2Mods_DeeperDown();
             }
 
             return null;
