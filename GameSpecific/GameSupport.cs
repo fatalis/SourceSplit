@@ -197,6 +197,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HLS();
                 case "backwardsmod":
                     return new HL2Mods_BackwardsMod();
+                case "school_adventures":
+                    return new HL2Mods_SchoolAdventures();
+                case "the lost city":
+                case "thelostcity":
+                    return new HL2Mods_TheLostCity();
+                case "entropyzero":
+                    return new HL2Mods_EntropyZero();
             }
 
             return null;

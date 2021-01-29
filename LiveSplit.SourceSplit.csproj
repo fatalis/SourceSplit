@@ -60,6 +60,9 @@
     <Compile Include="GameSpecific\HL2Ep2.cs" />
     <Compile Include="GameSpecific\HDTF.cs" />
     <Compile Include="GameSpecific\HL2Mods_BackwardsMod.cs" />
+    <Compile Include="GameSpecific\HL2Mods_EntropyZero.cs" />
+    <Compile Include="GameSpecific\HL2Mods_TheLostCity.cs" />
+    <Compile Include="GameSpecific\HL2Mods_SchoolAdventures.cs" />
     <Compile Include="GameSpecific\HLS.cs" />
     <Compile Include="GameSpecific\HL2Mods_Logistique.cs" />
     <Compile Include="GameSpecific\HL2Mods_KillTheMonk.cs" />

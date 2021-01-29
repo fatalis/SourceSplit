@@ -43,7 +43,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                float splitTime = state.FindOutputFireTime("cave_giveitems_equipper");
+                float splitTime = state.FindOutputFireTime("cave_giveitems_equipper", 5);
                 if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
                 {
                     _onceFlag = true;

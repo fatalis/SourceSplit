@@ -188,9 +188,10 @@ namespace LiveSplit.SourceSplit
             }
             return 0;
         }
-        
+
+        // ioevents are stored in a non-contiguous list where every ioevent contain pointers to the next or previous event 
         // todo: add more input types and combinations to ensure correct result
-        public float FindOutputFireTime(string targetName)
+        public float FindOutputFireTime(string targetName, int clamp = 100)
         {
             if (GameProcess.ReadPointer(GameOffsets.EventQueuePtr) == IntPtr.Zero)
                 return 0;
@@ -198,10 +199,45 @@ namespace LiveSplit.SourceSplit
             EventQueuePrioritizedEvent ioevent;
             GameProcess.ReadValue(GameProcess.ReadPointer(GameOffsets.EventQueuePtr), out ioevent);
 
-            for (int i = 0; i < 100; i++) // 100 might not be enough for some maps?
+            // clamp the number of items to go through the list to save performance
+            // the list is automatically updated once an output is fired
+            for (int i = 0; i < clamp; i++)
             {
                 string tempname = GameProcess.ReadString((IntPtr)ioevent.m_iTarget, 256);
                 if (tempname == targetName)
+                    return ioevent.m_flFireTime;
+                else
+                {
+                    IntPtr nextptr = (IntPtr)ioevent.m_pNext;
+                    if (nextptr != IntPtr.Zero)
+                    {
+                        GameProcess.ReadValue(nextptr, out ioevent);
+                        continue;
+                    }
+                    else return 0; // end early if we've hit the end of the list
+                }
+            }
+
+            return 0;
+        }
+
+        public float FindOutputFireTime(string targetName, string command, string param, int clamp = 100)
+        {
+            if (GameProcess.ReadPointer(GameOffsets.EventQueuePtr) == IntPtr.Zero)
+                return 0;
+
+            EventQueuePrioritizedEvent ioevent;
+            GameProcess.ReadValue(GameProcess.ReadPointer(GameOffsets.EventQueuePtr), out ioevent);
+
+            for (int i = 0; i < clamp; i++) 
+            {
+                string tempname = GameProcess.ReadString((IntPtr)ioevent.m_iTarget, 256);
+                string tempcommand = GameProcess.ReadString((IntPtr)ioevent.m_iTargetInput, 256);
+                string tempparam = GameProcess.ReadString((IntPtr)ioevent.v_union, 256) == null ? "" : GameProcess.ReadString((IntPtr)ioevent.v_union, 256);
+
+                if (tempname == targetName &&
+                    tempcommand.ToLower() == command.ToLower() && 
+                    tempparam.ToLower() == param.ToLower())
                     return ioevent.m_flFireTime;
                 else
                 {
@@ -295,11 +331,11 @@ namespace LiveSplit.SourceSplit
         public float m_flFireTime;
         public uint m_iTarget;
         public uint m_iTargetInput;
-        public uint m_pActivator;
-        public uint m_pCaller;
+        public uint m_pActivator;       // EHANDLE
+        public uint m_pCaller;          // EHANDLE
         public int m_iOutputID;
-        public uint m_pEntTarget;
-        // variant_t m_VariantValue, only relevant values
+        public uint m_pEntTarget;       // EHANDLE
+        // variant_t m_VariantValue, class, only relevant members
         // most notable is v_union which stores the parameters of the i/o event
         public uint v_union, v_eval, v_fieldtype, v_tostringfunc, v_CVariantSaveDataOpsclass;
         public uint m_pNext;

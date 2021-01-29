@@ -19,7 +19,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             // countdown:   3 ticks before when "stopsound" is sent to client command buffer
             // museum:      when the pod reaches within 0.05 units of the final path_track
             // insane:      when the player's view entity changes from insane camera's to final blackout camera's
-            // games:       when the game text buffer is filled with "The End"
+            // games:       when the final out is fired to the game text entity to show "the end"
             // apartment:   when the player's view entity changes to final blackout camera AND the player is inside the room
 
         // HD REMAKE:
@@ -31,7 +31,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             // reluctant:   when the player's view entity changes to the final blackout camera AND the player is within 10 units of the 427 room
             // escape:      when the player's view entity changes to the final camera
             // broom:       when tsp_broompass is entered   
-            // choice:      when stanley_drawcredits is set to 1
+            // choice:      when the final output gets fired
             // confusion:   when the output to end the map is fired
             // games:       when the player's view entity changes to the final blackout camera
             // heaven:      when the tsp_buttonpass counter is 4 or higher AND it is increased when the final button in _stanley's room is pressed
@@ -52,7 +52,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public static bool _resetFlagMod;
 
         private bool _isMod = false;
-        private const int _modClientModuleSize = 0x4cb000;
+        //private const int _modClientModuleSize = 0x4cb000;
         private const float _angleEpsilon = 0.0005f;
 
         ProcessModuleWow64Safe client;
@@ -104,7 +104,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private static int _endingSeriousCount;
         private MemoryWatcher<Vector3f> _endingDiscoAngVel;
         private MemoryWatcher<float> _endingStuckEndingCount;
-        private MemoryWatcher<int> _credits;
         private MemoryWatcher<int> _endingCountFadeAlpha;
         private int _endingZendingCamIndex;
         private Vector3f _endingWhiteboardDoorOrigin = new Vector3f(1988f, -1792f, -1992f);
@@ -118,7 +117,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _modEndingInsaneCamIndex;
         private Vector3f _modEndingMuseumPodEndPos = new Vector3f(196f, 2812f, 994.772f);
         private MemoryWatcher<Vector3f> _modEndingMuseumPodPos;
-        private StringWatcher _modLatestGameText;
         private Vector3f _modEndingApartmentSectorOrigin = new Vector3f(-3524f, 1368f, -620f);
 
         public TheStanleyParable()
@@ -214,7 +212,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             float splitTime = state.FindFadeEndTime(fadeSpeed);
 
-            Debug.WriteLine(splitTime);
             if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
             {
                 return DefaultEnd(ending);
@@ -235,10 +232,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
             client = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "client.dll");
             engine = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "engine.dll");
-
-            // the 2 versions of tsp run such different engines and these offsets are so obscure it's impossible to sigscan them cleanly
-            if (client.ModuleMemorySize <= _modClientModuleSize)
-                _isMod = true;
 
             Trace.Assert(server != null && client != null && engine != null);
 
@@ -272,15 +265,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             _endingSeriousCount = 0;
             _latestClientCmd = new StringWatcher(engineScanner.Scan(_latest_Client_Trg), 50);
             _endingsWatcher.Add(_latestClientCmd);
-
-            _credits = new MemoryWatcher<int>(client.BaseAddress + _drawCreditsOffset);
-            _endingsWatcher.Add(_credits);
-
-            if (_isMod)
-            {
-                _modLatestGameText = new StringWatcher(engine.BaseAddress + 0x502618, 128);
-                _endingsWatcher.Add(_modLatestGameText);
-            }
         }
 
 
@@ -439,8 +423,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 // demo games
                 case "trainstation":
                     {
-                        if (_modLatestGameText.Current.Length == 7 && _modLatestGameText.Changed &&
-                            _modLatestGameText.Current.Substring(0, 7).ToLower() == "the end")
+                        float splitTime = state.FindOutputFireTime("the_end", 2);
+                        if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
                         {
                             return DefaultEnd("mod games");
                         }
@@ -604,7 +588,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                 case "incorrect": //choice ending
                     {
-                        if (_credits.Current == 1 && _credits.Old == 0)
+                        float splitTime = state.FindOutputFireTime("smallnewtimerelay", 2);
+                        if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
                         {
                             return DefaultEnd("choice");
                         }
@@ -627,7 +612,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                 case "map_death": //museum ending
                     {
-                        if (EvaluateLatestClientCmd("stopsound", 9))
+                        float splitTime = state.FindOutputFireTime("cmd", "command", "stopsound", 2);
+                        if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
                         {
                             return DefaultEnd("museum");
                         }
@@ -658,7 +644,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     }
                 case "map":
                     {
-                        float splitTime = state.FindOutputFireTime("cmd");
+                        float splitTime = state.FindOutputFireTime("cmd", 2);
                         if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
                         {
                             return DefaultEnd("confusion", 4);
