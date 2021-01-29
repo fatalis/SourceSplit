@@ -1,4 +1,5 @@
 ﻿using LiveSplit.ComponentUtil;
+using System;
 using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
@@ -68,6 +69,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("wpd ee end");
                     _onceFlag = true;
+                    return GameSupportResult.PlayerLostControl;
+                }
+            }
+
+            else if (state.CurrentMap.ToLower() == "wpd_tp" || state.CurrentMap.ToLower() == "hallway")
+            {
+                float splitTime = state.FindOutputFireTime("commands", 3);
+                if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
+                {
+                    _onceFlag = true;
+                    Debug.WriteLine("wpd ce end");
                     return GameSupportResult.PlayerLostControl;
                 }
             }
