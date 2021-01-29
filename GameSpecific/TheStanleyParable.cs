@@ -212,7 +212,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             float splitTime = state.FindFadeEndTime(fadeSpeed);
 
-            if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
+            if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= GameState.IO_EPSILON)
             {
                 return DefaultEnd(ending);
             }
@@ -424,7 +424,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "trainstation":
                     {
                         float splitTime = state.FindOutputFireTime("the_end", 2);
-                        if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
+                        if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= GameState.IO_EPSILON)
                         {
                             return DefaultEnd("mod games");
                         }
@@ -589,7 +589,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "incorrect": //choice ending
                     {
                         float splitTime = state.FindOutputFireTime("smallnewtimerelay", 2);
-                        if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
+                        Debug.WriteLine(Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) - GameState.IO_EPSILON);
+                        if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= GameState.IO_EPSILON)
                         {
                             return DefaultEnd("choice");
                         }
@@ -613,7 +614,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "map_death": //museum ending
                     {
                         float splitTime = state.FindOutputFireTime("cmd", "command", "stopsound", 2);
-                        if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
+                        if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= GameState.IO_EPSILON)
                         {
                             return DefaultEnd("museum");
                         }
@@ -645,7 +646,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "map":
                     {
                         float splitTime = state.FindOutputFireTime("cmd", 2);
-                        if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
+                        if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= GameState.IO_EPSILON)
                         {
                             return DefaultEnd("confusion", 4);
                         }

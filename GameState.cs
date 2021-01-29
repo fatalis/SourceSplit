@@ -12,6 +12,8 @@ namespace LiveSplit.SourceSplit
     {
         public const int ENT_INDEX_PLAYER = 1;
 
+        public const float IO_EPSILON = 0.03f; // precious of about 2 ticks, could be lowered?
+
         public Process GameProcess;
         public GameOffsets GameOffsets;
 
