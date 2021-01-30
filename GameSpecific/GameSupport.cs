@@ -206,6 +206,20 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_EntropyZero();
                 case "deeperdown":
                     return new HL2Mods_DeeperDown();
+                case "thinktank":
+                    return new HL2Mods_ThinkTank();
+                case "gnome":
+                    return new HL2Mods_Gnome();
+                case "hl2-sp-reject":
+                    return new HL2Mods_Reject();
+                case "thc16-trapville":
+                    return new HL2Mods_TrapVille();
+                case "runthinkshootliveville":
+                    return new HL2Mods_RTSLVille();
+                case "abridged":
+                    return new HL2Mods_Abridged();
+                case "episodeone":
+                    return new HL2Mods_EpisodeOne();
             }
 
             return null;

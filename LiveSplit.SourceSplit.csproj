@@ -26,6 +26,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,6 +37,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="LiveSplit.Core">
@@ -59,9 +61,9 @@
     <Compile Include="GameSpecific\HL2Ep1.cs" />
     <Compile Include="GameSpecific\HL2Ep2.cs" />
     <Compile Include="GameSpecific\HDTF.cs" />
-    <Compile Include="GameSpecific\HL2Mods_BackwardsMod.cs" />
     <Compile Include="GameSpecific\HL2Mods_EntropyZero.cs" />
     <Compile Include="GameSpecific\HL2Mods_DeeperDown.cs" />
+    <Compile Include="GameSpecific\HL2Mods_Others.cs" />
     <Compile Include="GameSpecific\HL2Mods_TheLostCity.cs" />
     <Compile Include="GameSpecific\HL2Mods_SchoolAdventures.cs" />
     <Compile Include="GameSpecific\HLS.cs" />

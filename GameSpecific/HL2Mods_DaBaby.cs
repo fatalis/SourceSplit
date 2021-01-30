@@ -22,7 +22,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
-
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
@@ -32,7 +31,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             _onceFlag = false;
         }
-
 
         public override GameSupportResult OnUpdate(GameState state)
         {

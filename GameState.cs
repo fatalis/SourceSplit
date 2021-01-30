@@ -12,7 +12,7 @@ namespace LiveSplit.SourceSplit
     {
         public const int ENT_INDEX_PLAYER = 1;
 
-        public const float IO_EPSILON = 0.03f; // precious of about 2 ticks, could be lowered?
+        public const float IO_EPSILON = 0.03f; // precision of about 2 ticks, could be lowered?
 
         public Process GameProcess;
         public GameOffsets GameOffsets;
@@ -254,6 +254,12 @@ namespace LiveSplit.SourceSplit
             }
 
             return 0;
+        }
+
+        // fixme: this *could* probably return true twice if the player save/loads on an exact tick
+        public bool CheckOutputSplitTime(float splitTime, float epsilon = IO_EPSILON)
+        {
+            return splitTime != 0f && Math.Abs(splitTime - RawTickCount * IntervalPerTick) <= epsilon;
         }
     }
 

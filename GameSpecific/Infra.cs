@@ -22,7 +22,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             float splitTime = state.FindFadeEndTime(fadeSpeed);
             // this is how the game actually knows when a fade has finished as well
-            if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= GameState.IO_EPSILON)
+            if (splitTime != 0f && Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) <= 0.05f)
             {
                 _onceFlag = true;
                 Debug.WriteLine("infra " + ending + " ending");
