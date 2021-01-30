@@ -35,7 +35,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("STASIS_SEQ_LazyGo", 3);
-                if (state.CheckOutputSplitTime(splitTime))
+                if (state.CompareToInternalTimer(splitTime))
                 {
                     _onceFlag = true;
                     Debug.WriteLine("entropy zero end");

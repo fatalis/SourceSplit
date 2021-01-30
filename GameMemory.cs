@@ -92,15 +92,17 @@ namespace LiveSplit.SourceSplit
                 "57",                       // PUSH EDI
                 "C6 05 ?? ?? ?? ?? 00");    // MOV  byte ptr [0x1047ccd4],0x0
 
+            // CViewEffects::m_FadeList (g_ViewEffects)
             _fadeListTarget = new SigScanTarget();
             _fadeListTarget.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
-
-            // CViewEffects::m_FadeList
+            
+            // infra
             _fadeListTarget.AddSignature(2, 
                 "8D 88 ?? ?? ?? ??",        // LEA ECX,[EAX + fadeList]
                 "8B 01",                    // MOV EAX,dword ptr [ECX]
                 "8B 40 ??",                 // MOV EAX,dword ptr [EAX + 0xc]
                 "8D 55 ??");                // LEA EDX,[EBP + -0x2c]
+
 
             // CBaseServer::(server_state_t)m_State
             _serverStateTarget = new SigScanTarget();
@@ -510,7 +512,30 @@ namespace LiveSplit.SourceSplit
             if (client != null)
             {
                 var clientScanner = new SignatureScanner(p, client.BaseAddress, client.ModuleMemorySize);
-                offsets.FadeListPtr = clientScanner.Scan(_fadeListTarget);
+                IntPtr tmpfade = clientScanner.Scan(_fadeListTarget);
+                if (tmpfade == IntPtr.Zero) 
+                {
+                    // because of how annoyingly hard it is to traditionally sigscan this we'll have to resort to function searching
+                    // find the reference to the string "%i gametitle fade\n" near which lies gViewEffects/m_FadeList
+                    // subtract 12 bytes from that pointer to get past a gpGlobals reference which would bring up a 2nd result in our final sigscan
+                    // subtract another 0x50 bytes from that pointer to get a new base address, then set 0x50 as the module size
+                    // then sigscan
+
+                    // support range: old engine 4104 & new engine non-portal branch between 2007 and 2013
+
+                    IntPtr stringptr = clientScanner.Scan(new SigScanTarget(0, "25692067616D657469746C6520666164650A"));
+                    byte[] b = BitConverter.GetBytes(stringptr.ToInt32());
+                    var target = new SigScanTarget(-12, $"68 {b[0]:X02} {b[1]:X02} {b[2]:X02} {b[3]:X02}");
+
+                    IntPtr endptr = clientScanner.Scan(target);
+                    clientScanner = new SignatureScanner(p, endptr - 0x50, 0x50);
+
+                    target = new SigScanTarget(2, "8B 0D ?? ?? ?? ??"); // push m_FadeList
+                    target.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(proc.ReadPointer(ptr), out ptr) ? IntPtr.Zero : ptr;
+                    tmpfade = clientScanner.Scan(target);
+                }
+
+                offsets.FadeListPtr = tmpfade;
             }
 
             // entity offsets
@@ -537,7 +562,7 @@ namespace LiveSplit.SourceSplit
             Debug.WriteLine("CBaseServer::m_szMapname ptr = 0x" + offsets.CurMapPtr.ToString("X"));
             Debug.WriteLine("CGlobalVarsBase::curtime ptr = 0x" + offsets.CurTimePtr.ToString("X"));
             Debug.WriteLine("CBaseClientState::m_nSignonState ptr = 0x" + offsets.SignOnStatePtr.ToString("X"));
-            Debug.WriteLine("CViewEffects::m_FadeList ptr = 0x" + offsets.FadeListPtr.ToString("X"));
+            Debug.WriteLine("CViewEffects::m_FadeList (g_ViewEffects) ptr = 0x" + offsets.FadeListPtr.ToString("X"));
             Debug.WriteLine("CBaseEntityList::(CEntInfo)m_EntPtrArray ptr = 0x" + offsets.GlobalEntityListPtr.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_fFlags offset = 0x" + offsets.BaseEntityFlagsOffset.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_vecAbsOrigin offset = 0x" + offsets.BaseEntityAbsOriginOffset.ToString("X"));

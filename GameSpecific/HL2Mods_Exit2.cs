@@ -6,7 +6,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
     class HL2Mods_Exit2 : GameSupport
     {
         // start: when player's view index changes from the camera entity to the player
-        // ending: 2 seconds after final trigger_once is hit and fade starts
+        // ending: when the final trigger_once is hit and the fade finishes
 
         private bool _onceFlag = false;
 
@@ -58,12 +58,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
             else if (this.IsLastMap && _trigIndex != -1)
             {
                 var newTrig = state.GetEntInfoByIndex(_trigIndex);
+                float splitTime = state.FindFadeEndTime(-127.5f);
 
-                if (newTrig.EntityPtr == IntPtr.Zero)
+                if (newTrig.EntityPtr == IntPtr.Zero && state.CompareToInternalTimer(splitTime, 0.05f))
                 {
                     Debug.WriteLine("exit2 end");
                     _onceFlag = true;
-                    this.EndOffsetTicks = -127;
                     return GameSupportResult.PlayerLostControl;
                 }
             }

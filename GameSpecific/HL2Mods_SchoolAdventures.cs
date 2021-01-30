@@ -27,7 +27,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("final_teleport1",3);
-                if (state.CheckOutputSplitTime(splitTime))
+                if (state.CompareToInternalTimer(splitTime))
                 {
                     _onceFlag = true;
                     Debug.WriteLine("school_adventures end");

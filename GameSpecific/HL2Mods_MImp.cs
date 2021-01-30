@@ -44,7 +44,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsFirstMap)
             {
                 float splitTime = state.FindOutputFireTime("cave_giveitems_equipper", 5);
-                if (state.CheckOutputSplitTime(splitTime))
+                if (state.CompareToInternalTimer(splitTime))
                 {
                     _onceFlag = true;
                     Debug.WriteLine("mimp start");

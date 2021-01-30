@@ -76,7 +76,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             else if (state.CurrentMap.ToLower() == "wpd_tp" || state.CurrentMap.ToLower() == "hallway")
             {
                 float splitTime = state.FindOutputFireTime("commands", 3);
-                if (state.CheckOutputSplitTime(splitTime))
+                if (state.CompareToInternalTimer(splitTime))
                 {
                     _onceFlag = true;
                     Debug.WriteLine("wpd ce end");

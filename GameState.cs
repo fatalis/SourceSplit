@@ -257,7 +257,7 @@ namespace LiveSplit.SourceSplit
         }
 
         // fixme: this *could* probably return true twice if the player save/loads on an exact tick
-        public bool CheckOutputSplitTime(float splitTime, float epsilon = IO_EPSILON)
+        public bool CompareToInternalTimer(float splitTime, float epsilon = IO_EPSILON)
         {
             return splitTime != 0f && Math.Abs(splitTime - RawTickCount * IntervalPerTick) <= epsilon;
         }

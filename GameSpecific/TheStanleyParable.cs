@@ -64,7 +64,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _baseEntityAngleVelOffset = -1;
         private const int _angleOffset = 2812;
         private const int _modAngleOffset = 0x40fe98;
-        private const int _drawCreditsOffset = 16105320;
+        //private const int _drawCreditsOffset = 16105320;
         private const int _buttonPasses = 8263812;
         private const int _logicChoreoTimerOffset = 0x3b4;
         private const int _mathCounterCurValueOffset = 0x368;
@@ -211,8 +211,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private GameSupportResult DefaultFadeEnd(GameState state, float fadeSpeed, string ending)
         {
             float splitTime = state.FindFadeEndTime(fadeSpeed);
-
-            if (state.CheckOutputSplitTime(splitTime))
+            if (state.CompareToInternalTimer(splitTime, 0.05f))
             {
                 return DefaultEnd(ending);
             }
@@ -424,7 +423,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "trainstation":
                     {
                         float splitTime = state.FindOutputFireTime("the_end", 2);
-                        if (state.CheckOutputSplitTime(splitTime))
+                        if (state.CompareToInternalTimer(splitTime))
                         {
                             return DefaultEnd("mod games");
                         }
@@ -589,8 +588,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "incorrect": //choice ending
                     {
                         float splitTime = state.FindOutputFireTime("smallnewtimerelay", 2);
-                        Debug.WriteLine(Math.Abs(splitTime - state.RawTickCount * state.IntervalPerTick) - GameState.IO_EPSILON);
-                        if (state.CheckOutputSplitTime(splitTime))
+                        if (state.CompareToInternalTimer(splitTime))
                         {
                             return DefaultEnd("choice");
                         }
@@ -614,7 +612,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "map_death": //museum ending
                     {
                         float splitTime = state.FindOutputFireTime("cmd", "command", "stopsound", 2);
-                        if (state.CheckOutputSplitTime(splitTime))
+                        if (state.CompareToInternalTimer(splitTime))
                         {
                             return DefaultEnd("museum");
                         }
@@ -646,7 +644,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "map":
                     {
                         float splitTime = state.FindOutputFireTime("cmd", 2);
-                        if (state.CheckOutputSplitTime(splitTime))
+                        if (state.CompareToInternalTimer(splitTime))
                         {
                             return DefaultEnd("confusion", 4);
                         }

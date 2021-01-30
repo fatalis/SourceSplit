@@ -53,7 +53,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             else if (this.IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("OW_Dead_Relay", 2);
-                if (state.CheckOutputSplitTime(splitTime))
+                if (state.CompareToInternalTimer(splitTime))
                 {
                     Debug.WriteLine("deeper down end");
                     _onceFlag = true;

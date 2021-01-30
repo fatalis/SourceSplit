@@ -41,7 +41,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("servercommand", 3);
-                if (state.CheckOutputSplitTime(splitTime))
+                if (state.CompareToInternalTimer(splitTime))
                 {
                     Debug.WriteLine("think tank end");
                     _onceFlag = true;
@@ -82,7 +82,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("cmd_end", 2);
-                if (state.CheckOutputSplitTime(splitTime))
+                if (state.CompareToInternalTimer(splitTime))
                 {
                     Debug.WriteLine("gnome end");
                     _onceFlag = true;
@@ -130,7 +130,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 return GameSupportResult.DoNothing;
 
             float splitTime = state.FindOutputFireTime("komenda", 3);
-            if (state.CheckOutputSplitTime(splitTime))
+            if (state.CompareToInternalTimer(splitTime))
             {
                 Debug.WriteLine("hl2 reject end");
                 _onceFlag = true;
@@ -171,7 +171,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (IsLastMap && state.PlayerPosition.Distance(_endSector) <= 300f)
             {
                 float splitTime = state.FindOutputFireTime("game_end", 10);
-                if (state.CheckOutputSplitTime(splitTime))
+                if (state.CompareToInternalTimer(splitTime))
                 {
                     Debug.WriteLine("trapville end");
                     _onceFlag = true;
@@ -210,7 +210,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (IsLastMap && state.PlayerViewEntityIndex != GameState.ENT_INDEX_PLAYER)
             {
                 float splitTime = state.FindOutputFireTime("clientcommand", 8);
-                if (state.CheckOutputSplitTime(splitTime))
+                if (state.CompareToInternalTimer(splitTime))
                 {
                     Debug.WriteLine("rtslville end");
                     _onceFlag = true;
@@ -249,7 +249,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("end_disconnect", "command", "disconnect; map_background background_ml05", 6);
-                if (state.CheckOutputSplitTime(splitTime))
+                if (state.CompareToInternalTimer(splitTime))
                 {
                     Debug.WriteLine("hl abridged end");
                     _onceFlag = true;
@@ -288,7 +288,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("point_clientcommand2", 4);
-                if (state.CheckOutputSplitTime(splitTime))
+                if (state.CompareToInternalTimer(splitTime))
                 {
                     Debug.WriteLine("episode one end");
                     _onceFlag = true;
