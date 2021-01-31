@@ -220,6 +220,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_Abridged();
                 case "episodeone":
                     return new HL2Mods_EpisodeOne();
+                case "combinationville":
+                    return new HL2Mods_CombinationVille();
+                case "sdk-2013-sp-tlc18-c4-phaseville":
+                    return new HL2Mods_PhaseVille();
+                case "companionpiece":
+                    return new HL2Mods_CompanionPiece();
             }
 
             return null;

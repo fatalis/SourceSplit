@@ -2,9 +2,11 @@
 // to cut down on the number of files included in this project, this file was created
 // to contain code for mods with similar auto-start and stop behavior or didn't require much programming
 
-// mods included: think tank, gnome, hl2 backwards mod, hl2 reject, trapville, rtslville, hl abridged, episode one
+// mods included: think tank, gnome, hl2 backwards mod, hl2 reject, trapville, rtslville, hl abridged, episode one, combination ville,
+// phaseville
 
 using LiveSplit.ComponentUtil;
+using System;
 using System.Diagnostics;
 
 
@@ -291,6 +293,131 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 if (state.CompareToInternalTimer(splitTime))
                 {
                     Debug.WriteLine("episode one end");
+                    _onceFlag = true;
+                    return GameSupportResult.PlayerLostControl;
+                }
+            }
+            return GameSupportResult.DoNothing;
+        }
+    }
+
+    class HL2Mods_CombinationVille : GameSupport
+    {
+        // start: on first map
+        // end: on final output
+        public HL2Mods_CombinationVille()
+        {
+            this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
+            this.FirstMap = "canal_flight_ppmc_cv";
+            this.LastMap = "cvbonus_ppmc_cv";
+            this.StartOnFirstMapLoad = true;
+        }
+
+        private bool _onceFlag = false;
+
+        private Vector3f _tramEndPos = new Vector3f(2624f, -1856f, 250f);
+        private int _tramPtr;
+
+        public override void OnSessionStart(GameState state)
+        {
+            base.OnSessionStart(state);
+
+            if (IsLastMap)
+                _tramPtr = state.GetEntIndexByName("tram");
+
+            _onceFlag = false;
+        }
+
+        public override GameSupportResult OnUpdate(GameState state)
+        {
+            if (_onceFlag)
+                return GameSupportResult.DoNothing;
+
+            if (IsLastMap && state.GetEntityPos(_tramPtr).Distance(_tramEndPos) <= 100)
+            {
+                float splitTime = state.FindOutputFireTime("pcc", "command", "startupmenu force", 8);
+                if (state.CompareToInternalTimer(splitTime))
+                {
+                    Debug.WriteLine("combination ville end");
+                    _onceFlag = true;
+                    return GameSupportResult.PlayerLostControl;
+                }
+            }
+            return GameSupportResult.DoNothing;
+        }
+    }
+
+    class HL2Mods_PhaseVille : GameSupport
+    {
+        // start: on first map
+        // end: on final output
+        public HL2Mods_PhaseVille()
+        {
+            this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
+            this.FirstMap = "rtsl_mlc";
+            this.LastMap = "hospitalisation_tlc18_c4";
+            this.StartOnFirstMapLoad = true;
+        }
+
+        private bool _onceFlag = false;
+
+
+        public override void OnSessionStart(GameState state)
+        {
+            base.OnSessionStart(state);
+            _onceFlag = false;
+        }
+
+        public override GameSupportResult OnUpdate(GameState state)
+        {
+            if (_onceFlag)
+                return GameSupportResult.DoNothing;
+
+            if (IsLastMap)
+            {
+                float splitTime = state.FindOutputFireTime("clientcommand", 3);
+                if (state.CompareToInternalTimer(splitTime))
+                {
+                    Debug.WriteLine("phaseville end");
+                    _onceFlag = true;
+                    return GameSupportResult.PlayerLostControl;
+                }
+            }
+            return GameSupportResult.DoNothing;
+        }
+    }
+
+    class HL2Mods_CompanionPiece : GameSupport
+    {
+        // start: on first map
+        // end: on final output
+        public HL2Mods_CompanionPiece()
+        {
+            this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
+            this.FirstMap = "tg_wrd_carnival";
+            this.LastMap = "maplab_jan_cp";
+            this.StartOnFirstMapLoad = true;
+        }
+
+        private bool _onceFlag = false;
+
+        public override void OnSessionStart(GameState state)
+        {
+            base.OnSessionStart(state);
+            _onceFlag = false;
+        }
+
+        public override GameSupportResult OnUpdate(GameState state)
+        {
+            if (_onceFlag)
+                return GameSupportResult.DoNothing;
+
+            if (IsLastMap)
+            {
+                float splitTime = state.FindOutputFireTime("piss_off_egg_head", 4);
+                if (state.CompareToInternalTimer(splitTime))
+                {
+                    Debug.WriteLine("companion piece end");
                     _onceFlag = true;
                     return GameSupportResult.PlayerLostControl;
                 }
