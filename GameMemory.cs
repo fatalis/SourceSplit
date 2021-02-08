@@ -903,18 +903,19 @@ namespace LiveSplit.SourceSplit
                     state.GameProcess.ReadString(state.GameOffsets.HostStateLevelNamePtr, ReadStringType.ASCII, 256 - 1, out levelName);
                     Debug.WriteLine("host state m_levelName changed to " + levelName);
 
-                    if (state.HostState == HostState.NewGame)
+                    // only for the beginner's guide, the "restart the level" option does a changelevel back to the currentmap rather than
+                    // simply doing "restart"
+                    // if the runner uses this option to reset at the first map then restart the timer
+                    if (state.HostState == HostState.NewGame || state.GameDir.ToLower() == "beginnersguide")
                     {
                         if (state.GameSupport != null && (levelName == state.GameSupport.FirstMap || levelName == state.GameSupport.FirstMap2))
-                        {
                             this.SendNewGameStartedEvent(levelName);
 
-                            if (state.GameSupport.StartOnFirstMapLoad)
-                            {
-                                // do a debug spew of the timer start
-                                Debug.WriteLine(state.GameDir + " start");
-                                this.HandleGameSupportResult(GameSupportResult.PlayerGainedControl, state);
-                            }
+                        if (state.GameSupport.StartOnFirstLoadMaps.Contains(levelName))
+                        {
+                            // do a debug spew of the timer start
+                            Debug.WriteLine(state.GameDir + " start on " + levelName);
+                            this.HandleGameSupportResult(GameSupportResult.PlayerGainedControl, state);
                         }
 
                     }
@@ -922,16 +923,6 @@ namespace LiveSplit.SourceSplit
                     {
                         // state.CurrentMap should still be the previous map
                         this.SendMapChangedEvent(levelName, state.CurrentMap);
-
-                        // only for the beginner's guide, the "restart the level" option does a changelevel back to the currentmap rather than
-                        // simply doing "restart"
-                        // if the runner uses this option to reset at the first map then restart the timer
-                        if (state.GameDir.ToLower() == "beginnersguide" &&
-                            levelName == state.CurrentMap && state.CurrentMap == state.GameSupport.FirstMap)
-                        {
-                            Debug.WriteLine(state.GameDir + " start");
-                            this.HandleGameSupportResult(GameSupportResult.PlayerGainedControl, state);
-                        }
                     }
                 }
             }

@@ -16,7 +16,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "lostcity01";
             this.LastMap = "lostcity02";
-            this.StartOnFirstMapLoad = true;
+            this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
         public override void OnSessionStart(GameState state)

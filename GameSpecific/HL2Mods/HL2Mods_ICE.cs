@@ -4,23 +4,22 @@ using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class HL2Mods_DankMemes : GameSupport
+    class HL2Mods_ICE : GameSupport
     {
         // start: on first map
-        // ending: when "John Cena" (final antlion king _bossPtr) hp is <= 0 
+        // ending: when the gunship's hp drops hits or drops below 0hp
 
         private bool _onceFlag;
+        private MemoryWatcher<int> _gunshipHP;
 
         private int _baseEntityHealthOffset = -1;
 
-        private MemoryWatcher<int> _bossHP;
-
-        public HL2Mods_DankMemes()
+        public HL2Mods_ICE()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.StartOnFirstMapLoad = true;
-            this.FirstMap = "Your_house";
-            this.LastMap = "Dank_Boss";
+            this.FirstMap = "ice_02";
+            this.LastMap = "ice_32";
+            this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
         public override void OnGameAttached(GameState state)
@@ -38,8 +37,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             base.OnSessionStart(state);
 
-            if (this.IsLastMap)
-                _bossHP = new MemoryWatcher<int>(state.GetEntityByName("John_Cena") + _baseEntityHealthOffset);
+            if (IsLastMap && _baseEntityHealthOffset != 0x0)
+            {
+                _gunshipHP = new MemoryWatcher<int>(state.GetEntityByName("helicopter_1") + _baseEntityHealthOffset);
+            }
 
             _onceFlag = false;
         }
@@ -52,15 +53,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap)
             {
-                _bossHP.Update(state.GameProcess);
-
-                if (_bossHP.Current <= 0 && _bossHP.Old > 0)
+                _gunshipHP.Update(state.GameProcess);
+                if (_gunshipHP.Current <= 0 && _gunshipHP.Old > 0)
                 {
                     _onceFlag = true;
-                    Debug.WriteLine("dank memes end");
+                    Debug.WriteLine("ice end");
                     return GameSupportResult.PlayerLostControl;
                 }
             }
+
             return GameSupportResult.DoNothing;
         }
     }

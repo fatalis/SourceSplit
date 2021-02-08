@@ -14,8 +14,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public Infra()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.StartOnFirstMapLoad = true;
             this.FirstMap = "infra_c1_m1_office";
+            this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
         public GameSupportResult DefaultEnd(GameState state, float fadeSpeed, string ending)

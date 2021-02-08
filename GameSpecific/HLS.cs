@@ -17,10 +17,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public HLS()
         {
-            this.StartOnFirstMapLoad = true;
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "c1a0";
             this.LastMap = "c4a3";
+            this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
         public override void OnGameAttached(GameState state)
         {

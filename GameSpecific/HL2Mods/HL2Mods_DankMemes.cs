@@ -4,23 +4,23 @@ using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class HL2Mods_SnipersEp : GameSupport
+    class HL2Mods_DankMemes : GameSupport
     {
-        //start: when player moves (excluding an on-the-spot jump)
-        //end: when "gordon" is killed (hp is <= 0)
+        // start: on first map
+        // ending: when "John Cena" (final antlion king _bossPtr) hp is <= 0 
 
         private bool _onceFlag;
+
         private int _baseEntityHealthOffset = -1;
-        public static bool _resetFlag;
 
-        private MemoryWatcher<int> _freemanHP;
-        Vector3f _startPos = new Vector3f(9928f, 12472f, -180f);
+        private MemoryWatcher<int> _bossHP;
 
-        public HL2Mods_SnipersEp()
+        public HL2Mods_DankMemes()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "bestmod2013";
-            this.RequiredProperties = PlayerProperties.Position;
+            this.FirstMap = "Your_house";
+            this.LastMap = "Dank_Boss";
+            this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
         public override void OnGameAttached(GameState state)
@@ -34,41 +34,30 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
 
-        public override void OnTimerReset(bool resetFlagTo)
-        {
-            _resetFlag = resetFlagTo;
-        }
-
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
 
-            _onceFlag = false;
+            if (this.IsLastMap)
+                _bossHP = new MemoryWatcher<int>(state.GetEntityByName("John_Cena") + _baseEntityHealthOffset);
 
-            if (this.IsFirstMap)
-            {
-                _freemanHP = new MemoryWatcher<int>(state.GetEntityByName("bar") + _baseEntityHealthOffset);
-            }
+            _onceFlag = false;
         }
+
 
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap)
+            if (this.IsLastMap)
             {
-                if (state.PrevPlayerPosition.BitEqualsXY(_startPos) && !state.PlayerPosition.BitEqualsXY(_startPos) && !_resetFlag)
-                {
-                    _resetFlag = true;
-                    return GameSupportResult.PlayerGainedControl;
-                }
+                _bossHP.Update(state.GameProcess);
 
-                _freemanHP.Update(state.GameProcess);
-                if (_freemanHP.Current <= 0 && _freemanHP.Old > 0)
+                if (_bossHP.Current <= 0 && _bossHP.Old > 0)
                 {
-                    Debug.WriteLine("snipersep end");
                     _onceFlag = true;
+                    Debug.WriteLine("dank memes end");
                     return GameSupportResult.PlayerLostControl;
                 }
             }

@@ -333,6 +333,7 @@ namespace LiveSplit.SourceSplit
         public int Flags;              // Fading flags
     };
 
+    // todo: figure out a way to utilize ehandles
     [StructLayout(LayoutKind.Sequential)]
     public struct EventQueuePrioritizedEvent
     {
@@ -348,5 +349,15 @@ namespace LiveSplit.SourceSplit
         public uint v_union, v_eval, v_fieldtype, v_tostringfunc, v_CVariantSaveDataOpsclass;
         public uint m_pNext;
         public uint m_pPrev;
+
+        public int GetIndexOfEHANDLE(uint EHANDLE)
+        {
+            // FIXME: this mask is actually version dependent, newer ones use 0x1fff!!!
+            // possible sig to identify: 8b ?? ?? ?? ?? ?? 8b ?? 81 e1 ff ff 00 00
+            return (EHANDLE & 0xfff) == 0xfff ? -1 : (int)(EHANDLE & 0xfff);
+        }
+        public int m_pActivatorIndex => GetIndexOfEHANDLE(m_pActivator);
+        public int m_pCallerIndex => GetIndexOfEHANDLE(m_pCaller);
+        public int m_pEntTargetIndex => GetIndexOfEHANDLE(m_pEntTarget);
     };
 }

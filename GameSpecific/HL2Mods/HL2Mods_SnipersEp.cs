@@ -4,22 +4,23 @@ using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class HL2Mods_ICE : GameSupport
+    class HL2Mods_SnipersEp : GameSupport
     {
-        // start: on first map
-        // ending: when the gunship's hp drops hits or drops below 0hp
+        //start: when player moves (excluding an on-the-spot jump)
+        //end: when "gordon" is killed (hp is <= 0)
 
         private bool _onceFlag;
-        private MemoryWatcher<int> _gunshipHP;
-
         private int _baseEntityHealthOffset = -1;
+        public static bool _resetFlag;
 
-        public HL2Mods_ICE()
+        private MemoryWatcher<int> _freemanHP;
+        Vector3f _startPos = new Vector3f(9928f, 12472f, -180f);
+
+        public HL2Mods_SnipersEp()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "ice_02";
-            this.LastMap = "ice_32";
-            this.StartOnFirstMapLoad = true;
+            this.FirstMap = "bestmod2013";
+            this.RequiredProperties = PlayerProperties.Position;
         }
 
         public override void OnGameAttached(GameState state)
@@ -33,35 +34,41 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
 
+        public override void OnTimerReset(bool resetFlagTo)
+        {
+            _resetFlag = resetFlagTo;
+        }
+
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
-
-            if (IsLastMap && _baseEntityHealthOffset != 0x0)
-            {
-                _gunshipHP = new MemoryWatcher<int>(state.GetEntityByName("helicopter_1") + _baseEntityHealthOffset);
-            }
-
             _onceFlag = false;
-        }
 
+            if (this.IsFirstMap)
+                _freemanHP = new MemoryWatcher<int>(state.GetEntityByName("bar") + _baseEntityHealthOffset);
+        }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsLastMap)
+            if (this.IsFirstMap)
             {
-                _gunshipHP.Update(state.GameProcess);
-                if (_gunshipHP.Current <= 0 && _gunshipHP.Old > 0)
+                if (state.PrevPlayerPosition.BitEqualsXY(_startPos) && !state.PlayerPosition.BitEqualsXY(_startPos) && !_resetFlag)
                 {
+                    _resetFlag = true;
+                    return GameSupportResult.PlayerGainedControl;
+                }
+
+                _freemanHP.Update(state.GameProcess);
+                if (_freemanHP.Current <= 0 && _freemanHP.Old > 0)
+                {
+                    Debug.WriteLine("snipersep end");
                     _onceFlag = true;
-                    Debug.WriteLine("ice end");
                     return GameSupportResult.PlayerLostControl;
                 }
             }
-
             return GameSupportResult.DoNothing;
         }
     }

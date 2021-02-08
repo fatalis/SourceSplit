@@ -53,7 +53,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public BMSRetail()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.StartOnFirstMapLoad = true;
+            this.StartOnFirstLoadMaps.Add("bm_c1a0a");
             this.FirstMap = "bm_c1a0a";
             this.LastMap = "bm_c4a4a";
             this.RequiredProperties = PlayerProperties.ViewEntity;

@@ -20,7 +20,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.FirstMap = "mimp1";
             this.LastMap = "mimp3";
             this.RequiredProperties = PlayerProperties.ViewEntity;
-            this.StartOnFirstMapLoad = false;
+            this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
         public override void OnSessionStart(GameState state)

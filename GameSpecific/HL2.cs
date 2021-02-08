@@ -37,7 +37,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "d1_trainstation_01";
-            this.FirstMap2 = "tinje";
+            this.StartOnFirstLoadMaps.Add("tinje");
             this.LastMap = "d3_breen_01";
             this.RequiredProperties = PlayerProperties.Position;
         }
@@ -69,13 +69,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
                 state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out _prevActiveWeapon);
 
-            this.StartOnFirstMapLoad = false;
 
             // some of these mods are just maps that you put into half-life 2
             switch (state.CurrentMap.ToLower())
             {
                 case "tinje":
-                    this.StartOnFirstMapLoad = true;
                     _tinjeGuardHP = new MemoryWatcher<int>(state.GetEntityByName("end") + _baseEntityHealthOffset);
                     break;
 
@@ -168,10 +166,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         }
                         break;
                     }
-
             }
-
-
             return GameSupportResult.DoNothing;
         }
     }

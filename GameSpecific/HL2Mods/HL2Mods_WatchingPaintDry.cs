@@ -21,10 +21,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_WatchingPaintDry()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.StartOnFirstMapLoad = true;
             this.FirstMap = "wpd_st";
             this.FirstMap2 = "watchingpaintdry"; // the mod has 2 versions and for some reason the modder decided to start the 2nd with a completely different set of map names
             this.LastMap = "wpd_uni";
+            this.StartOnFirstLoadMaps.AddRange(new string[] { this.FirstMap, this.FirstMap2 });
         }
 
         public override void OnSessionStart(GameState state)

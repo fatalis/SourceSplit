@@ -19,7 +19,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.FirstMap = "ep2_dd2_1";
             this.LastMap = "ep2_dd2_9";
             this.RequiredProperties = PlayerProperties.ViewEntity;
-            this.StartOnFirstMapLoad = false;
         }
 
         public override void OnSessionStart(GameState state)

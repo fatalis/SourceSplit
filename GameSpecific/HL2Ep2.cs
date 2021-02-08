@@ -11,6 +11,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // start: 
         // ending: the tick where velocity changes from 600.X to 0.0 AFTER the camera effects (cl_showpos 1)
 
+        // mods:
+            // dark intervention, hells mines, upmine struggle:
+                // start: on map load
+                // end: when final output to exit the map is fired
+
         private bool _onceFlag;
         private int _basePlayerLaggedMovementOffset = -1;
         private float _prevLaggedMovementValue;
@@ -20,6 +25,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "ep2_outland_01";
             this.LastMap = "ep2_outland_12a";
+            this.StartOnFirstLoadMaps.AddRange(new string[] { "Dark_intervention", "hells_mines", "twhl_upmine_struggle" });
             this.RequiredProperties = PlayerProperties.ParentEntity;
         }
 
@@ -49,34 +55,74 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _basePlayerLaggedMovementOffset != -1)
+            switch (state.CurrentMap.ToLower())
             {
-                // "OnMapSpawn" "startcar_speedmod,ModifySpeed,0,0,-1"
-                // "OnMapSpawn" "startcar_speedmod,ModifySpeed,1,12.5,-1"
+                default:
+                    {
+                        if (this.IsFirstMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _basePlayerLaggedMovementOffset != -1)
+                        {
+                            // "OnMapSpawn" "startcar_speedmod,ModifySpeed,0,0,-1"
+                            // "OnMapSpawn" "startcar_speedmod,ModifySpeed,1,12.5,-1"
 
-                float laggedMovementValue;
-                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _basePlayerLaggedMovementOffset, out laggedMovementValue);
+                            float laggedMovementValue;
+                            state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _basePlayerLaggedMovementOffset, out laggedMovementValue);
 
-                if (laggedMovementValue.BitEquals(1.0f) && !_prevLaggedMovementValue.BitEquals(1.0f))
-                {
-                    Debug.WriteLine("ep2 start");
-                    _onceFlag = true;
-                    return GameSupportResult.PlayerGainedControl;
-                }
+                            if (laggedMovementValue.BitEquals(1.0f) && !_prevLaggedMovementValue.BitEquals(1.0f))
+                            {
+                                Debug.WriteLine("ep2 start");
+                                _onceFlag = true;
+                                return GameSupportResult.PlayerGainedControl;
+                            }
 
-                _prevLaggedMovementValue = laggedMovementValue;
-            }
-            else if (this.IsLastMap)
-            {
-                // "OnTrigger4" "cvehicle.hangar,EnterVehicle,,0,1"
+                            _prevLaggedMovementValue = laggedMovementValue;
+                        }
+                        else if (this.IsLastMap)
+                        {
+                            // "OnTrigger4" "cvehicle.hangar,EnterVehicle,,0,1"
 
-                if (state.PlayerParentEntityHandle != -1
-                    && state.PrevPlayerParentEntityHandle == -1)
-                {
-                    Debug.WriteLine("ep2 end");
-                    _onceFlag = true;
-                    return GameSupportResult.PlayerLostControl;
-                }
+                            if (state.PlayerParentEntityHandle != -1
+                                && state.PrevPlayerParentEntityHandle == -1)
+                            {
+                                Debug.WriteLine("ep2 end");
+                                _onceFlag = true;
+                                return GameSupportResult.PlayerLostControl;
+                            }
+                        }
+                        break;
+                    }
+                case "dark_intervention":
+                    {
+                        float splitTime = state.FindOutputFireTime("command_ending", 3);
+                        if (state.CompareToInternalTimer(splitTime))
+                        {
+                            Debug.WriteLine("dark intervention end");
+                            _onceFlag = true;
+                            return GameSupportResult.PlayerLostControl;
+                        }
+                        break;
+                    }
+                case "hells_mines":
+                    {
+                        float splitTime = state.FindOutputFireTime("command", 3);
+                        if (state.CompareToInternalTimer(splitTime))
+                        {
+                            Debug.WriteLine("hells mines end");
+                            _onceFlag = true;
+                            return GameSupportResult.PlayerLostControl;
+                        }
+                        break;
+                    }
+                case "twhl_upmine_struggle":
+                    {
+                        float splitTime = state.FindOutputFireTime("command", 3);
+                        if (state.CompareToInternalTimer(splitTime))
+                        {
+                            Debug.WriteLine("upmine struggle end");
+                            _onceFlag = true;
+                            return GameSupportResult.PlayerLostControl;
+                        }
+                        break;
+                    }
             }
 
             return GameSupportResult.DoNothing;

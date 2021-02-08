@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
@@ -8,7 +9,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public string FirstMap { get; protected set; }
         public string LastMap { get; protected set; }
         public string FirstMap2 { get; internal set; }
-        public bool StartOnFirstMapLoad { get; internal set; } = false;
+        public List<string> StartOnFirstLoadMaps { get; internal set; } = new List<string>();
 
         // ticks to subtract
         public int StartOffsetTicks { get; protected set; }
@@ -226,6 +227,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_PhaseVille();
                 case "companionpiece":
                     return new HL2Mods_CompanionPiece();
+                case "the citizen":
+                case "thecitizen":
+                    return new HL2Mods_TheCitizen();
+                case "the citizen 2":
+                case "thecitizen2":
+                    return new HL2Mods_TheCitizen2();
             }
 
             return null;

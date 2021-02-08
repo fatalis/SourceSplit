@@ -17,9 +17,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public HL2Mods_TooManyCrates()
         {
-            this.StartOnFirstMapLoad = true;
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "cratastrophy";
+            this.StartOnFirstLoadMaps.Add(this.FirstMap);
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

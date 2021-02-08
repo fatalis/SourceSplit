@@ -19,10 +19,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public HL2Mods_Logistique()
         {
-            this.StartOnFirstMapLoad = true;
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "Lg-1";
             this.LastMap = "Lg-4";
+            this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
         public override void OnGameAttached(GameState state)
