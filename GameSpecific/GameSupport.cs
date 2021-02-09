@@ -233,6 +233,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "the citizen 2":
                 case "thecitizen2":
                     return new HL2Mods_TheCitizen2();
+                case "1187":
+                    return new HL2Mods_1187Ep1();
             }
 
             return null;

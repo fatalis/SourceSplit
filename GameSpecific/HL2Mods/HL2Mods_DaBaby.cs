@@ -1,7 +1,4 @@
-﻿using LiveSplit.ComponentUtil;
-using System;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -17,8 +14,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_DaBaby()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
             this.FirstMap = "dababy_hallway_ai";
+            this.StartOnFirstLoadMaps.Add(this.FirstMap);
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
