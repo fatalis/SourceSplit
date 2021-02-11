@@ -35,6 +35,7 @@ Fully Supported Games
   * Half-Life 2: Episode One
   * Half-Life 2: Episode Two
   * Half-Life 2: Lost Coast
+  * Half-Life Source
   * Portal
   * Portal 2
   * Infra
