@@ -41,7 +41,7 @@ Fully Supported Games
   * Infra
   * Hunt Down The Freeman
   * Black Mesa
-  * Estranged: Act 1
+  * Estranged: Act I
   * Transmissions: Element 120
   * The Beginner's Guide
   * The Stanley Parable
