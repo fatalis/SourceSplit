@@ -80,34 +80,67 @@ namespace LiveSplit.SourceSplit
         // do not call frequently!
         public IntPtr GetEntityByName(string name)
         {
-            const int MAX_ENTS = 4096; // TODO: is portal2's max higher?
-
-            for (int i = 0; i < MAX_ENTS; i++)
+            // se 2003 has a really convoluted ehandle system that basically equivalent to this
+            // so let's just use the old system for that
+            if (GameMemory.IsSource2003)
             {
-                CEntInfoV2 info = this.GetEntInfoByIndex(i);
-                if (info.EntityPtr == IntPtr.Zero)
-                    continue;
-                    
-                IntPtr namePtr;
-                this.GameProcess.ReadPointer(info.EntityPtr + this.GameOffsets.BaseEntityTargetNameOffset, false, out namePtr);
-                if (namePtr == IntPtr.Zero)
-                    continue;
+                int maxEnts = GameOffsets.CurrentEntCountPtr != IntPtr.Zero ?
+                    GameProcess.ReadValue<int>(GameOffsets.CurrentEntCountPtr) : 2048;
 
-                string n;
-                this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
-                if (n == name)
-                    return info.EntityPtr;
+                for (int i = 0; i < maxEnts; i++)
+                {
+                    if (i % 100 == 0)
+                        maxEnts = GameProcess.ReadValue<int>(GameOffsets.CurrentEntCountPtr);
+
+                    CEntInfoV2 info = this.GetEntInfoByIndex(i);
+                    if (info.EntityPtr == IntPtr.Zero)
+                        continue;
+
+                    IntPtr namePtr;
+                    this.GameProcess.ReadPointer(info.EntityPtr + this.GameOffsets.BaseEntityTargetNameOffset, false, out namePtr);
+                    if (namePtr == IntPtr.Zero)
+                        continue;
+
+                    string n;
+                    this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
+                    if (n == name)
+                        return info.EntityPtr;
+                }
+            } 
+            else
+            {
+                CEntInfoV2 nextPtr = this.GetEntInfoByIndex(0);
+                do
+                {
+                    if (nextPtr.EntityPtr == IntPtr.Zero)
+                        return IntPtr.Zero;
+
+                    IntPtr namePtr;
+                    this.GameProcess.ReadPointer(nextPtr.EntityPtr + this.GameOffsets.BaseEntityTargetNameOffset, false, out namePtr);
+                    if (namePtr != IntPtr.Zero)
+                    {
+                        this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out string n);  // TODO: find real max len
+                        if (n == name)
+                            return nextPtr.EntityPtr;
+                    }
+                    nextPtr = GameProcess.ReadValue<CEntInfoV2>((IntPtr)nextPtr.m_pNext);
+                }
+                while (nextPtr.EntityPtr != IntPtr.Zero);
             }
-
             return IntPtr.Zero;
         }
 
         public int GetEntIndexByName(string name)
         {
-            const int MAX_ENTS = 2048; // TODO: is portal2's max higher?
+            int maxEnts = GameOffsets.CurrentEntCountPtr != IntPtr.Zero ?
+                GameProcess.ReadValue<int>(GameOffsets.CurrentEntCountPtr) : 2048;
 
-            for (int i = 0; i < MAX_ENTS; i++)
+            for (int i = 0; i < maxEnts; i++)
             {
+                // update our max entites value every 100 tries to account for mid-scan additions or removals
+                if (i % 100 == 0)
+                    maxEnts = GameProcess.ReadValue<int>(GameOffsets.CurrentEntCountPtr);
+
                 CEntInfoV2 info = this.GetEntInfoByIndex(i);
                 if (info.EntityPtr == IntPtr.Zero)
                     continue;
@@ -120,7 +153,10 @@ namespace LiveSplit.SourceSplit
                 string n;
                 this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
                 if (n == name)
+                {
+                    Debug.WriteLine(maxEnts);
                     return i;
+                }
             }
 
             return -1;
@@ -129,10 +165,15 @@ namespace LiveSplit.SourceSplit
         public int GetEntIndexByPos(float x, float y, float z, float d = 0f, bool xy = false)
         {
             Vector3f pos = new Vector3f(x, y, z);
-            const int MAX_ENTS = 2048; // TODO: is portal2's max higher?
+            int maxEnts = GameOffsets.CurrentEntCountPtr != IntPtr.Zero ?
+                GameProcess.ReadValue<int>(GameOffsets.CurrentEntCountPtr) : 2048;
 
-            for (int i = 0; i < MAX_ENTS; i++)
+            for (int i = 0; i < maxEnts; i++)
             {
+                // update our max entites value every 100 tries to account for mid-scan additions or removals
+                if (i % 100 == 0)
+                    maxEnts = GameProcess.ReadValue<int>(GameOffsets.CurrentEntCountPtr);
+
                 CEntInfoV2 info = this.GetEntInfoByIndex(i);
                 if (info.EntityPtr == IntPtr.Zero)
                     continue;
@@ -301,6 +342,7 @@ namespace LiveSplit.SourceSplit
         public IntPtr HostStateLevelNamePtr => this.HostStatePtr + (4 * (GameMemory.IsSource2003 ? 2 : 8));
         public IntPtr ServerStatePtr;
         public IntPtr EventQueuePtr;
+        public IntPtr CurrentEntCountPtr;
 
         public CEntInfoSize EntInfoSize;
 
@@ -317,8 +359,8 @@ namespace LiveSplit.SourceSplit
     {
         public uint m_pEntity;
         public int m_SerialNumber;
-        public int m_pPrev;
-        public int m_pNext;
+        public uint m_pPrev;
+        public uint m_pNext;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -326,8 +368,8 @@ namespace LiveSplit.SourceSplit
     {
         public uint m_pEntity;
         public int m_SerialNumber;
-        public int m_pPrev;
-        public int m_pNext;
+        public uint m_pPrev;
+        public uint m_pNext;
         public int m_targetname;
         public int m_classname;
 

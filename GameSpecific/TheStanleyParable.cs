@@ -125,48 +125,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.RequiredProperties = PlayerProperties.ViewEntity | PlayerProperties.Position | PlayerProperties.ParentEntity;
         }
 
-        // recreation of the findnextentity function to get access to server-side entities that aren't networked over to the client
-        // which can't be found using the old functions
-        private IntPtr GetNextEntPtr(GameState state, IntPtr prev)
-        {
-            if (prev == IntPtr.Zero)
-            {
-                return state.GameProcess.ReadPointer(state.GameOffsets.GlobalEntityListPtr);
-            }
-            else
-            {
-                // these variable names are guesses!
-                uint index;
-                uint entInfo = (uint)state.GameProcess.ReadPointer(prev + 724);
-                if (entInfo == 0xffffffff)
-                    index = 0x1fff;
-                else
-                    index = entInfo & 0xffff;
-
-                IntPtr ptr1 = (IntPtr)((uint)state.GameOffsets.GlobalEntityListPtr + index * 24);
-                IntPtr ptr2 = state.GameProcess.ReadPointer(ptr1 + 0xC);
-
-                if (ptr1 != IntPtr.Zero && ptr2 != IntPtr.Zero)
-                    return state.GameProcess.ReadPointer(ptr2);
-            }
-            return IntPtr.Zero;
-        }
-
-        private IntPtr FindEntByName(GameState state, string name)
-        {
-            IntPtr entPtr = GetNextEntPtr(state, IntPtr.Zero);
-            while (entPtr != IntPtr.Zero)
-            {
-                string name2 = state.GameProcess.ReadString(state.GameProcess.ReadPointer(entPtr + state.GameOffsets.BaseEntityTargetNameOffset), 128);
-                if (name2 != null && name2.ToLower() == name.ToLower())
-                {
-                    return entPtr;
-                }
-                entPtr = GetNextEntPtr(state, entPtr);
-            }
-            return IntPtr.Zero;
-        }
-
         // Shorthands
         private GameSupportResult DefaultEnd(string endingname, int endoffset = 0)
         {
@@ -332,7 +290,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "testchmb_a_00":
                     {
                         _endingGamesCamIndex = state.GetEntIndexByName("blackoutend");
-                        _endingStuckEndingCount = new MemoryWatcher<float>(FindEntByName(state, "buttonboxendingcount") + _mathCounterCurValueOffset);
+                        _endingStuckEndingCount = new MemoryWatcher<float>(state.GetEntityByName("buttonboxendingcount") + _mathCounterCurValueOffset);
                         _endingsWatcher.Add(_endingStuckEndingCount);
                         break;
                     }
