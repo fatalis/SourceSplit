@@ -63,6 +63,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 if (newTrig.EntityPtr == IntPtr.Zero && state.CompareToInternalTimer(splitTime, 0.05f))
                 {
                     Debug.WriteLine("exit2 end");
+                    this.EndOffsetTicks = -1;
                     _onceFlag = true;
                     return GameSupportResult.PlayerLostControl;
                 }

@@ -20,7 +20,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         
         // the run ends on final blow to the final vortigaunt, the latter we can't track since there are multi[;e
         // and they can be killed in any order. so we'll have to track the hp of every one of them.
-        // arrays for the end
         // vorts' hp
         private int[] _vortHP = { -1, -1, -1, -1 };
         private int[] _vortHPOld = { 100, 100, 100, 100 };
@@ -29,10 +28,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // vorts' spawners' pointers
         private IntPtr[] _spawnersPtr = { IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero };
         // vorts' spawners' live children count. this variable only gets decremented when the vorts' entity are killed
-        // which takes place a bit after theyre killed by the player
+        // which takes place a bit after theyre killed by the player. used to determine when we should scan for their pointers
         private int[] _curLiveChildren = { -1, -1, -1, -1 };
-        // vorts' spawners' spawnable npcs left. this variable gets decremented when the vorts spawn in. used to determine
-        // when we should scan for their pointer
+        // vorts' spawners' number of spawnable npcs left. this variable gets decremented when the vorts spawn in. used to check if we have
+        // killed or have begun engaging with all the vorts or not
         private int[] _curMaxNPCs = { -1, -1, -1, -1 };
         // dictionary of vorts' entity names and their spawners' names
         private Dictionary<string, string> _vortsList = new Dictionary<string, string>()
@@ -79,9 +78,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     _vortPtr[i] = IntPtr.Zero;
                     _spawnersPtr[i] = state.GetEntityByName(_vortsList.ElementAt(i).Value);
+                    Debug.WriteLine(_vortsList.ElementAt(i).Value + " ptr is 0x" + _spawnersPtr[i].ToString("X"));
                 }
-
             }
+
             _onceFlag = false;
         }
 
@@ -104,16 +104,23 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 // performance seems to be fine
                 for (int i = 0; i < 4; i++)
                 {
+                    // store the hp's to the old hp array
                     _vortHPOld[i] = _vortHP[i];
                     _curMaxNPCs[i] = state.GameProcess.ReadValue<int>(_spawnersPtr[i] + _baseMaxNumNPCsOffset);
                     _curLiveChildren[i] = state.GameProcess.ReadValue<int>(_spawnersPtr[i] + _baseLiveChildrenOffset);
 
+                    // is this vort's entity deleted?
                     if (_curLiveChildren[i] == 0)
                         _vortHP[i] = 0;
                     else
                     {
+                        // if not and we don't have its pointer, scan for it
                         if (_vortPtr[i] == IntPtr.Zero)
+                        {
                             _vortPtr[i] = state.GetEntityByName(_vortsList.ElementAt(i).Key);
+                            Debug.WriteLine(_vortsList.ElementAt(i).Key + " ptr is 0x" + _vortPtr[i].ToString("X"));
+                        }
+                        // now get its health
                         _vortHP[i] = state.GameProcess.ReadValue<int>(_vortPtr[i] + _baseEntityHealthOffset);
                     }
                 }

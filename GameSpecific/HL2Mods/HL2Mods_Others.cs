@@ -44,13 +44,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 float splitTime = state.FindOutputFireTime("servercommand", 3);
                 if (state.CompareToInternalTimer(splitTime))
                 {
-                    Debug.WriteLine("think tank end");
                     _onceFlag = true;
+                    Debug.WriteLine("think tank end");
+                    this.EndOffsetTicks = -1;
                     return GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;
-        }
+        } 
     }
 
     class HL2Mods_Gnome : GameSupport
@@ -87,6 +88,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("gnome end");
                     _onceFlag = true;
+                    this.EndOffsetTicks = -1;
                     return GameSupportResult.PlayerLostControl;
                 }
             }
@@ -134,6 +136,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             {
                 Debug.WriteLine("hl2 reject end");
                 _onceFlag = true;
+                this.EndOffsetTicks = -1;
                 return GameSupportResult.PlayerLostControl;
             }
             return GameSupportResult.DoNothing;
@@ -174,6 +177,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("trapville end");
                     _onceFlag = true;
+                    this.EndOffsetTicks = -1;
                     return GameSupportResult.PlayerLostControl;
                 }
             }
@@ -213,6 +217,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("rtslville end");
                     _onceFlag = true;
+                    this.EndOffsetTicks = -1;
                     return GameSupportResult.PlayerLostControl;
                 }
             }
@@ -252,6 +257,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("hl abridged end");
                     _onceFlag = true;
+                    this.EndOffsetTicks = -1;
                     return GameSupportResult.PlayerLostControl;
                 }
             }
@@ -291,6 +297,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("episode one end");
                     _onceFlag = true;
+                    this.EndOffsetTicks = -1;
                     return GameSupportResult.PlayerLostControl;
                 }
             }
@@ -337,6 +344,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("combination ville end");
                     _onceFlag = true;
+                    this.EndOffsetTicks = -1;
                     return GameSupportResult.PlayerLostControl;
                 }
             }
@@ -377,6 +385,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("phaseville end");
                     _onceFlag = true;
+                    this.EndOffsetTicks = -1;
                     return GameSupportResult.PlayerLostControl;
                 }
             }
@@ -416,6 +425,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("companion piece end");
                     _onceFlag = true;
+                    this.EndOffsetTicks = -1;
                     return GameSupportResult.PlayerLostControl;
                 }
             }
@@ -450,6 +460,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
+        public override void OnSessionStart(GameState state)
+        {
+            base.OnSessionStart(state);
+            _onceFlag = false;
+        }
+
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (_onceFlag)
@@ -462,6 +478,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     _onceFlag = true;
                     Debug.WriteLine("school_adventures end");
+                    this.EndOffsetTicks = -1;
                     return GameSupportResult.PlayerLostControl;
                 }
             }

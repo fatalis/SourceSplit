@@ -137,7 +137,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         var newMote = state.GetEntInfoByIndex(_efDustmoteIndex);
                         var newBrush = state.GetEntInfoByIndex(_efBlockBrushIndex);
 
-                        if (state.PlayerPosition.DistanceXY(new Vector3f(7784.5f, 7284f, -15107f)) >= 2 && state.PrevPlayerPosition.DistanceXY(new Vector3f(7784.5f, 7284f, -15107f)) < 2
+                        if (state.PlayerPosition.DistanceXY(new Vector3f(7784.5f, 7284f, -15107f)) >= 2 
+                            && state.PrevPlayerPosition.DistanceXY(new Vector3f(7784.5f, 7284f, -15107f)) < 2
                             && newBrush.EntityPtr == IntPtr.Zero && !_expfuelStartFlag)
                         {
                             Debug.WriteLine("exp fuel start");

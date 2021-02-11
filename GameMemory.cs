@@ -52,7 +52,7 @@ namespace LiveSplit.SourceSplit
         private MemoryWatcher<byte> _infraIsLoading;
         private bool _isInfra = false;
 
-        public static bool Source2003 = false;
+        public static bool IsSource2003 = false;
 
         private bool _gotTickRate;
 
@@ -129,7 +129,7 @@ namespace LiveSplit.SourceSplit
             // and source 2003 leak...
             _serverStateTarget2 = new SigScanTarget();
             _serverStateTarget2.OnFound = (proc, scanner, ptr) => {
-                Source2003 = true;
+                IsSource2003 = true;
                 return !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr; };
 
             // state (old 2003 naming)
@@ -397,7 +397,7 @@ namespace LiveSplit.SourceSplit
         void ResetSpecificFlags()
         {
             _isInfra = false;
-            Source2003 = false;
+            IsSource2003 = false;
         }
 
         void MemoryReadThread(CancellationTokenSource cts)
@@ -543,7 +543,7 @@ namespace LiveSplit.SourceSplit
                 || !GetBaseEntityMemberOffset("m_vecAbsOrigin", p, serverScanner, out offsets.BaseEntityAbsOriginOffset)
                 || !GetBaseEntityMemberOffset("m_iName", p, serverScanner, out offsets.BaseEntityTargetNameOffset)
                 // source 2003 leak doesn't define m_hViewEntity as a field so for the time being this is ignored
-                || (!GetBaseEntityMemberOffset("m_hViewEntity", p, serverScanner, out offsets.BasePlayerViewEntity) && !Source2003))
+                || (!GetBaseEntityMemberOffset("m_hViewEntity", p, serverScanner, out offsets.BasePlayerViewEntity) && !IsSource2003))
                 return false;
 
             // find m_pParent offset. the string "m_pParent" occurs more than once so we have to do something else
@@ -711,7 +711,7 @@ namespace LiveSplit.SourceSplit
                 }
             }
             // source 2003 leak has a completely different signonstate structure with only 5 entries
-            else if (Source2003) 
+            else if (IsSource2003) 
             {
                 if (signOnState <= 1)
                     return SignOnState.None;
@@ -729,7 +729,7 @@ namespace LiveSplit.SourceSplit
         {
             game.ReadValue(offsets.ServerStatePtr, out int serverState);
 
-            if (Source2003)
+            if (IsSource2003)
             {
                 // this is actually how the game knows if it's paused or not..., source 2003 leak's serverstate enum doesn't have
                 // paused as an entry for some reason
@@ -779,7 +779,7 @@ namespace LiveSplit.SourceSplit
                     // update map name
                     state.GameProcess.ReadString(state.GameOffsets.CurMapPtr, ReadStringType.ASCII, 64, out state.CurrentMap);
                 }
-                if ((Source2003 || _isInfra) && state.RawTickCount - state.TickBase < 0)
+                if ((IsSource2003 || _isInfra) && state.RawTickCount - state.TickBase < 0)
                 {
                     Debug.WriteLine("based ticks is wrong by " + (state.RawTickCount - state.TickBase) + " rebasing from " + state.TickBase);
                     state.TickBase = state.RawTickCount;

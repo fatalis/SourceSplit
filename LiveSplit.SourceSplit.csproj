@@ -62,7 +62,10 @@
     <Compile Include="GameSpecific\HL2Ep2.cs" />
     <Compile Include="GameSpecific\HDTF.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_1187Ep1.cs" />
-    <Compile Include="GameSpecific\HL2Mods\HL2Mods_TheCitizen2.cs" />
+    <Compile Include="GameSpecific\HL2Mods\HL2Mods_Grey.cs" />
+    <Compile Include="GameSpecific\HL2Mods\HL2Mods_GetALife.cs" />
+    <Compile Include="GameSpecific\HL2Mods\HL2Mods_Terminal7.cs" />
+    <Compile Include="GameSpecific\HL2Mods\HL2Mods_TheCitizen2AndReturns.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_EntropyZero.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_DeeperDown.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_Others.cs" />
@@ -77,6 +80,7 @@
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_Crates.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_Exit2.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_DayHard.cs" />
+    <Compile Include="GameSpecific\Prospekt.cs" />
     <Compile Include="GameSpecific\Infra.cs" />
     <Compile Include="GameSpecific\TheBeginnersGuide.cs" />
     <Compile Include="GameSpecific\PortalTFV.cs" />

@@ -12,6 +12,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
 
         private int _camIndex;
+        private float _splitTime;
 
         public HL2Mods_DeeperDown()
         {
@@ -30,6 +31,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 this._camIndex = state.GetEntIndexByName("PointViewCont1");
                 Debug.WriteLine("_camIndex index is " + this._camIndex);
             }
+            else if (this.IsLastMap)
+            {
+                _splitTime = state.FindOutputFireTime("OW_Dead_Relay", 2);
+            }
+
             _onceFlag = false;
         }
 
@@ -51,13 +57,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             else if (this.IsLastMap)
             {
-                float splitTime = state.FindOutputFireTime("OW_Dead_Relay", 2);
-                if (state.CompareToInternalTimer(splitTime))
+                float newSplitTime = state.FindOutputFireTime("OW_Dead_Relay", 2);
+                if (_splitTime != 0f && newSplitTime == 0f)
                 {
                     Debug.WriteLine("deeper down end");
                     _onceFlag = true;
                     return GameSupportResult.PlayerLostControl;
                 }
+                _splitTime = newSplitTime;
             }
             return GameSupportResult.DoNothing;
         }

@@ -25,8 +25,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (state.CompareToInternalTimer(splitTime, 0.05f))
             {
                 _onceFlag = true;
+                this.EndOffsetTicks = -1;
                 Debug.WriteLine("infra " + ending + " ending");
-                return GameSupportResult.PlayerLostControl;
+                return GameSupportResult.ManualSplit;
             }
             else
                 return GameSupportResult.DoNothing;

@@ -28,6 +28,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsFirstMap)
             {
                 _trainIndex = state.GetEntIndexByName("lookatthis_move");
+                Debug.WriteLine("camera parent entity index is " + _trainIndex);
             }
             _onceFlag = false;
 
@@ -60,7 +61,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             else if (this.IsLastMap && _camIndex != -1)
             {
-                if (state.PlayerViewEntityIndex == _camIndex)
+                if (state.PrevPlayerViewEntityIndex != _camIndex && state.PlayerViewEntityIndex == _camIndex)
                 {
                     _onceFlag = true;
                     Debug.WriteLine("freakman2 end");

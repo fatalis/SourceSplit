@@ -1,23 +1,33 @@
-﻿using System;
+﻿using LiveSplit.ComponentUtil;
+using System;
 using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class HL2Mods_TheCitizen2 : GameSupport
+    class HL2Mods_TheCitizen2AndReturns : GameSupport
     {
         // start: when the output to give the player the suit is fired AND a trigger in the level has not been hit
-        // ending: when the end text model's skin code is 10 and player view entity switches to the final camera
+        // ending: 
+            // the citizen 2: after the final fade
+            // the citizen returns: on the first frame of the final fade
 
         private bool _onceFlag;
 
         private int _trigIndex;
 
-        public HL2Mods_TheCitizen2()
+        private MemoryWatcher<int> _fadeListSize;
+
+        public HL2Mods_TheCitizen2AndReturns()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "sp_intro";
             this.LastMap = "sp_square";
-            this.RequiredProperties = PlayerProperties.ViewEntity;
+        }
+
+        public override void OnGameAttached(GameState state)
+        {
+            base.OnGameAttached(state);
+            _fadeListSize = new MemoryWatcher<int>(state.GameOffsets.FadeListPtr + 0x10);
         }
 
         public override void OnSessionStart(GameState state)
@@ -54,7 +64,21 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 if (state.CompareToInternalTimer(splitTime))
                 {
                     _onceFlag = true;
+                    this.EndOffsetTicks = -1;
                     Debug.WriteLine("the citizen 2 end");
+                    return GameSupportResult.PlayerLostControl;
+                }
+            }
+            else if (state.CurrentMap.ToLower() == "sp_waterplant2")
+            {
+                _fadeListSize.Update(state.GameProcess);
+
+                float splitTime = state.FindFadeEndTime(-127.5f);
+
+                if (splitTime != 0f && _fadeListSize.Old == 0 && _fadeListSize.Current == 1)
+                {
+                    _onceFlag = true;
+                    Debug.WriteLine("the citizen returns end");
                     return GameSupportResult.PlayerLostControl;
                 }
             }

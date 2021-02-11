@@ -18,14 +18,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.RequiredProperties = PlayerProperties.Flags;
         }
 
-
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
 
             if (this.IsFirstMap)
+            {
                 _camIndex = state.GetEntIndexByName("camera1");
-
+                Debug.WriteLine("start camera index is " + _camIndex);
+            }
 
             _onceFlag = false;
         }
@@ -45,7 +46,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-
             else if (this.IsLastMap)
             {
                 if (!state.PrevPlayerFlags.HasFlag(FL.FROZEN) && state.PlayerFlags.HasFlag(FL.FROZEN))
@@ -55,6 +55,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerLostControl;
                 }
             }
+
             return GameSupportResult.DoNothing;
         }
     }

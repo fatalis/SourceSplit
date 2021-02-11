@@ -40,6 +40,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (IsFirstMap)
             {
                 _camIndex = state.GetEntIndexByName("blackout_cam");
+                Debug.WriteLine("start cam index is " + _camIndex);
             }
             else if (IsLastMap && _baseEntityHealthOffset != -1)
             {
@@ -63,7 +64,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-
             else if (IsLastMap)
             {
                 _monkHP.Update(state.GameProcess);

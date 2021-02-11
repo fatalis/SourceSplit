@@ -85,6 +85,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                             {
                                 Debug.WriteLine("ep2 end");
                                 _onceFlag = true;
+                                this.EndOffsetTicks = 0;
                                 return GameSupportResult.PlayerLostControl;
                             }
                         }
@@ -97,6 +98,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         {
                             Debug.WriteLine("dark intervention end");
                             _onceFlag = true;
+                            this.EndOffsetTicks = -1;
                             return GameSupportResult.PlayerLostControl;
                         }
                         break;
@@ -108,6 +110,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         {
                             Debug.WriteLine("hells mines end");
                             _onceFlag = true;
+                            this.EndOffsetTicks = -1;
                             return GameSupportResult.PlayerLostControl;
                         }
                         break;
@@ -119,6 +122,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         {
                             Debug.WriteLine("upmine struggle end");
                             _onceFlag = true;
+                            this.EndOffsetTicks = -1;
                             return GameSupportResult.PlayerLostControl;
                         }
                         break;

@@ -79,6 +79,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 if (state.CompareToInternalTimer(splitTime))
                 {
                     _onceFlag = true;
+                    this.EndOffsetTicks = -1;
                     Debug.WriteLine("wpd ce end");
                     return GameSupportResult.PlayerLostControl;
                 }

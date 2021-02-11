@@ -213,7 +213,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             float splitTime = state.FindFadeEndTime(fadeSpeed);
             if (state.CompareToInternalTimer(splitTime, 0.05f))
             {
-                return DefaultEnd(ending);
+                return DefaultEnd(ending, -1);
             }
             else
                 return GameSupportResult.DoNothing;
@@ -425,7 +425,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         float splitTime = state.FindOutputFireTime("the_end", 2);
                         if (state.CompareToInternalTimer(splitTime))
                         {
-                            return DefaultEnd("mod games");
+                            return DefaultEnd("mod games", -1);
                         }
                         break;
                     }
@@ -590,7 +590,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         float splitTime = state.FindOutputFireTime("smallnewtimerelay", 2);
                         if (state.CompareToInternalTimer(splitTime))
                         {
-                            return DefaultEnd("choice");
+                            return DefaultEnd("choice", -1);
                         }
                         break;
                     }
@@ -614,7 +614,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         float splitTime = state.FindOutputFireTime("cmd", "command", "stopsound", 2);
                         if (state.CompareToInternalTimer(splitTime))
                         {
-                            return DefaultEnd("museum");
+                            return DefaultEnd("museum", -1);
                         }
                         break;
                     }
@@ -646,7 +646,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         float splitTime = state.FindOutputFireTime("cmd", 2);
                         if (state.CompareToInternalTimer(splitTime))
                         {
-                            return DefaultEnd("confusion", 4);
+                            return DefaultEnd("confusion", -1);
                         }
                         break;
                     }

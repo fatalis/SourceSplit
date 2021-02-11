@@ -32,6 +32,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsLastMap)
             {
                 this._trigIndex = state.GetEntIndexByName("AlyxWake1");
+                Debug.WriteLine("end trigger index is " + this._trigIndex);
             }
             _onceFlag = false;
         }

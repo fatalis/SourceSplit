@@ -1,6 +1,4 @@
-﻿using LiveSplit.ComponentUtil;
-using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -13,6 +11,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
 
         private int _camIndex;
+        private float _splitTime;
 
         public HL2Mods_MImp()
         {
@@ -20,14 +19,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.FirstMap = "mimp1";
             this.LastMap = "mimp3";
             this.RequiredProperties = PlayerProperties.ViewEntity;
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
 
-            if (this.IsLastMap)
+            if (this.IsFirstMap)
+            {
+                _splitTime = state.FindOutputFireTime("cave_giveitems_equipper", 5);
+            }
+            else if (this.IsLastMap)
             {
                 this._camIndex = state.GetEntIndexByName("outro.camera");
                 Debug.WriteLine("_camIndex index is " + this._camIndex);
@@ -43,15 +45,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsFirstMap)
             {
-                float splitTime = state.FindOutputFireTime("cave_giveitems_equipper", 5);
-                if (state.CompareToInternalTimer(splitTime))
+                float newSplitTime = state.FindOutputFireTime("cave_giveitems_equipper", 5);
+                if (_splitTime != 0f && newSplitTime == 0f)
                 {
                     _onceFlag = true;
                     Debug.WriteLine("mimp start");
                     return GameSupportResult.PlayerGainedControl;
                 }
+                _splitTime = newSplitTime;
             }
-
             else if (this.IsLastMap && _camIndex != -1)
             {
                 if (state.PlayerViewEntityIndex == _camIndex && state.PrevPlayerViewEntityIndex != _camIndex)
@@ -61,6 +63,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerLostControl;
                 }
             }
+
             return GameSupportResult.DoNothing;
         }
     }

@@ -30,6 +30,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsFirstMap)
             {
                 this._camIndex = state.GetEntIndexByName("camera_1");
+                Debug.WriteLine("start cam index is " + _camIndex);
             }
 
             if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)

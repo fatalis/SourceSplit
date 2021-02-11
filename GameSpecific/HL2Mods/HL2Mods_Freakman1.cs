@@ -42,6 +42,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsFirstMap)
             {
                 _trigIndex = state.GetEntIndexByPos(-1472f, -608f, 544f);
+                Debug.WriteLine("start trigger index is " + _trigIndex);
             }
             _onceFlag = false;
 
@@ -70,7 +71,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-
             else if (this.IsLastMap)
             {
                 _kleinerHP.Update(state.GameProcess);
@@ -81,6 +81,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerLostControl;
                 }
             }
+
             return GameSupportResult.DoNothing;
         }
     }

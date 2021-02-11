@@ -24,7 +24,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
 
             if (this.IsFirstMap)
+            {
                 _endingCamIndex = state.GetEntIndexByName("final_viewcontrol");
+                Debug.WriteLine("found end cam index at " + _endingCamIndex);
+            }
 
             _onceFlag = false;
         }

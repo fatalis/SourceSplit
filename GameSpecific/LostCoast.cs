@@ -60,7 +60,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                 if (newTrig.EntityPtr == IntPtr.Zero)
                 {
-                    _blackIndex = -1;
+                    _trigIndex = -1;
                     Debug.WriteLine("lostcoast end");
                     _onceFlag = true;
                     this.EndOffsetTicks = 7;

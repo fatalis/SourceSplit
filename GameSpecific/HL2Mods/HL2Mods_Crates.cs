@@ -30,6 +30,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             {
                 _counterSkin = new MemoryWatcher<int>(state.GetEntityByName("EndWords") + _baseSkinOffset);
                 _camIndex = state.GetEntIndexByName("EndCamera");
+                Debug.WriteLine("found end cam index at " + _camIndex);
             }
             _onceFlag = false;
         }

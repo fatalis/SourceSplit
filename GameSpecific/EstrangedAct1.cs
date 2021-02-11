@@ -26,16 +26,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
+
             if (this.IsFirstMap)
-            {
                 this._titleCardActive = new MemoryWatcher<byte>(state.GetEntityByName("gillnetter_titlecard") + _interactiveScreenActiveFlag);
-            }
-            if (this.IsLastMap)
+            else if (this.IsLastMap)
             {
                 this._trig2Index = state.GetEntIndexByPos(5240f, -7800f, -206f);
                 Debug.WriteLine("trig2 index is " + this._trig2Index);
-
             }
+
             _onceFlag = false;
         }
 
@@ -55,8 +54,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-
-            if (this.IsLastMap && this._trig2Index != -1)
+            else if (this.IsLastMap && this._trig2Index != -1)
             {
                 var newTrig2 = state.GetEntInfoByIndex(_trig2Index);
 
@@ -69,6 +67,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerLostControl;
                 }
             }
+
             return GameSupportResult.DoNothing;
         }
     }

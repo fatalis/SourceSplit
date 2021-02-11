@@ -61,6 +61,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // called when attached to a new game process
         public virtual void OnGameAttached(GameState state) { }
 
+        // called when the timer is reset
         public virtual void OnTimerReset(bool resetFlagTo) { }
 
         // called on the first tick when player is fully in the game (according to demos)
@@ -232,9 +233,19 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_TheCitizen();
                 case "the citizen 2":
                 case "thecitizen2":
-                    return new HL2Mods_TheCitizen2();
+                case "the citizen returns":
+                case "thecitizenreturns":
+                    return new HL2Mods_TheCitizen2AndReturns();
                 case "1187":
                     return new HL2Mods_1187Ep1();
+                case "prospekt":
+                    return new Prospekt();
+                case "t7":
+                    return new HL2Mods_Terminal7();
+                case "get_a_life":
+                    return new HL2Mods_GetALife();
+                case "grey":
+                    return new HL2Mods_Grey();
             }
 
             return null;

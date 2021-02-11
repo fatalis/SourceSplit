@@ -173,12 +173,13 @@ namespace LiveSplit.SourceSplit
         }
 
         // env_fades don't hold any live fade information and instead they network over fade infos to the client which add it to a list
-        // fade speed is pretty much the only thing we can use to differentiate one from others
-        // this function will find a fade with a specified speed and then return the timestamp for when the fade ends
+        
         public float FindFadeEndTime(float speed)
         {
-            ScreenFadeInfo fadeInfo;
             int fadeListSize = GameProcess.ReadValue<int>(GameOffsets.FadeListPtr + 0x10);
+            if (fadeListSize == 0) return 0;
+
+            ScreenFadeInfo fadeInfo;
             uint fadeListHeader = GameProcess.ReadValue<uint>(GameOffsets.FadeListPtr + 0x4);
             for (int i = 0; i < fadeListSize; i++)
             {
@@ -191,29 +192,49 @@ namespace LiveSplit.SourceSplit
             return 0;
         }
 
-        // ioevents are stored in a non-contiguous list where every ioevent contain pointers to the next or previous event 
+        public float FindFadeEndTime(float speed, byte r, byte g, byte b)
+        {
+            int fadeListSize = GameProcess.ReadValue<int>(GameOffsets.FadeListPtr + 0x10);
+            if (fadeListSize == 0) return 0;
+
+            ScreenFadeInfo fadeInfo;
+            byte[] targColor = { r, g, b };
+            uint fadeListHeader = GameProcess.ReadValue<uint>(GameOffsets.FadeListPtr + 0x4);
+            for (int i = 0; i < fadeListSize; i++)
+            {
+                fadeInfo = GameProcess.ReadValue<ScreenFadeInfo>(GameProcess.ReadPointer((IntPtr)fadeListHeader) + 0x4 * i);
+                byte[] color = { fadeInfo.r, fadeInfo.g, fadeInfo.b };
+                if (fadeInfo.Speed != speed && !targColor.Equals(color))
+                    continue;
+                else
+                    return fadeInfo.End;
+            }
+            return 0;
+        }
+
+        // ioEvents are stored in a non-contiguous list where every ioEvent contain pointers to the next or previous event 
         // todo: add more input types and combinations to ensure correct result
         public float FindOutputFireTime(string targetName, int clamp = 100)
         {
             if (GameProcess.ReadPointer(GameOffsets.EventQueuePtr) == IntPtr.Zero)
                 return 0;
 
-            EventQueuePrioritizedEvent ioevent;
-            GameProcess.ReadValue(GameProcess.ReadPointer(GameOffsets.EventQueuePtr), out ioevent);
+            EventQueuePrioritizedEvent ioEvent;
+            GameProcess.ReadValue(GameProcess.ReadPointer(GameOffsets.EventQueuePtr), out ioEvent);
 
             // clamp the number of items to go through the list to save performance
             // the list is automatically updated once an output is fired
             for (int i = 0; i < clamp; i++)
             {
-                string tempname = GameProcess.ReadString((IntPtr)ioevent.m_iTarget, 256);
-                if (tempname == targetName)
-                    return ioevent.m_flFireTime;
+                string tempName = GameProcess.ReadString((IntPtr)ioEvent.m_iTarget, 256);
+                if (tempName == targetName)
+                    return ioEvent.m_flFireTime;
                 else
                 {
-                    IntPtr nextptr = (IntPtr)ioevent.m_pNext;
-                    if (nextptr != IntPtr.Zero)
+                    IntPtr nextPtr = (IntPtr)ioEvent.m_pNext;
+                    if (nextPtr != IntPtr.Zero)
                     {
-                        GameProcess.ReadValue(nextptr, out ioevent);
+                        GameProcess.ReadValue(nextPtr, out ioEvent);
                         continue;
                     }
                     else return 0; // end early if we've hit the end of the list
@@ -228,25 +249,25 @@ namespace LiveSplit.SourceSplit
             if (GameProcess.ReadPointer(GameOffsets.EventQueuePtr) == IntPtr.Zero)
                 return 0;
 
-            EventQueuePrioritizedEvent ioevent;
-            GameProcess.ReadValue(GameProcess.ReadPointer(GameOffsets.EventQueuePtr), out ioevent);
+            EventQueuePrioritizedEvent ioEvent;
+            GameProcess.ReadValue(GameProcess.ReadPointer(GameOffsets.EventQueuePtr), out ioEvent);
 
             for (int i = 0; i < clamp; i++) 
             {
-                string tempname = GameProcess.ReadString((IntPtr)ioevent.m_iTarget, 256);
-                string tempcommand = GameProcess.ReadString((IntPtr)ioevent.m_iTargetInput, 256);
-                string tempparam = GameProcess.ReadString((IntPtr)ioevent.v_union, 256) == null ? "" : GameProcess.ReadString((IntPtr)ioevent.v_union, 256);
+                string tempName = GameProcess.ReadString((IntPtr)ioEvent.m_iTarget, 256);
+                string tempCommand = GameProcess.ReadString((IntPtr)ioEvent.m_iTargetInput, 256);
+                string tempParam = GameProcess.ReadString((IntPtr)ioEvent.v_union, 256) == null ? "" : GameProcess.ReadString((IntPtr)ioEvent.v_union, 256);
 
-                if (tempname == targetName &&
-                    tempcommand.ToLower() == command.ToLower() && 
-                    tempparam.ToLower() == param.ToLower())
-                    return ioevent.m_flFireTime;
+                if (tempName == targetName &&
+                    tempCommand.ToLower() == command.ToLower() && 
+                    tempParam.ToLower() == param.ToLower())
+                    return ioEvent.m_flFireTime;
                 else
                 {
-                    IntPtr nextptr = (IntPtr)ioevent.m_pNext;
-                    if (nextptr != IntPtr.Zero)
+                    IntPtr nextPtr = (IntPtr)ioEvent.m_pNext;
+                    if (nextPtr != IntPtr.Zero)
                     {
-                        GameProcess.ReadValue(nextptr, out ioevent);
+                        GameProcess.ReadValue(nextPtr, out ioEvent);
                         continue;
                     }
                     else return 0; // end early if we've hit the end of the list
@@ -257,6 +278,7 @@ namespace LiveSplit.SourceSplit
         }
 
         // fixme: this *could* probably return true twice if the player save/loads on an exact tick
+        // precision notice: will always be too early by at most 2 ticks using the standard 0.03 epsilon
         public bool CompareToInternalTimer(float splitTime, float epsilon = IO_EPSILON)
         {
             return splitTime != 0f && Math.Abs(splitTime - RawTickCount * IntervalPerTick) <= epsilon;
@@ -276,7 +298,7 @@ namespace LiveSplit.SourceSplit
         public IntPtr FadeListPtr;
         // note: only valid during host states: NewGame, ChangeLevelSP, ChangeLevelMP
         // note: this may not work pre-ep1 (ancient engine), HLS -7 is a good example
-        public IntPtr HostStateLevelNamePtr => this.HostStatePtr + (4 * (GameMemory.Source2003 ? 2 : 8));
+        public IntPtr HostStateLevelNamePtr => this.HostStatePtr + (4 * (GameMemory.IsSource2003 ? 2 : 8));
         public IntPtr ServerStatePtr;
         public IntPtr EventQueuePtr;
 
