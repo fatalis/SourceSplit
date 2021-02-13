@@ -62,6 +62,7 @@
     <Compile Include="GameSpecific\HL2Ep2.cs" />
     <Compile Include="GameSpecific\HDTF.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_1187Ep1.cs" />
+    <Compile Include="GameSpecific\HL2Mods\HL2Mods_Precursor.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_Grey.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_GetALife.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_Terminal7.cs" />

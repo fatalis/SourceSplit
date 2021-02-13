@@ -246,6 +246,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_GetALife();
                 case "grey":
                     return new HL2Mods_Grey();
+                case "precursor":
+                    return new HL2Mods_Precursor();
             }
 
             return null;

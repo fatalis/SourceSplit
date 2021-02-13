@@ -104,7 +104,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private static int _endingSeriousCount;
         private MemoryWatcher<Vector3f> _endingDiscoAngVel;
         private MemoryWatcher<float> _endingStuckEndingCount;
-        private MemoryWatcher<int> _endingCountFadeAlpha;
         private int _endingZendingCamIndex;
         private Vector3f _endingWhiteboardDoorOrigin = new Vector3f(1988f, -1792f, -1992f);
 
@@ -272,9 +271,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     {
                         this._endingCountCamIndex = state.GetEntIndexByName("cam_white");
                         this._endingDiscoAngVel = new MemoryWatcher<Vector3f>(state.GetEntityByName("emotionboothDrot") + _baseEntityAngleVelOffset);
-                        this._endingCountFadeAlpha = new MemoryWatcher<int>(client.BaseAddress + 0xf63000);
                         _endingsWatcher.Add(_endingDiscoAngVel);
-                        _endingsWatcher.Add(_endingCountFadeAlpha);
                         break;
                     }
                 case "redstair":

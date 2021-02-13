@@ -393,13 +393,6 @@ namespace LiveSplit.SourceSplit
             _thread.Wait();
         }
 
-        // reset flags set for special games
-        void ResetSpecificFlags()
-        {
-            _isInfra = false;
-            IsSource2003 = false;
-        }
-
         void MemoryReadThread(CancellationTokenSource cts)
         {
             // force windows timer resolution to 1ms. it probably already is though, from the game.
@@ -462,7 +455,9 @@ namespace LiveSplit.SourceSplit
 #if DEBUG
             var sw = Stopwatch.StartNew();
 #endif
-            ResetSpecificFlags();
+            _isInfra = false;
+            IsSource2003 = false;
+
             string[] procs = _settings.GameProcesses.Select(x => x.ToLower().Replace(".exe", String.Empty)).ToArray();
             p = Process.GetProcesses().FirstOrDefault(x => procs.Contains(x.ProcessName.ToLower()));
             offsets = new GameOffsets();

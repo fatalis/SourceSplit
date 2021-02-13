@@ -153,10 +153,7 @@ namespace LiveSplit.SourceSplit
                 string n;
                 this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
                 if (n == name)
-                {
-                    Debug.WriteLine(maxEnts);
                     return i;
-                }
             }
 
             return -1;
