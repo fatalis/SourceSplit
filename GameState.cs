@@ -251,7 +251,7 @@ namespace LiveSplit.SourceSplit
         }
 
         // ioEvents are stored in a non-contiguous list where every ioEvent contain pointers to the next or previous event 
-        // todo: add more input types and combinations to ensure correct result
+        // todo: add more input types and combinations to ensure the correct result
         public float FindOutputFireTime(string targetName, int clamp = 100)
         {
             if (GameProcess.ReadPointer(GameOffsets.EventQueuePtr) == IntPtr.Zero)

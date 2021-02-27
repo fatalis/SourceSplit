@@ -248,6 +248,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_Grey();
                 case "precursor":
                     return new HL2Mods_Precursor();
+                case "portalreverse":
+                    return new PortalRMO();
+                case "portal-stillalive":
+                    return new PortalStillAlive();
             }
 
             return null;
