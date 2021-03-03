@@ -10,6 +10,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public string LastMap { get; protected set; }
         public string FirstMap2 { get; internal set; }
         public List<string> StartOnFirstLoadMaps { get; internal set; } = new List<string>();
+        // whether to split upon the next session end
         public bool SplitOnNextSessionEnd { get; set; } = false;
 
         // ticks to subtract

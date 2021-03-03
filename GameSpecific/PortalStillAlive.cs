@@ -11,6 +11,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private MemoryWatcher<Vector3f> _elevatorPos;
         private float _splitTime;
+        private bool _onceFlag;
 
         public PortalStillAlive()
         {
@@ -23,7 +24,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override void OnGenericUpdate(GameState state)
         {
-            this.OnUpdate(state);
+            if (state.HostState == HostState.GameShutdown)
+                this.OnUpdate(state);
         }
 
         public override void OnSessionStart(GameState state)
@@ -34,10 +36,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 _elevatorPos = new MemoryWatcher<Vector3f>(state.GetEntityByName("a10_a11_elevator_body") + state.GameOffsets.BaseEntityAbsOriginOffset);
 
             _splitTime = 0f;
+            _onceFlag = false;
         }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
+            if (_onceFlag)
+                return GameSupportResult.DoNothing;
+
             float splitTime = 0f;
             if (this.IsLastMap)
             {
@@ -55,6 +61,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             {
                 _splitTime = 0f;
                 Debug.WriteLine("portal still alive split / end");
+                _onceFlag = true;
                 SplitOnNextSessionEnd = true;
             }
 
