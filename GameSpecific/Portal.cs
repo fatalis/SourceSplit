@@ -85,6 +85,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                             {
                                 Debug.WriteLine("robot lady boom detected");
                                 _onceFlag = true;
+                                this.EndOffsetTicks = -1;
                                 return GameSupportResult.PlayerLostControl;
                             }
                         }
