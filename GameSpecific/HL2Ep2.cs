@@ -19,6 +19,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
         private int _basePlayerLaggedMovementOffset = -1;
         private float _prevLaggedMovementValue;
+        private float _splitTime;
 
         public HL2Ep2()
         {
@@ -48,6 +49,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _basePlayerLaggedMovementOffset, out _prevLaggedMovementValue);
 
             _onceFlag = false;
+            _splitTime = 0f;
+        }
+
+        public override void OnGenericUpdate(GameState state)
+        {
+            if (state.HostState == HostState.GameShutdown)
+                this.OnUpdate(state);
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -94,36 +102,39 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "dark_intervention":
                     {
                         float splitTime = state.FindOutputFireTime("command_ending", 3);
-                        if (state.CompareToInternalTimer(splitTime))
+                        _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                        if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                         {
                             Debug.WriteLine("dark intervention end");
+                            _splitTime = 0f;
                             _onceFlag = true;
-                            this.EndOffsetTicks = -1;
-                            return GameSupportResult.PlayerLostControl;
+                            SplitOnNextSessionEnd = true;
                         }
                         break;
                     }
                 case "hells_mines":
                     {
                         float splitTime = state.FindOutputFireTime("command", 3);
-                        if (state.CompareToInternalTimer(splitTime))
+                        _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                        if (state.CompareToInternalTimer(_splitTime, 0f, false , true))
                         {
-                            Debug.WriteLine("hells mines end");
+                            _splitTime = 0f;
                             _onceFlag = true;
-                            this.EndOffsetTicks = -1;
-                            return GameSupportResult.PlayerLostControl;
+                            SplitOnNextSessionEnd = true;
                         }
                         break;
                     }
                 case "twhl_upmine_struggle":
                     {
                         float splitTime = state.FindOutputFireTime("command", 3);
-                        if (state.CompareToInternalTimer(splitTime))
+
+                        _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                        if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                         {
                             Debug.WriteLine("upmine struggle end");
+                            _splitTime = 0f;
                             _onceFlag = true;
-                            this.EndOffsetTicks = -1;
-                            return GameSupportResult.PlayerLostControl;
+                            SplitOnNextSessionEnd = true;
                         }
                         break;
                     }

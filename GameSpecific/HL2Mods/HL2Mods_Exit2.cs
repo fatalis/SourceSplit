@@ -55,15 +55,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-            else if (this.IsLastMap && _trigIndex != -1)
+            else if (this.IsLastMap)
             {
                 var newTrig = state.GetEntInfoByIndex(_trigIndex);
                 float splitTime = state.FindFadeEndTime(-127.5f);
 
-                if (newTrig.EntityPtr == IntPtr.Zero && state.CompareToInternalTimer(splitTime, 0.05f))
+                if (state.CompareToInternalTimer(splitTime, 0f, true))
                 {
                     Debug.WriteLine("exit2 end");
-                    this.EndOffsetTicks = -1;
                     _onceFlag = true;
                     return GameSupportResult.PlayerLostControl;
                 }

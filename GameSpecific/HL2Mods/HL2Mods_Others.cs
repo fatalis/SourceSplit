@@ -6,19 +6,39 @@
 // hl abridged, episode one, combination ville, phaseville, companion piece, school adventures, the citizen 1
 
 using LiveSplit.ComponentUtil;
-using System;
 using System.Diagnostics;
-
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class HL2Mods_ThinkTank : GameSupport
+    class HL2Mods_Misc : GameSupport
+    {
+        public float SplitTime;
+        public bool OnceFlag;
+
+        public override void OnGenericUpdate(GameState state)
+        {
+            if (IsLastMap && state.HostState == HostState.Shutdown)
+                OnUpdate(state);
+        }
+
+        public override GameSupportResult OnUpdate(GameState state)
+        {
+            return base.OnUpdate(state);
+        }
+
+        public override void OnSessionStart(GameState state)
+        {
+            base.OnSessionStart(state);
+            OnceFlag = false;
+            SplitTime = 0f;
+        }
+    }
+
+    class HL2Mods_ThinkTank : HL2Mods_Misc
     {
         // how to match with demos:
         // start: on first map load
         // ending: when the final output is fired
-
-        private bool _onceFlag;
 
         public HL2Mods_ThinkTank()
         {
@@ -31,36 +51,34 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
-            _onceFlag = false;
+            OnceFlag = false;
         }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (_onceFlag)
+            if (OnceFlag)
                 return GameSupportResult.DoNothing;
 
             if (this.IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("servercommand", 3);
-                if (state.CompareToInternalTimer(splitTime))
+                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
                 {
-                    _onceFlag = true;
+                    OnceFlag = true;
                     Debug.WriteLine("think tank end");
-                    this.EndOffsetTicks = -1;
-                    return GameSupportResult.PlayerLostControl;
+                    SplitOnNextSessionEnd = true;
                 }
             }
             return GameSupportResult.DoNothing;
         } 
     }
 
-    class HL2Mods_Gnome : GameSupport
+    class HL2Mods_Gnome : HL2Mods_Misc
     {
         // how to match with demos:
         // start: on first map load
         // ending: when the final output is fired
-
-        private bool _onceFlag;
 
         public HL2Mods_Gnome()
         {
@@ -73,23 +91,23 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
-            _onceFlag = false;
+            OnceFlag = false;
         }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (_onceFlag)
+            if (OnceFlag)
                 return GameSupportResult.DoNothing;
 
             if (this.IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("cmd_end", 2);
-                if (state.CompareToInternalTimer(splitTime))
+                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
                 {
                     Debug.WriteLine("gnome end");
-                    _onceFlag = true;
-                    this.EndOffsetTicks = -1;
-                    return GameSupportResult.PlayerLostControl;
+                    OnceFlag = true;
+                    SplitOnNextSessionEnd = true;
                 }
             }
             return GameSupportResult.DoNothing;
@@ -107,43 +125,35 @@ namespace LiveSplit.SourceSplit.GameSpecific
         }
     }
 
-    class HL2Mods_Reject : GameSupport
+    class HL2Mods_Reject : HL2Mods_Misc
     {
         // start: on first map
         // end: on final output
         public HL2Mods_Reject()
         { 
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "reject";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.LastMap = "reject";
+            this.StartOnFirstLoadMaps.Add(this.LastMap);
         }
-
-        public override void OnSessionStart(GameState state)
-        {
-            base.OnSessionStart(state);
-            _onceFlag = false;
-        }
-
-        private bool _onceFlag;
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (_onceFlag)
+            if (OnceFlag)
                 return GameSupportResult.DoNothing;
 
             float splitTime = state.FindOutputFireTime("komenda", 3);
-            if (state.CompareToInternalTimer(splitTime))
+            SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+            if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
             {
                 Debug.WriteLine("hl2 reject end");
-                _onceFlag = true;
-                this.EndOffsetTicks = -1;
-                return GameSupportResult.PlayerLostControl;
+                OnceFlag = true;
+                SplitOnNextSessionEnd = true;
             }
             return GameSupportResult.DoNothing;
         }
     }
 
-    class HL2Mods_TrapVille : GameSupport
+    class HL2Mods_TrapVille : HL2Mods_Misc
     {
         // start: on first map
         // end: on final output
@@ -155,37 +165,31 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
-        private bool _onceFlag = false;
+        
         private Vector3f _endSector = new Vector3f(7953f, -11413f, 2515f);
-
-        public override void OnSessionStart(GameState state)
-        {
-            base.OnSessionStart(state);
-            _onceFlag = false;
-        }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (_onceFlag)
+            if (OnceFlag)
                 return GameSupportResult.DoNothing;
 
             // todo: probably should use the helicopter's position?
             if (IsLastMap && state.PlayerPosition.Distance(_endSector) <= 300f)
             {
                 float splitTime = state.FindOutputFireTime("game_end", 10);
-                if (state.CompareToInternalTimer(splitTime))
+                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
                 {
                     Debug.WriteLine("trapville end");
-                    _onceFlag = true;
-                    this.EndOffsetTicks = -1;
-                    return GameSupportResult.PlayerLostControl;
+                    OnceFlag = true;
+                    SplitOnNextSessionEnd = true;
                 }
             }
             return GameSupportResult.DoNothing;
         }
     }
 
-    class HL2Mods_RTSLVille : GameSupport
+    class HL2Mods_RTSLVille : HL2Mods_Misc
     {
         // start: on first map
         // end: on final output
@@ -197,35 +201,27 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
-        private bool _onceFlag = false;
-
-        public override void OnSessionStart(GameState state)
-        {
-            base.OnSessionStart(state);
-            _onceFlag = false;
-        }
-
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (_onceFlag)
+            if (OnceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsLastMap && state.PlayerViewEntityIndex != GameState.ENT_INDEX_PLAYER)
             {
                 float splitTime = state.FindOutputFireTime("clientcommand", 8);
-                if (state.CompareToInternalTimer(splitTime))
+                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
                 {
                     Debug.WriteLine("rtslville end");
-                    _onceFlag = true;
-                    this.EndOffsetTicks = -1;
-                    return GameSupportResult.PlayerLostControl;
+                    OnceFlag = true;
+                    SplitOnNextSessionEnd = true;
                 }
             }
             return GameSupportResult.DoNothing;
         }
     }
 
-    class HL2Mods_Abridged : GameSupport
+    class HL2Mods_Abridged : HL2Mods_Misc
     {
         // start: on first map
         // end: on final output
@@ -237,35 +233,27 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
-        private bool _onceFlag = false;
-
-        public override void OnSessionStart(GameState state)
-        {
-            base.OnSessionStart(state);
-            _onceFlag = false;
-        }
-
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (_onceFlag)
+            if (OnceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("end_disconnect", "command", "disconnect; map_background background_ml05", 6);
-                if (state.CompareToInternalTimer(splitTime))
+                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
                 {
                     Debug.WriteLine("hl abridged end");
-                    _onceFlag = true;
-                    this.EndOffsetTicks = -1;
-                    return GameSupportResult.PlayerLostControl;
+                    OnceFlag = true;
+                    SplitOnNextSessionEnd = true;
                 }
             }
             return GameSupportResult.DoNothing;
         }
     }
 
-    class HL2Mods_EpisodeOne : GameSupport
+    class HL2Mods_EpisodeOne : HL2Mods_Misc
     {
         // start: on first map
         // end: on final output
@@ -277,35 +265,27 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
-        private bool _onceFlag = false;
-
-        public override void OnSessionStart(GameState state)
-        {
-            base.OnSessionStart(state);
-            _onceFlag = false;
-        }
-
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (_onceFlag)
+            if (OnceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("point_clientcommand2", 4);
-                if (state.CompareToInternalTimer(splitTime))
+                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
                 {
                     Debug.WriteLine("episode one end");
-                    _onceFlag = true;
-                    this.EndOffsetTicks = -1;
-                    return GameSupportResult.PlayerLostControl;
+                    OnceFlag = true;
+                    SplitOnNextSessionEnd = true;
                 }
             }
             return GameSupportResult.DoNothing;
         }
     }
 
-    class HL2Mods_CombinationVille : GameSupport
+    class HL2Mods_CombinationVille : HL2Mods_Misc
     {
         // start: on first map
         // end: on final output
@@ -317,8 +297,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
-        private bool _onceFlag = false;
-
         private Vector3f _tramEndPos = new Vector3f(2624f, -1856f, 250f);
         private int _tramPtr;
 
@@ -329,30 +307,30 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (IsLastMap)
                 _tramPtr = state.GetEntIndexByName("tram");
 
-            _onceFlag = false;
+            OnceFlag = false;
         }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (_onceFlag)
+            if (OnceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsLastMap && state.GetEntityPos(_tramPtr).Distance(_tramEndPos) <= 100)
             {
                 float splitTime = state.FindOutputFireTime("pcc", "command", "startupmenu force", 8);
-                if (state.CompareToInternalTimer(splitTime))
+                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
                 {
                     Debug.WriteLine("combination ville end");
-                    _onceFlag = true;
-                    this.EndOffsetTicks = -1;
-                    return GameSupportResult.PlayerLostControl;
+                    OnceFlag = true;
+                    SplitOnNextSessionEnd = true;
                 }
             }
             return GameSupportResult.DoNothing;
         }
     }
 
-    class HL2Mods_PhaseVille : GameSupport
+    class HL2Mods_PhaseVille : HL2Mods_Misc
     {
         // start: on first map
         // end: on final output
@@ -364,36 +342,27 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
-        private bool _onceFlag = false;
-
-
-        public override void OnSessionStart(GameState state)
-        {
-            base.OnSessionStart(state);
-            _onceFlag = false;
-        }
-
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (_onceFlag)
+            if (OnceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("clientcommand", 3);
-                if (state.CompareToInternalTimer(splitTime))
+                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
                 {
                     Debug.WriteLine("phaseville end");
-                    _onceFlag = true;
-                    this.EndOffsetTicks = -1;
-                    return GameSupportResult.PlayerLostControl;
+                    OnceFlag = true;
+                    SplitOnNextSessionEnd = true;
                 }
             }
             return GameSupportResult.DoNothing;
         }
     }
 
-    class HL2Mods_CompanionPiece : GameSupport
+    class HL2Mods_CompanionPiece : HL2Mods_Misc
     {
         // start: on first map
         // end: on final output
@@ -405,28 +374,20 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
-        private bool _onceFlag = false;
-
-        public override void OnSessionStart(GameState state)
-        {
-            base.OnSessionStart(state);
-            _onceFlag = false;
-        }
-
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (_onceFlag)
+            if (OnceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("piss_off_egg_head", 4);
-                if (state.CompareToInternalTimer(splitTime))
+                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
                 {
                     Debug.WriteLine("companion piece end");
-                    _onceFlag = true;
-                    this.EndOffsetTicks = -1;
-                    return GameSupportResult.PlayerLostControl;
+                    OnceFlag = true;
+                    SplitOnNextSessionEnd = true;
                 }
             }
             return GameSupportResult.DoNothing;
@@ -444,13 +405,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
         }
     }
 
-    class HL2Mods_SchoolAdventures : GameSupport
+    class HL2Mods_SchoolAdventures : HL2Mods_Misc
     {
         // how to match with demos:
         // start: on map load
         // ending: when the output to enable the final teleport trigger is fired
-
-        private bool _onceFlag;
 
         public HL2Mods_SchoolAdventures()
         {
@@ -460,25 +419,21 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
-        public override void OnSessionStart(GameState state)
-        {
-            base.OnSessionStart(state);
-            _onceFlag = false;
-        }
+        public override void OnGenericUpdate(GameState state) { }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (_onceFlag)
+            if (OnceFlag)
                 return GameSupportResult.DoNothing;
 
             if (this.IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("final_teleport1", 3);
-                if (state.CompareToInternalTimer(splitTime))
+                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+                if (state.CompareToInternalTimer(SplitTime, 0f, true))
                 {
-                    _onceFlag = true;
+                    OnceFlag = true;
                     Debug.WriteLine("school_adventures end");
-                    this.EndOffsetTicks = -1;
                     return GameSupportResult.PlayerLostControl;
                 }
             }

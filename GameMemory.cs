@@ -641,8 +641,8 @@ namespace LiveSplit.SourceSplit
             while (!game.HasExited && !cts.IsCancellationRequested)
             {
                 // iteration must never take longer than 1 tick
-
                 this.UpdateGameState(state);
+                state.GameSupport?.OnGenericUpdate(state);
                 this.CheckGameState(state);
 
                 state.UpdateCount++;
@@ -760,7 +760,9 @@ namespace LiveSplit.SourceSplit
             GameOffsets offsets = state.GameOffsets;
 
             // update all the stuff that doesn't depend on the signon state
+            state.PrevRawTickCount = state.RawTickCount;
             game.ReadValue(offsets.TickCountPtr, out state.RawTickCount);
+            game.ReadValue(offsets.CurTimePtr + 0x4, out state.FrameTime);
             game.ReadValue(offsets.IntervalPerTickPtr, out state.IntervalPerTick);
 
             state.PrevSignOnState = state.SignOnState;
@@ -902,6 +904,11 @@ namespace LiveSplit.SourceSplit
                     // the map changed or a save was loaded
                     this.SendSessionEndedEvent();
 
+                    if (state.GameSupport != null && state.GameSupport.SplitOnNextSessionEnd 
+                        && state.HostState == HostState.GameShutdown)
+                    {
+                        this.HandleGameSupportResult(GameSupportResult.PlayerLostControl, state);
+                    }
                     state.GameSupport?.OnSessionEnd(state);
                 }
 
@@ -938,6 +945,8 @@ namespace LiveSplit.SourceSplit
                         this.SendMapChangedEvent(levelName, state.CurrentMap);
                     }
                 }
+
+                state.GameSupport.SplitOnNextSessionEnd = false;
             }
         }
 

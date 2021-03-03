@@ -14,6 +14,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
 
         private int _trigIndex;
+        private float _splitTime;
 
         private MemoryWatcher<int> _fadeListSize;
 
@@ -35,6 +36,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (IsFirstMap)
             {
+                _splitTime = 0f;
                 _trigIndex = state.GetEntIndexByPos(-1973f, -4511f, -1901.5f);
                 Debug.WriteLine("target trigger found at " + _trigIndex);
             }
@@ -50,10 +52,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsFirstMap)
             {
                 float splitTime = state.FindOutputFireTime("commander", "Command", "give item_suit", 4);
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
                 IntPtr trigPtr = state.GetEntInfoByIndex(_trigIndex).EntityPtr;
-                if (trigPtr != IntPtr.Zero && state.CompareToInternalTimer(splitTime))
+                if (trigPtr != IntPtr.Zero && state.CompareToInternalTimer(_splitTime, 0f, true))
                 {
                     _onceFlag = true;
+                    _splitTime = 0f;
                     Debug.WriteLine("the citizen 2 start");
                     return GameSupportResult.PlayerGainedControl;
                 }

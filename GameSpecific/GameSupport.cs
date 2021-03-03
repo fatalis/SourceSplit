@@ -10,6 +10,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public string LastMap { get; protected set; }
         public string FirstMap2 { get; internal set; }
         public List<string> StartOnFirstLoadMaps { get; internal set; } = new List<string>();
+        public bool SplitOnNextSessionEnd { get; set; } = false;
 
         // ticks to subtract
         public int StartOffsetTicks { get; protected set; }
@@ -77,6 +78,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // called when player no longer fully in the game (map changed, load started)
         public virtual void OnSessionEnd(GameState state) { }
 
+        // called every update loop, regardless if the player is full in-game
+        public virtual void OnGenericUpdate(GameState state) { }
+
         // called once per tick when player is fully in the game
         public virtual GameSupportResult OnUpdate(GameState state)
         {
@@ -130,9 +134,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Ep2();
                 case "portal":
                 case "portalelevators":
-                    return new Portal();
                 case "portal_tfv":
-                    return new PortalTFV();
+                    return new Portal();
                 case "portal2":
                     return new Portal2();
                 case "aperturetag":
@@ -250,6 +253,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_Precursor();
                 case "portalreverse":
                     return new PortalRMO();
+                case "stillalive":
                 case "portal-stillalive":
                     return new PortalStillAlive();
             }

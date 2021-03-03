@@ -50,6 +50,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public static bool _resetFlag;
         public static bool _resetFlagDemo;
         public static bool _resetFlagMod;
+        private float _defFadeSplitTime;
+        private float _defOutputSplitTime;
 
         private bool _isMod = false;
         //private const int _modClientModuleSize = 0x4cb000;
@@ -168,9 +170,23 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private GameSupportResult DefaultFadeEnd(GameState state, float fadeSpeed, string ending)
         {
             float splitTime = state.FindFadeEndTime(fadeSpeed);
-            if (state.CompareToInternalTimer(splitTime, 0.05f))
+            _defFadeSplitTime = splitTime == 0f ? _defFadeSplitTime : splitTime;
+            if (state.CompareToInternalTimer(_defFadeSplitTime, 0f, true))
             {
-                return DefaultEnd(ending, -1);
+                _defFadeSplitTime = 0f;
+                return DefaultEnd(ending);
+            }
+            else
+                return GameSupportResult.DoNothing;
+        }
+
+        private GameSupportResult DefualtOutputEnd(GameState state, float splitTime, string ending)
+        {
+            _defOutputSplitTime = splitTime == 0f ? _defOutputSplitTime : splitTime;
+            if (state.CompareToInternalTimer(_defOutputSplitTime, 0f))
+            {
+                _defOutputSplitTime = 0f;
+                return DefaultEnd(ending);
             }
             else
                 return GameSupportResult.DoNothing;
@@ -223,10 +239,18 @@ namespace LiveSplit.SourceSplit.GameSpecific
             _endingsWatcher.Add(_latestClientCmd);
         }
 
+        public override void OnGenericUpdate(GameState state)
+        {
+            if (state.CurrentMap.ToString() == "map" && state.HostState == HostState.GameShutdown)
+                this.OnUpdate(state);
+        }
 
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
+
+            _defFadeSplitTime = 0f;
+            _defOutputSplitTime = 0f;
 
             _endingsWatcher.Remove(_playerViewAng);
             if (!_isMod)
@@ -378,11 +402,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "trainstation":
                     {
                         float splitTime = state.FindOutputFireTime("the_end", 2);
-                        if (state.CompareToInternalTimer(splitTime))
-                        {
-                            return DefaultEnd("mod games", -1);
-                        }
-                        break;
+                        return DefualtOutputEnd(state, splitTime, "mod games");
                     }
 
                 // tsp demo start and end
@@ -543,11 +563,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "incorrect": //choice ending
                     {
                         float splitTime = state.FindOutputFireTime("smallnewtimerelay", 2);
-                        if (state.CompareToInternalTimer(splitTime))
-                        {
-                            return DefaultEnd("choice", -1);
-                        }
-                        break;
+                        return DefualtOutputEnd(state, splitTime, "choice");
                     }
 
                 case "testchmb_a_00": // games, stuck ending
@@ -567,11 +583,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "map_death": //museum ending
                     {
                         float splitTime = state.FindOutputFireTime("cmd", "command", "stopsound", 2);
-                        if (state.CompareToInternalTimer(splitTime))
-                        {
-                            return DefaultEnd("museum", -1);
-                        }
-                        break;
+                        return DefualtOutputEnd(state, splitTime, "museum");;
                     }
                 case "seriousroom": //serious ending
                     {
@@ -599,9 +611,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "map":
                     {
                         float splitTime = state.FindOutputFireTime("cmd", 2);
-                        if (state.CompareToInternalTimer(splitTime))
+                        _defOutputSplitTime = splitTime == 0f ? _defOutputSplitTime : splitTime;
+                        if (state.CompareToInternalTimer(_defOutputSplitTime, 0f, false, true))
                         {
-                            return DefaultEnd("confusion", -1);
+                            DefaultEnd("confusion");
+                            SplitOnNextSessionEnd = true;
                         }
                         break;
                     }

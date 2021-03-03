@@ -8,7 +8,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending: when the gunship dies and queues final output
 
         private bool _onceFlag;
-
         private float _splitTime;
 
         public HL2Mods_TheLostCity()

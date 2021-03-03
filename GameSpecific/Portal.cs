@@ -8,13 +8,18 @@ namespace LiveSplit.SourceSplit.GameSpecific
     class Portal : GameSupport
     {
         // how to match this timing with demos:
-        // start: crosshair appear
-        // ending: crosshair disappear
+        // start: 
+            // portal: crosshair appear
+            // portal tfv map pack: on first map
+        // ending: 
+            // portal: when glados' body entity is deleted
+            // portal tfv map pack: first tick player is slowed down by the ending trigger 
 
-        private int _playerSuppressingCrosshairOffset = -1;
-        private bool _prevCrosshairSuppressed;
         private bool _onceFlag;
+        private int _laggedMovementOffset = -1;
         private const int VAULT_SAVE_TICK = 4261;
+        private const int TFV_VAULT_SAVE_TICK = 3876;
+        private int _glados_index;
 
         public Portal()
         {
@@ -22,9 +27,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.AutoStartType = AutoStart.ViewEntityChanged;
             this.FirstMap = "testchmb_a_00";
             this.LastMap = "escape_02";
-            // match portal demo timer
-            this.StartOffsetTicks = 1;
-            this.EndOffsetTicks = -1;
+            this.StartOnFirstLoadMaps.Add("portaltfv1");           
+            this.RequiredProperties = PlayerProperties.Position | PlayerProperties.ViewEntity;
         }
 
         public override void OnGameAttached(GameState state)
@@ -34,54 +38,87 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
 
-            if (GameMemory.GetBaseEntityMemberOffset("m_bSuppressingCrosshair", state.GameProcess, scanner, out _playerSuppressingCrosshairOffset))
-                Debug.WriteLine("CPortalPlayer::m_bSuppressingCrosshair offset = 0x" + _playerSuppressingCrosshairOffset.ToString("X"));
+            if (GameMemory.GetBaseEntityMemberOffset("m_flLaggedMovementValue", state.GameProcess, scanner, out _laggedMovementOffset))
+                Debug.WriteLine("CBasePlayer::m_flLaggedMovementValue offset = 0x" + _laggedMovementOffset.ToString("X"));
         }
+
 
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
 
-            if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _playerSuppressingCrosshairOffset != -1)
-                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _playerSuppressingCrosshairOffset, out _prevCrosshairSuppressed);
-
+            if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
+            {
+                this._glados_index = state.GetEntIndexByName("glados_body");
+                Debug.WriteLine("Glados index is " + this._glados_index);
+            }
             _onceFlag = false;
         }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (this.IsFirstMap)
-            {
-                // vault save starts at tick 4261, but update interval may miss it so be a little lenient
-                if ((state.TickBase >= VAULT_SAVE_TICK && state.TickBase <= VAULT_SAVE_TICK+4) && !_onceFlag)
-                {
-                    _onceFlag = true;
-                    int ticksSinceVaultSaveTick = state.TickBase - VAULT_SAVE_TICK; // account for missing ticks if update interval missed it
-                    this.StartOffsetTicks = -3534 - ticksSinceVaultSaveTick; // 53.01 seconds
-                    return GameSupportResult.PlayerGainedControl;
-                }
-
-                this.StartOffsetTicks = 1;
-                return base.OnUpdate(state);
-            }
-            else if (!this.IsLastMap || _onceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _playerSuppressingCrosshairOffset != -1)
+            switch (state.CurrentMap.ToLower())
             {
-                bool crosshairSuppressed;
-                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _playerSuppressingCrosshairOffset, out crosshairSuppressed);
+                case "testchmb_a_00":
+                    {
+                        // vault save starts at tick 4261, but update interval may miss it so be a little lenient
+                        if ((state.TickBase >= VAULT_SAVE_TICK && state.TickBase <= VAULT_SAVE_TICK + 4) && !_onceFlag)
+                        {
+                            _onceFlag = true;
+                            int ticksSinceVaultSaveTick = state.TickBase - VAULT_SAVE_TICK; // account for missing ticks if update interval missed it
+                            this.StartOffsetTicks = -3534 - ticksSinceVaultSaveTick; // 53.01 seconds
+                            return GameSupportResult.PlayerGainedControl;
+                        }
+                        this.StartOffsetTicks = 1;
+                        return base.OnUpdate(state);
+                    }
+                case "escape_02":
+                    {
+                        if (this._glados_index != -1)
+                        {
+                            var newglados = state.GetEntInfoByIndex(_glados_index);
 
-                if (crosshairSuppressed && !_prevCrosshairSuppressed)
-                {
-                    _onceFlag = true;
-                    Debug.WriteLine("porto crosshair detected");
-                    return GameSupportResult.PlayerLostControl;
-                }
-
-                _prevCrosshairSuppressed = crosshairSuppressed;                
+                            if (newglados.EntityPtr == IntPtr.Zero)
+                            {
+                                Debug.WriteLine("robot lady boom detected");
+                                _onceFlag = true;
+                                return GameSupportResult.PlayerLostControl;
+                            }
+                        }
+                        break;
+                    }
+                case "portaltfv1":
+                    {
+                        if ((state.TickBase >= TFV_VAULT_SAVE_TICK && state.TickBase <= TFV_VAULT_SAVE_TICK + 4))
+                        {
+                            Debug.WriteLine("tfv start");
+                            _onceFlag = true;
+                            int ticksSinceVaultSaveTick = state.TickBase - TFV_VAULT_SAVE_TICK; // account for missing ticks if update interval missed it
+                            this.StartOffsetTicks = -3803 - ticksSinceVaultSaveTick; // 57.045 seconds
+                            return GameSupportResult.PlayerGainedControl;
+                        }
+                        break;
+                    }
+                case "portaltfv5":
+                    {
+                        if (state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
+                        {
+                            float laggedMovementValue;
+                            state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _laggedMovementOffset, out laggedMovementValue);
+                            if (laggedMovementValue == 0.4f)
+                            {
+                                Debug.WriteLine("tfv end");
+                                _onceFlag = true;
+                                this.EndOffsetTicks = 0;
+                                return GameSupportResult.PlayerLostControl;
+                            }
+                        }
+                        break;
+                    }
             }
-
             return GameSupportResult.DoNothing;
         }
     }

@@ -31,6 +31,8 @@ namespace LiveSplit.SourceSplit
 
         public float IntervalPerTick;
         public int RawTickCount;
+        public float FrameTime;
+        public int PrevRawTickCount;
         public int TickBase;
         public int TickCount;
         public float TickTime;
@@ -252,7 +254,7 @@ namespace LiveSplit.SourceSplit
 
         // ioEvents are stored in a non-contiguous list where every ioEvent contain pointers to the next or previous event 
         // todo: add more input types and combinations to ensure the correct result
-        public float FindOutputFireTime(string targetName, int clamp = 100)
+        public float FindOutputFireTime(string targetName, int clamp = 100, bool inclusive = false)
         {
             if (GameProcess.ReadPointer(GameOffsets.EventQueuePtr) == IntPtr.Zero)
                 return 0;
@@ -264,8 +266,8 @@ namespace LiveSplit.SourceSplit
             // the list is automatically updated once an output is fired
             for (int i = 0; i < clamp; i++)
             {
-                string tempName = GameProcess.ReadString((IntPtr)ioEvent.m_iTarget, 256);
-                if (tempName == targetName)
+                string tempName = GameProcess.ReadString((IntPtr)ioEvent.m_iTarget, 256) ?? "";
+                if (!inclusive ? tempName == targetName : tempName.Contains(targetName))
                     return ioEvent.m_flFireTime;
                 else
                 {
@@ -282,7 +284,8 @@ namespace LiveSplit.SourceSplit
             return 0;
         }
 
-        public float FindOutputFireTime(string targetName, string command, string param, int clamp = 100)
+        public float FindOutputFireTime(string targetName, string command, string param, int clamp = 100, 
+            bool nameInclusive = false, bool commandInclusive = false, bool paramInclusive = false)
         {
             if (GameProcess.ReadPointer(GameOffsets.EventQueuePtr) == IntPtr.Zero)
                 return 0;
@@ -292,13 +295,13 @@ namespace LiveSplit.SourceSplit
 
             for (int i = 0; i < clamp; i++) 
             {
-                string tempName = GameProcess.ReadString((IntPtr)ioEvent.m_iTarget, 256);
-                string tempCommand = GameProcess.ReadString((IntPtr)ioEvent.m_iTargetInput, 256);
-                string tempParam = GameProcess.ReadString((IntPtr)ioEvent.v_union, 256) == null ? "" : GameProcess.ReadString((IntPtr)ioEvent.v_union, 256);
+                string tempName = GameProcess.ReadString((IntPtr)ioEvent.m_iTarget, 256) ?? "";
+                string tempCommand = GameProcess.ReadString((IntPtr)ioEvent.m_iTargetInput, 256) ?? "";
+                string tempParam = GameProcess.ReadString((IntPtr)ioEvent.v_union, 256) ?? "";
 
-                if (tempName == targetName &&
-                    tempCommand.ToLower() == command.ToLower() && 
-                    tempParam.ToLower() == param.ToLower())
+                if ((!nameInclusive) ? tempName == targetName : tempName.Contains(targetName) &&
+                   ((!commandInclusive) ? tempCommand.ToLower() == command.ToLower() : tempCommand.ToLower().Contains(command.ToLower())) && 
+                   ((!paramInclusive) ? tempParam.ToLower() == param.ToLower() : tempParam.ToLower().Contains(param.ToLower())))
                     return ioEvent.m_flFireTime;
                 else
                 {
@@ -317,9 +320,30 @@ namespace LiveSplit.SourceSplit
 
         // fixme: this *could* probably return true twice if the player save/loads on an exact tick
         // precision notice: will always be too early by at most 2 ticks using the standard 0.03 epsilon
-        public bool CompareToInternalTimer(float splitTime, float epsilon = IO_EPSILON)
+        public bool CompareToInternalTimer(float splitTime, float epsilon = IO_EPSILON, bool checkBefore = false, bool adjustFrameTime = false)
         {
-            return splitTime != 0f && Math.Abs(splitTime - RawTickCount * IntervalPerTick) <= epsilon;
+            if (splitTime == 0f) return false;
+
+            // adjust for lagginess for example at very low fps or if the game's alt-tabbed
+            // could be exploitable but not enough to be concerning
+            // max frametime without cheats should be 0.05, so leniency is ~<3 ticks
+            splitTime -= adjustFrameTime ? (FrameTime > IntervalPerTick ? FrameTime / 1.15f : 0f) : 0f;
+
+            if (epsilon == 0f)
+            {
+                if (checkBefore)
+                    return RawTickCount * IntervalPerTick >= splitTime
+                        && PrevRawTickCount * IntervalPerTick < splitTime;
+
+                return RawTickCount * IntervalPerTick >= splitTime;
+            }
+            else
+            {
+                if (checkBefore)
+                    return Math.Abs(splitTime - RawTickCount * IntervalPerTick) <= epsilon &&
+                        Math.Abs(splitTime - PrevRawTickCount * IntervalPerTick) >= epsilon;
+                return Math.Abs(splitTime - RawTickCount * IntervalPerTick) <= epsilon;
+            }
         }
     }
 

@@ -86,7 +86,6 @@
     <Compile Include="GameSpecific\Prospekt.cs" />
     <Compile Include="GameSpecific\Infra.cs" />
     <Compile Include="GameSpecific\TheBeginnersGuide.cs" />
-    <Compile Include="GameSpecific\PortalTFV.cs" />
     <Compile Include="GameSpecific\TE120.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_Freakman2.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_Freakman1.cs" />

@@ -11,6 +11,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending (ee): when color correction entity is disabled
 
         private bool _onceFlag;
+        private float _splitTime;
 
         // todo: maybe sigscan this?
         private const int _baseColorCorrectEnabledOffset = 0x355;
@@ -40,6 +41,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 this._colorCorrectEnabled = new MemoryWatcher<byte>(state.GetEntityByName("Color_Correction") + _baseColorCorrectEnabledOffset);
             }
             _onceFlag = false;
+            _splitTime = 0f;
+        }
+
+        public override void OnGenericUpdate(GameState state)
+        {
+            if (state.CurrentMap.ToLower() == "wpd_tp" || state.CurrentMap.ToLower() == "hallway"
+                && state.HostState == HostState.GameShutdown)
+                OnUpdate(state);
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -69,18 +78,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("wpd ee end");
                     _onceFlag = true;
-                    return GameSupportResult.PlayerLostControl;
-                }
-            }
-
-            else if (state.CurrentMap.ToLower() == "wpd_tp" || state.CurrentMap.ToLower() == "hallway")
-            {
-                float splitTime = state.FindOutputFireTime("commands", 3);
-                if (state.CompareToInternalTimer(splitTime))
-                {
-                    _onceFlag = true;
-                    this.EndOffsetTicks = -1;
-                    Debug.WriteLine("wpd ce end");
                     return GameSupportResult.PlayerLostControl;
                 }
             }
