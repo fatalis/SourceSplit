@@ -16,7 +16,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public PortalStillAlive()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.AutoStartType = AutoStart.ViewEntityChanged;
             this.FirstMap = "stillalive_1";
             this.LastMap = "stillalive_14";
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
