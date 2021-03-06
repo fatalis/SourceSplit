@@ -17,7 +17,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override void OnGenericUpdate(GameState state)
         {
-            if (IsLastMap && state.HostState == HostState.Shutdown)
+            if (IsLastMap && state.HostState == HostState.GameShutdown)
                 OnUpdate(state);
         }
 
@@ -67,7 +67,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     OnceFlag = true;
                     Debug.WriteLine("think tank end");
-                    SplitOnNextSessionEnd = true;
+                    QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;
@@ -107,7 +107,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("gnome end");
                     OnceFlag = true;
-                    SplitOnNextSessionEnd = true;
+                    QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;
@@ -147,7 +147,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             {
                 Debug.WriteLine("hl2 reject end");
                 OnceFlag = true;
-                SplitOnNextSessionEnd = true;
+                QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
             }
             return GameSupportResult.DoNothing;
         }
@@ -182,7 +182,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("trapville end");
                     OnceFlag = true;
-                    SplitOnNextSessionEnd = true;
+                    QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;
@@ -214,7 +214,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("rtslville end");
                     OnceFlag = true;
-                    SplitOnNextSessionEnd = true;
+                    QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;
@@ -246,7 +246,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("hl abridged end");
                     OnceFlag = true;
-                    SplitOnNextSessionEnd = true;
+                    QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;
@@ -278,7 +278,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("episode one end");
                     OnceFlag = true;
-                    SplitOnNextSessionEnd = true;
+                    QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;
@@ -323,7 +323,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("combination ville end");
                     OnceFlag = true;
-                    SplitOnNextSessionEnd = true;
+                    QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;
@@ -355,7 +355,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("phaseville end");
                     OnceFlag = true;
-                    SplitOnNextSessionEnd = true;
+                    QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;
@@ -387,7 +387,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("companion piece end");
                     OnceFlag = true;
-                    SplitOnNextSessionEnd = true;
+                    QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;

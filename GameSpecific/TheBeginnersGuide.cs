@@ -8,7 +8,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
     class TheBeginnersGuide : GameSupport
     {
         // start: 2:27.50 before map load 
-        // ending: when final trigger_once is triggered (in other words, killed)
+        // ending: when player move speed is modified
 
         private bool _onceFlag = false;
 

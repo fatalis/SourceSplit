@@ -108,7 +108,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                             Debug.WriteLine("dark intervention end");
                             _splitTime = 0f;
                             _onceFlag = true;
-                            SplitOnNextSessionEnd = true;
+                            QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                         }
                         break;
                     }
@@ -120,7 +120,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         {
                             _splitTime = 0f;
                             _onceFlag = true;
-                            SplitOnNextSessionEnd = true;
+                            QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                         }
                         break;
                     }
@@ -134,7 +134,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                             Debug.WriteLine("upmine struggle end");
                             _splitTime = 0f;
                             _onceFlag = true;
-                            SplitOnNextSessionEnd = true;
+                            QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                         }
                         break;
                     }

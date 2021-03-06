@@ -904,11 +904,22 @@ namespace LiveSplit.SourceSplit
                     // the map changed or a save was loaded
                     this.SendSessionEndedEvent();
 
-                    if (state.GameSupport != null && state.GameSupport.SplitOnNextSessionEnd 
-                        && state.HostState == HostState.GameShutdown)
+                    if (state.GameSupport != null && state.HostState == HostState.GameShutdown)
                     {
-                        this.HandleGameSupportResult(GameSupportResult.PlayerLostControl, state);
+                        if (state.GameSupport.QueueOnNextSessionEnd == GameSupportResult.PlayerLostControl)
+                            this.HandleGameSupportResult(GameSupportResult.PlayerLostControl, state);
+
+                        // note: logically map name should only have been set when host state is NewGame, 
+                        // however the map and disconnect commands queue host state changes and host disconnect is always called first
+                        // always leaving a window of time between map name changing and host state changing to newgame
+                        else if (state.GameSupport.QueueOnNextSessionEnd == GameSupportResult.ManualSplit)
+                        {
+                            string levelName;
+                            state.GameProcess.ReadString(state.GameOffsets.HostStateLevelNamePtr, ReadStringType.ASCII, 256 - 1, out levelName);
+                            this.SendMapChangedEvent(levelName, state.CurrentMap);
+                        }
                     }
+                        
                     state.GameSupport?.OnSessionEnd(state);
                 }
 
@@ -946,7 +957,7 @@ namespace LiveSplit.SourceSplit
                     }
                 }
 
-                state.GameSupport.SplitOnNextSessionEnd = false;
+                state.GameSupport.QueueOnNextSessionEnd = GameSupportResult.DoNothing;
             }
         }
 
