@@ -257,6 +257,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "stillalive":
                 case "portal-stillalive":
                     return new PortalStillAlive();
+                case "ggefc13":
+                    return new HL2Mods_GGEFC13();
             }
 
             return null;

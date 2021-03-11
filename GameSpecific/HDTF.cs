@@ -8,12 +8,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
 {
     class HDTF : GameSupport
     {
-        // start:   if start video isnt deleted and the video finishes playing 
+        // start:   if IL had not been finished and 
+        //          AND if start video isnt deleted and the video finishes playing 
         //          XOR if the start video is deleted and the map is newly spawned
         // ending:  when the blocker brush entity is killed
 
         private bool _onceFlag;
         private static bool _resetFlag;
+        private static bool _tutResetFlag = true;
         private int _basePlayerLaggedMovementOffset = -1;
 
         private int _blockerIndex;
@@ -28,7 +30,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HDTF()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "a0c0p1";
             this.FirstMap2 = "a0c0p0"; // boot camp
             this.LastMap = "a4c1p2";
             this.RequiredProperties = PlayerProperties.Position;
@@ -60,6 +61,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             _onceFlag = false;
             _resetFlag = resetFlagTo;
+            if (!resetFlagTo)
+                _tutResetFlag = true;
         }
 
         public override void OnSessionStart(GameState state)
@@ -91,10 +94,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && state.PlayerPosition.DistanceXY(_startPos) <= 3f)
+            if (state.CurrentMap.ToLower() == "a0c0p1" && state.PlayerPosition.DistanceXY(_startPos) <= 3f)
             {
                 bool ifIntroNotDeleted = File.Exists(state.GameProcess.ReadString(state.GameOffsets.GameDirPtr, 255) + "/media/a0b0c0s0.bik");
-                if ((ifIntroNotDeleted && _isInCutscene.Current - _isInCutscene.Old == -1) ^ 
+                if (_tutResetFlag && 
+                    (ifIntroNotDeleted && _isInCutscene.Current - _isInCutscene.Old == -1) ^ 
                     (!ifIntroNotDeleted && !_resetFlag && state.TickCount <= 1 && state.RawTickCount <= 150))
                 {
                     Debug.WriteLine("hdtf start");
@@ -119,6 +123,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     _onceFlag = true;
                     _blockerIndex = -1; 
                     Debug.WriteLine("hdtf tutorial end");
+                    _tutResetFlag = false;
                     return GameSupportResult.PlayerLostControl;
                 }
             }
