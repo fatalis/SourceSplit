@@ -310,12 +310,19 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "precursor":
                     return new HL2Mods_Precursor();
                 case "portalreverse":
-                    return new PortalRMO();
+                    return new PortalMods_PRMO();
                 case "stillalive":
                 case "portal-stillalive":
-                    return new PortalStillAlive();
+                    return new PortalMods_StillAlive();
                 case "ggefc13":
                     return new HL2Mods_GGEFC13();
+                case "rexaura":
+                    return new PortalMods_Rexaura();
+                case "pcborrr":
+                    return new PortalMods_PCBORRR();
+                case "portal pro":
+                case "portalpro":
+                    return new PortalMods_PortalPro();
             }
 
             return null;

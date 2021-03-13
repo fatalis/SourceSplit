@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class PortalStillAlive : GameSupport
+    class PortalMods_StillAlive : GameSupport
     {
         // how to match this timing with demos:
         // start: on first map load
@@ -13,7 +13,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private float _splitTime;
         private bool _onceFlag;
 
-        public PortalStillAlive()
+        public PortalMods_StillAlive()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "stillalive_1";

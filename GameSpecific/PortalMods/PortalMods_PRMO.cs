@@ -5,7 +5,7 @@ using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
-    class PortalRMO : GameSupport
+    class PortalMods_PRMO : GameSupport
     {
         // how to match this timing with demos:
         // start: on first map load
@@ -15,7 +15,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _playerSuppressingCrosshairOffset = -1;
         private bool _onceFlag;
 
-        public PortalRMO()
+        public PortalMods_PRMO()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.AutoStartType = AutoStart.ViewEntityChanged;

@@ -82,8 +82,11 @@
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_Crates.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_Exit2.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_DayHard.cs" />
-    <Compile Include="GameSpecific\PortalStillAlive.cs" />
-    <Compile Include="GameSpecific\PortalRMO.cs" />
+    <Compile Include="GameSpecific\PortalMods\PortalMods_PortalPro.cs" />
+    <Compile Include="GameSpecific\PortalMods\PortalMods_PCBORRR.cs" />
+    <Compile Include="GameSpecific\PortalMods\PortalMods_Rexaura.cs" />
+    <Compile Include="GameSpecific\PortalMods\PortalMods_StillAlive.cs" />
+    <Compile Include="GameSpecific\PortalMods\PortalMods_PRMO.cs" />
     <Compile Include="GameSpecific\Prospekt.cs" />
     <Compile Include="GameSpecific\Infra.cs" />
     <Compile Include="GameSpecific\TheBeginnersGuide.cs" />

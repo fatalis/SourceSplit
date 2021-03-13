@@ -19,7 +19,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _laggedMovementOffset = -1;
         private const int VAULT_SAVE_TICK = 4261;
         private const int TFV_VAULT_SAVE_TICK = 3876;
-        private int _glados_index;
+        private int _gladosIndex;
 
         public Portal()
         {
@@ -49,8 +49,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._glados_index = state.GetEntIndexByName("glados_body");
-                Debug.WriteLine("Glados index is " + this._glados_index);
+                this._gladosIndex = state.GetEntIndexByName("glados_body");
+                Debug.WriteLine("Glados index is " + this._gladosIndex);
             }
             _onceFlag = false;
         }
@@ -65,7 +65,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "testchmb_a_00":
                     {
                         // vault save starts at tick 4261, but update interval may miss it so be a little lenient
-                        if ((state.TickBase >= VAULT_SAVE_TICK && state.TickBase <= VAULT_SAVE_TICK + 4) && !_onceFlag)
+                        if (state.TickBase >= VAULT_SAVE_TICK && state.TickBase <= VAULT_SAVE_TICK + 4)
                         {
                             _onceFlag = true;
                             int ticksSinceVaultSaveTick = state.TickBase - VAULT_SAVE_TICK; // account for missing ticks if update interval missed it
@@ -77,9 +77,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     }
                 case "escape_02":
                     {
-                        if (this._glados_index != -1)
+                        if (this._gladosIndex != -1)
                         {
-                            var newglados = state.GetEntInfoByIndex(_glados_index);
+                            var newglados = state.GetEntInfoByIndex(_gladosIndex);
 
                             if (newglados.EntityPtr == IntPtr.Zero)
                             {
