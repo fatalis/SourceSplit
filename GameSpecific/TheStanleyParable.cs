@@ -139,8 +139,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 return GameSupportResult.PlayerLostControl;
         }
 
-        private bool EvaluateLatestClientCmd(string cmd, int length)
+        private bool EvaluateLatestClientCmd(string cmd)
         {
+            int length = cmd.Length;
             if (_latestClientCmd.Old == null || _latestClientCmd.Current.Length < length)
             {
                 return false;
@@ -370,7 +371,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         }
 
                         // countdown ending
-                        if (EvaluateLatestClientCmd("stopsound", 9))
+                        if (EvaluateLatestClientCmd("stopsound"))
                         {
                             return DefaultEnd("mod countdown", 4);
                         }
@@ -475,7 +476,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                             return DefaultEnd("map1 blackout", 4);
                         }
 
-                        if (EvaluateLatestClientCmd("tsp_broompass", 13)) // broom closet ending
+                        if (EvaluateLatestClientCmd("tsp_broompass")) // broom closet ending
                         {
                             return DefaultEnd("broom");
                         }

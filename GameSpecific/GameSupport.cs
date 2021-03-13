@@ -6,21 +6,48 @@ namespace LiveSplit.SourceSplit.GameSpecific
 {
     abstract class GameSupport
     {
+        /// <summary>
+        /// The first map of the mod / game
+        /// </summary>
         public string FirstMap { get; protected set; }
+        /// <summary>
+        /// The last map of the mod / game
+        /// </summary>
         public string LastMap { get; protected set; }
+        /// <summary>
+        /// The alternative / secondary first map of the mod / game
+        /// </summary>
         public string FirstMap2 { get; internal set; }
+        /// <summary>
+        /// The list of maps on a new session of which the timer should auto-start
+        /// </summary>
         public List<string> StartOnFirstLoadMaps { get; internal set; } = new List<string>();
         // action upon the next session end
+        /// <summary>
+        /// Timer behavior on the next session end (game disconnect / map change)
+        /// </summary>
         public GameSupportResult QueueOnNextSessionEnd { get; set; } = GameSupportResult.DoNothing;
 
         // ticks to subtract
+        /// <summary>
+        /// Tick offset when starting the timer
+        /// </summary>
         public int StartOffsetTicks { get; protected set; }
+        /// <summary>
+        /// Tick offset when ending the timer
+        /// </summary>
         public int EndOffsetTicks { get; protected set; }
 
+        /// <summary>
+        /// The mod / game's timing method
+        /// </summary>
         public GameTimingMethod GameTimingMethod { get; protected set; } = GameTimingMethod.EngineTicks;
 
         // which player properties should be updated
         private PlayerProperties _requiredProperties;
+        /// <summary>
+        /// Required player properties for this mod / game. NOTE: Compiling in debug mode will require all possible
+        /// </summary>
         public PlayerProperties RequiredProperties
         {
             get
@@ -38,6 +65,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // what kind of generic auto-start detection to use
         // must call base.OnUpdate
         private AutoStart _autoStartType;
+        /// <summary>
+        /// Generic Auto-start method.
+        /// </summary>
         protected AutoStart AutoStartType
         {
             get { return _autoStartType; }
@@ -61,12 +91,24 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
 
         // called when attached to a new game process
+        /// <summary>
+        /// Actions to do when the game process is found and game-specific code is initialized
+        /// </summary>
+        /// <param name="name">The name of the entity</param>
         public virtual void OnGameAttached(GameState state) { }
 
         // called when the timer is reset
+        /// <summary>
+        /// Actions to do when the timer is manually reset
+        /// </summary>
+        /// <param name="resetFlagTo">Value of corresponding reset flag</param>
         public virtual void OnTimerReset(bool resetFlagTo) { }
 
         // called on the first tick when player is fully in the game (according to demos)
+        /// <summary>
+        /// Actions to do when a new session starts and the player is fully in the game
+        /// </summary>
+        /// <param name="state">GameState</param>
         public virtual void OnSessionStart(GameState state)
         {
             _onceFlag = false;
@@ -77,12 +119,24 @@ namespace LiveSplit.SourceSplit.GameSpecific
         }
 
         // called when player no longer fully in the game (map changed, load started)
+        /// <summary>
+        /// Actions to do when a session ends and the player is no longer fully in-game
+        /// </summary>
+        /// <param name="state">GameState</param>
         public virtual void OnSessionEnd(GameState state) { }
 
         // called every update loop, regardless if the player is full in-game
+        /// <summary>
+        /// Actions to do when the timer updates, regardless of game states
+        /// </summary>
+        /// <param name="state">GameState</param>
         public virtual void OnGenericUpdate(GameState state) { }
 
         // called once per tick when player is fully in the game
+        /// <summary>
+        /// Actions to do when the timer updates and the player is fully in the game.
+        /// </summary>
+        /// <param name="state">GameState</param>
         public virtual GameSupportResult OnUpdate(GameState state)
         {
             if (_onceFlag)
@@ -116,6 +170,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
             return GameSupportResult.DoNothing;
         }
 
+        /// <summary>
+        /// Get the game-specific code from specified game directory
+        /// </summary>
         public static GameSupport FromGameDir(string gameDir)
         {
             switch (gameDir.ToLower())

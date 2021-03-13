@@ -56,6 +56,10 @@ namespace LiveSplit.SourceSplit
             this.GameOffsets = offsets;
         }
 
+        /// <summary>
+        /// Gets the entity info of an entity using its index. 
+        /// </summary>
+        /// <param name="index">The index of the entity</param>
         public CEntInfoV2 GetEntInfoByIndex(int index)
         {
             Debug.Assert(this.GameOffsets.EntInfoSize > 0);
@@ -80,6 +84,10 @@ namespace LiveSplit.SourceSplit
 
         // warning: expensive -  7ms on i5
         // do not call frequently!
+        /// <summary>
+        /// Gets the entity pointer of the entity with matching name
+        /// </summary>
+        /// <param name="name">The name of the entity</param>
         public IntPtr GetEntityByName(string name)
         {
             // se 2003 has a really convoluted ehandle system that basically equivalent to this
@@ -132,6 +140,10 @@ namespace LiveSplit.SourceSplit
             return IntPtr.Zero;
         }
 
+        /// <summary>
+        /// Gets the entity index of the entity with matching name
+        /// </summary>
+        /// <param name="name">The name of the entity</param>
         public int GetEntIndexByName(string name)
         {
             int maxEnts = GameOffsets.CurrentEntCountPtr != IntPtr.Zero ?
@@ -161,6 +173,14 @@ namespace LiveSplit.SourceSplit
             return -1;
         }
 
+        /// <summary>
+        /// Gets the entity index of the entity with matching position
+        /// </summary>
+        /// <param name="x">The x coordinate of the entity</param>
+        /// <param name="y">The y coordinate of the entity</param>
+        /// <param name="z">The z coordinate of the entity</param>
+        /// <param name="d">The maximum allowed distance away from the specified position</param>
+        /// <param name="xy">Whether to ignore the z component when evaluating positions</param>
         public int GetEntIndexByPos(float x, float y, float z, float d = 0f, bool xy = false)
         {
             Vector3f pos = new Vector3f(x, y, z);
@@ -204,6 +224,10 @@ namespace LiveSplit.SourceSplit
             return -1;
         }
 
+        /// <summary>
+        /// Gets the entity position of the entity with matching index
+        /// </summary>
+        /// <param name="i">The index of the entity</param>
         public Vector3f GetEntityPos(int i)
         {
             Vector3f pos;
@@ -213,7 +237,10 @@ namespace LiveSplit.SourceSplit
         }
 
         // env_fades don't hold any live fade information and instead they network over fade infos to the client which add it to a list
-        
+        /// <summary>
+        /// Finds the time when a fade in or out finishes. Returns 0 on falure to find a fade with matching description.
+        /// </summary>
+        /// <param name="speed">The speed of the fade</param>
         public float FindFadeEndTime(float speed)
         {
             int fadeListSize = GameProcess.ReadValue<int>(GameOffsets.FadeListPtr + 0x10);
@@ -232,6 +259,13 @@ namespace LiveSplit.SourceSplit
             return 0;
         }
 
+        /// <summary>
+        /// Finds the time when a fade in or out finishes. Returns 0 on falure to find a fade with matching description.
+        /// </summary>
+        /// <param name="speed">The speed of the fade</param>
+        /// <param name="r">Red value of the color of the game</param>
+        /// <param name="g">Green value of the color of the game</param>
+        /// <param name="b">Blue value of the color of the game</param>
         public float FindFadeEndTime(float speed, byte r, byte g, byte b)
         {
             int fadeListSize = GameProcess.ReadValue<int>(GameOffsets.FadeListPtr + 0x10);
@@ -254,6 +288,12 @@ namespace LiveSplit.SourceSplit
 
         // ioEvents are stored in a non-contiguous list where every ioEvent contain pointers to the next or previous event 
         // todo: add more input types and combinations to ensure the correct result
+        /// <summary>
+        /// Finds the fire time of an output. Returns 0 on falure to find an output with matching description.
+        /// </summary>
+        /// <param name="targetName">The name of the targeted entity</param>
+        /// <param name="clamp">The maximum number of inputs to check</param>
+        /// <param name="inclusive">If the name specified is a substring of the target name</param>
         public float FindOutputFireTime(string targetName, int clamp = 100, bool inclusive = false)
         {
             if (GameProcess.ReadPointer(GameOffsets.EventQueuePtr) == IntPtr.Zero)
@@ -284,6 +324,16 @@ namespace LiveSplit.SourceSplit
             return 0;
         }
 
+        /// <summary>
+        /// Finds the fire time of an output. Returns 0 on falure to find an output with matching description.
+        /// </summary>
+        /// <param name="targetName">The name of the targeted entity</param>
+        /// <param name="command">The command of the output</param>
+        /// <param name="param">The parameters of the command</param>
+        /// <param name="clamp">The maximum number of inputs to check</param>
+        /// <param name="nameInclusive">If the name specified is a substring of the target name</param>
+        /// <param name="commandInclusive">If the command specified is a substring of the command</param>
+        /// <param name="paramInclusive">If the parameters specified are a substring of the parameters</param>
         public float FindOutputFireTime(string targetName, string command, string param, int clamp = 100, 
             bool nameInclusive = false, bool commandInclusive = false, bool paramInclusive = false)
         {
@@ -320,6 +370,13 @@ namespace LiveSplit.SourceSplit
 
         // fixme: this *could* probably return true twice if the player save/loads on an exact tick
         // precision notice: will always be too early by at most 2 ticks using the standard 0.03 epsilon
+        /// <summary>
+        /// Compares the inputted time to the internal timer.
+        /// </summary>
+        /// <param name="splitTime">The time to compare with internal time</param>
+        /// <param name="epsilon">The maximum allowed distance between inputted time and internal time</param>
+        /// <param name="checkBefore">Whether to check if the internal timer has just gone past inputted time</param>
+        /// <param name="adjustFrameTime">Whether to account for frametime (lagginess / alt-tabbing)</param>
         public bool CompareToInternalTimer(float splitTime, float epsilon = IO_EPSILON, bool checkBefore = false, bool adjustFrameTime = false)
         {
             if (splitTime == 0f) return false;

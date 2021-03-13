@@ -6,13 +6,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
     class LostCoast : GameSupport
     {
         // how to match with demos:
-        // start: 0.2 seconds (14 ticks before timer starts) before the blackout camera guide entity is killed
-        // ending: when final trigger_once is triggered (in other words, killed)
+        // start: when the input to kill the blackout entity's parent is fired
+        // ending: when the final output is fired by the trigger_once
 
         private bool _onceFlag = false;
-
-        private int _blackIndex;
-        private int _trigIndex;
+        private float _splitTime;
+        private float _splitTime2;
 
         public LostCoast()
         {
@@ -24,12 +23,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
-            if (this.IsFirstMap || this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
+            if (state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                this._blackIndex = state.GetEntIndexByName("blackout");
-                Debug.WriteLine("blackout index is " + this._blackIndex);
-                this._trigIndex = state.GetEntIndexByPos(1109.82f, 2952f, 2521.26f);
-                Debug.WriteLine("test index is " + this._trigIndex);
+                _splitTime = state.FindOutputFireTime("blackout", "Kill", "", 5);
+                _splitTime2 = state.FindOutputFireTime("csystem_sound_start", "PlaySound", "", 5);
             }
             _onceFlag = false;
         }
@@ -40,33 +37,29 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this._blackIndex != -1)
-            {
-                var newBlack = state.GetEntInfoByIndex(_blackIndex);
+            float splitTime = state.FindOutputFireTime("blackout", "Kill", "", 8);
 
-                if (newBlack.EntityPtr == IntPtr.Zero)
-                {
-                    _blackIndex = -1;
-                    Debug.WriteLine("lostcoast start");
-                    this.StartOffsetTicks = -14;
-                    // no once flag because the end wont trigger otherwise
-                    return GameSupportResult.PlayerGainedControl;
-                }
+            if (_splitTime == 0f && splitTime != 0f)
+            {
+                Debug.WriteLine("lostcoast start");
+                // no once flag because the end wont trigger otherwise
+                _splitTime = splitTime;
+                return GameSupportResult.PlayerGainedControl;
             }
 
-            else if (this._trigIndex != -1)
-            {
-                var newTrig = state.GetEntInfoByIndex(_trigIndex);
+            _splitTime = splitTime;
 
-                if (newTrig.EntityPtr == IntPtr.Zero)
-                {
-                    _trigIndex = -1;
-                    Debug.WriteLine("lostcoast end");
-                    _onceFlag = true;
-                    this.EndOffsetTicks = 7;
-                    return GameSupportResult.PlayerLostControl;
-                }
+            float splitTime2 = state.FindOutputFireTime("csystem_sound_start", "PlaySound", "", 8);
+
+            if (_splitTime2 == 0f && splitTime2 != 0f)
+            {
+                Debug.WriteLine("lostcoast end");
+                _onceFlag = true;
+                _splitTime2 = splitTime2;
+                return GameSupportResult.PlayerLostControl;
             }
+
+            _splitTime2 = splitTime2;
             return GameSupportResult.DoNothing;
         }
     }
