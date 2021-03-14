@@ -9,6 +9,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // start (all categories): on chapter select
         // ending (ice): when the buttom moves
         // ending (ee): when color correction entity is disabled
+        // ending (cd): when the disconnect output is processed
 
         private bool _onceFlag;
         private float _splitTime;
@@ -46,17 +47,25 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override void OnGenericUpdate(GameState state)
         {
-            if (state.CurrentMap.ToLower() == "wpd_tp" || state.CurrentMap.ToLower() == "hallway"
-                && state.HostState == HostState.GameShutdown)
-                OnUpdate(state);
+            if (state.CurrentMap.ToLower() == "wpd_tp" || state.CurrentMap.ToLower() == "hallway")
+            {
+                float splitTime = state.FindOutputFireTime("commands", "Command", "disconnect", 5);
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+
+                if (state.CompareToInternalTimer(_splitTime, 0f, false, true) && !_onceFlag)
+                {
+                    Debug.WriteLine("wdp ce ending");
+                    _splitTime = 0f;
+                    _onceFlag = true;
+                    this.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
+                }
+            }
         }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (_onceFlag)
-            {
                 return GameSupportResult.DoNothing;
-            }
 
             if (this.IsFirstMap || this.IsFirstMap2)
             {
@@ -69,7 +78,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerLostControl;
                 }
             }
-
             else if (this.IsLastMap)
             {
                 _colorCorrectEnabled.Update(state.GameProcess);

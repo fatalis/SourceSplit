@@ -323,6 +323,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "portal pro":
                 case "portalpro":
                     return new PortalMods_PortalPro();
+                case "portal prelude":
+                case "portalprelude":
+                    return new PortalMods_PortalPrelude();
             }
 
             return null;
