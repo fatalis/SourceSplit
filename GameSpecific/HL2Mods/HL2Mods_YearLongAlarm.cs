@@ -11,14 +11,18 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending: when one of the 2 gunships' HP drops from 0 to lower
 
         private bool _onceFlag;
-
         private int _baseEntityHealthOffset = -1;
 
-        private MemoryWatcher<int> _gunship1HP = new MemoryWatcher<int>(IntPtr.Zero);
-        private MemoryWatcher<int> _gunship2HP = new MemoryWatcher<int>(IntPtr.Zero);
-        private int _gunship2Index;
-        private int _triggerIndex;
-        private CEntInfoV2 _oldTrig;
+        // there are 2 gunships, each of them killed will count as a timer end. one of them spawns at level start and is later deleted
+
+        // gunships' old hp
+        private int[] _gunshipOldHP = new int[] { -1, 100 };
+        // gunships' current hp
+        private int[] _gunshipHP = new int[] { -1, 100 };
+        // gunships' index, used for searching their pointers
+        private int[] _gunshipIndex = new int[] { -1, -1 };
+        // gunships' names, used for searching for their indices
+        private string[] _gunshipName = new string[] { "gunship", "gunship_intro" };
 
         public HL2Mods_YearLongAlarm()
         {
@@ -42,16 +46,20 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (IsLastMap && _baseEntityHealthOffset != -1)
             {
-                _gunship2Index = state.GetEntIndexByName("gunship_intro");
-                _triggerIndex = state.GetEntIndexByPos(-13.39f, 227.25f, 393.67f);
-                _oldTrig = state.GetEntInfoByIndex(_triggerIndex);
+                for (int i = 0; i <= 1; i++)
+                {
+                    // get the gunships' indicies
+                    _gunshipIndex[i] = state.GetEntIndexByName(_gunshipName[i]);
 
-                if (_oldTrig.EntityPtr == IntPtr.Zero)
-                    _gunship1HP = new MemoryWatcher<int>(state.GetEntityByName("gunship") + _baseEntityHealthOffset);
-                else
-                    _gunship1HP = new MemoryWatcher<int>(IntPtr.Zero);
+                    // and decide their hp
+                    if (_gunshipIndex[i] != -1)
+                        _gunshipHP[i] = state.GameProcess.ReadValue<int>(state.GetEntInfoByIndex(_gunshipIndex[i]).EntityPtr + _baseEntityHealthOffset);
+                    else 
+                        _gunshipHP[i] = -1;
 
-                _gunship2HP = new MemoryWatcher<int>(state.GetEntInfoByIndex(_gunship2Index).EntityPtr + _baseEntityHealthOffset);
+                    Debug.WriteLine(_gunshipName[i] + " index is " + _gunshipIndex[i]);
+                }
+
             }
             _onceFlag = false;
         }
@@ -64,33 +72,35 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap)
             {
-                // this stuff is messy but it's probably the only way due to how the map works
+                // check if the trigger that spawns the 2nd gunship has been triggered, if so, check for its pointer
+                if (_gunshipIndex[0] == -1 && state.GetEntIndexByPos(-13.39f, 227.25f, 393.67f) == -1)
+                    _gunshipIndex[0] = state.GetEntIndexByName(_gunshipName[0]);
 
-                var newTrig = state.GetEntInfoByIndex(_triggerIndex);
-                var newGunship2 = state.GetEntInfoByIndex(_gunship2Index);
-
-                // there are 2 gunships, one at the start and one at the end, any of them killed will count as an ending
-
-                // the 1st gunship is what you're intended to fight but its only spawned upon touching a trigger
-                if (newTrig.EntityPtr == IntPtr.Zero && _oldTrig.EntityPtr != IntPtr.Zero)
-                    _gunship1HP = new MemoryWatcher<int>(state.GetEntityByName("gunship") + _baseEntityHealthOffset);
-                _oldTrig = newTrig;
-
-                // the 2nd gunship is spawned by default but gets killed after hitting a path_track, but the map can be done fast enough that
-                // you get to fight it
-                // if the runner is slow and the 2nd gunship finishes its travel and gets deleted, reset the memory watcher
-                if (newGunship2.EntityPtr == IntPtr.Zero)
-                    _gunship2HP = new MemoryWatcher<int>(IntPtr.Zero);
-
-                _gunship1HP.Update(state.GameProcess);
-                _gunship2HP.Update(state.GameProcess);
-
-                if (_gunship1HP.Old > 0 && _gunship1HP.Current <= 0 ||
-                    (_gunship2HP.Old > 0 && _gunship2HP.Current <= 0))
+                for (int i = 0; i <= 1; i++)
                 {
-                    Debug.WriteLine("year long alarm end");
-                    _onceFlag = true;
-                    return GameSupportResult.PlayerLostControl;
+                    // store the old hp
+                    _gunshipOldHP[i] = _gunshipHP[i];
+                    // get the gunship's pointer
+                    IntPtr ptr = state.GetEntInfoByIndex(_gunshipIndex[i]).EntityPtr;
+                    // if the gunship hasn't spawned in yet or they're deleted, exit early and reset its old index
+                    if (_gunshipIndex[i] == -1 || ptr == IntPtr.Zero)
+                    {
+                        _gunshipIndex[i] = -1;
+                        continue;
+                    }
+                    else
+                    {
+                        // get the new hp
+                        _gunshipHP[i] = state.GameProcess.ReadValue<int>(ptr + _baseEntityHealthOffset);
+                        // now compare
+                        if (_gunshipOldHP[i] > 0 && _gunshipHP[i] <= 0)
+                        {
+                            Debug.WriteLine("year long alarm end");
+                            Debug.WriteLine(_gunshipName[i] + " died at hp " + _gunshipHP[i] + " and old hp " + _gunshipOldHP[i]);
+                            _onceFlag = true;
+                            return GameSupportResult.PlayerLostControl;
+                        }
+                    }
                 }
             }
 

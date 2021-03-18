@@ -18,7 +18,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private int _startCamIndex;
         
-        // the run ends on final blow to the final vortigaunt, the latter we can't track since there are multi[;e
+        // the run ends on final blow to the final vortigaunt, the latter we can't track precisely since there are multiple
         // and they can be killed in any order. so we'll have to track the hp of every one of them.
         // vorts' hp
         private int[] _vortHP = { -1, -1, -1, -1 };
