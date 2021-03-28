@@ -66,6 +66,7 @@
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_Precursor.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_Grey.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_GetALife.cs" />
+    <Compile Include="GameSpecific\HL2Mods\HL2Mods_Ptsd2.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_Terminal7.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_TheCitizen2AndReturns.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_EntropyZero.cs" />

@@ -939,16 +939,18 @@ namespace LiveSplit.SourceSplit
                     // if the runner uses this option to reset at the first map then restart the timer
                     if (state.HostState == HostState.NewGame || state.GameDir.ToLower() == "beginnersguide")
                     {
-                        if (state.GameSupport != null && (levelName == state.GameSupport.FirstMap || levelName == state.GameSupport.FirstMap2))
-                            this.SendNewGameStartedEvent(levelName);
-
-                        if (state.GameSupport.StartOnFirstLoadMaps.Contains(levelName))
+                        if (state.GameSupport != null)
                         {
-                            // do a debug spew of the timer start
-                            Debug.WriteLine(state.GameDir + " start on " + levelName);
-                            this.HandleGameSupportResult(GameSupportResult.PlayerGainedControl, state);
-                        }
+                            if (levelName == state.GameSupport.FirstMap || levelName == state.GameSupport.FirstMap2)
+                                this.SendNewGameStartedEvent(levelName);
 
+                            if (state.GameSupport.StartOnFirstLoadMaps.Contains(levelName))
+                            {
+                                // do a debug spew of the timer start
+                                Debug.WriteLine(state.GameDir + " start on " + levelName);
+                                this.HandleGameSupportResult(GameSupportResult.PlayerGainedControl, state);
+                            }
+                        }
                     }
                     else // changelevel sp/mp
                     {
@@ -957,7 +959,8 @@ namespace LiveSplit.SourceSplit
                     }
                 }
 
-                state.GameSupport.QueueOnNextSessionEnd = GameSupportResult.DoNothing;
+                if (state.GameSupport != null)
+                    state.GameSupport.QueueOnNextSessionEnd = GameSupportResult.DoNothing;
             }
         }
 

@@ -64,6 +64,9 @@ namespace LiveSplit.SourceSplit
         {
             Debug.Assert(this.GameOffsets.EntInfoSize > 0);
 
+            if (index < 0)
+                return new CEntInfoV2();
+
             CEntInfoV2 ret;
 
             IntPtr addr = this.GameOffsets.GlobalEntityListPtr + ((int)this.GameOffsets.EntInfoSize * index);
