@@ -21,6 +21,7 @@ namespace LiveSplit.SourceSplit
                 "left4dead2", "dinodday", "insurgency", "nucleardawn", "ship" };
             string[] badMods = { "cstrike", "dods", "hl2mp", "insurgency", "tf", "zps" };
             string[] badRootDirs = { "Dark Messiah of Might and Magic Multi-Player" };
+            string[] hl2SurvivorDirs = { "hl2mp_japanese", "hl2_japanese" };
 
             if (badExes.Contains(p.ProcessName.ToLower()))
                 return true;
@@ -36,7 +37,8 @@ namespace LiveSplit.SourceSplit
                     if (dir == null)
                         return true;
 
-                    if (new DirectoryInfo(dir).GetDirectories().Any(di => badMods.Contains(di.Name.ToLower())))
+                    if (new DirectoryInfo(dir).GetDirectories().Any(di => badMods.Contains(di.Name.ToLower()))
+                         && !new DirectoryInfo(dir).GetDirectories().Any(di => hl2SurvivorDirs.Contains(di.Name.ToLower())))
                         return true;
 
                     string root = new DirectoryInfo(dir).Name.ToLower();

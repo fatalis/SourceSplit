@@ -11,7 +11,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
 
         private int _introIndex;
-        private int _trigIndex;
+
+        private float _splitTime;
 
         public HL2Mods_DeepDown()
         {
@@ -31,8 +32,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap)
             {
-                this._trigIndex = state.GetEntIndexByName("AlyxWake1");
-                Debug.WriteLine("end trigger index is " + this._trigIndex);
+                _splitTime = state.FindOutputFireTime("Titles_music1", 7);
             }
             _onceFlag = false;
         }
@@ -43,28 +43,31 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && this._introIndex != -1)
+            if (state.CurrentMap.ToLower() == this.FirstMap && this._introIndex != -1)
             {
                 var newIntro = state.GetEntInfoByIndex(_introIndex);
 
                 if (newIntro.EntityPtr == IntPtr.Zero)
                 {
                     _introIndex = -1;
+                    _onceFlag = true;
                     Debug.WriteLine("deepdown start");
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-            else if (this.IsLastMap && this._trigIndex != -1)
+            else if (state.CurrentMap.ToLower() == this.LastMap)
             {
-                var newTrig = state.GetEntInfoByIndex(_trigIndex);
+                float splitTime = state.FindOutputFireTime("AlyxWakeUp1", 7);
 
-                if (newTrig.EntityPtr == IntPtr.Zero)
+                if (_splitTime == 0f && splitTime != 0f)
                 {
                     Debug.WriteLine("deepdown end");
                     _onceFlag = true;
-                    this.EndOffsetTicks = 7;
+                    _splitTime = splitTime;
                     return GameSupportResult.PlayerLostControl;
                 }
+
+                _splitTime = splitTime;
             }
             return GameSupportResult.DoNothing;
         }

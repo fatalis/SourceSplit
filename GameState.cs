@@ -405,6 +405,15 @@ namespace LiveSplit.SourceSplit
                 return Math.Abs(splitTime - RawTickCount * IntervalPerTick) <= epsilon;
             }
         }
+
+        // currently unused, useful in getting the entity index of a caller in an input/output 
+        public int GetIndexOfEHANDLE(uint EHANDLE)
+        {
+            // FIXME: this mask is actually version dependent, newer ones use 0x1fff!!!
+            // possible sig to identify: 8b ?? ?? ?? ?? ?? 8b ?? 81 e1 ff ff 00 00
+            int mask = 0xFFF;
+            return (EHANDLE & mask) == mask ? -1 : (int)(EHANDLE & mask);
+        }
     }
 
     struct GameOffsets
@@ -494,15 +503,5 @@ namespace LiveSplit.SourceSplit
         public uint v_union, v_eval, v_fieldtype, v_tostringfunc, v_CVariantSaveDataOpsclass;
         public uint m_pNext;
         public uint m_pPrev;
-
-        public int GetIndexOfEHANDLE(uint EHANDLE)
-        {
-            // FIXME: this mask is actually version dependent, newer ones use 0x1fff!!!
-            // possible sig to identify: 8b ?? ?? ?? ?? ?? 8b ?? 81 e1 ff ff 00 00
-            return (EHANDLE & 0xfff) == 0xfff ? -1 : (int)(EHANDLE & 0xfff);
-        }
-        public int m_pActivatorIndex => GetIndexOfEHANDLE(m_pActivator);
-        public int m_pCallerIndex => GetIndexOfEHANDLE(m_pCaller);
-        public int m_pEntTargetIndex => GetIndexOfEHANDLE(m_pEntTarget);
     };
 }

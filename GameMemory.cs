@@ -126,6 +126,13 @@ namespace LiveSplit.SourceSplit
                 "A1 ?? ?? ?? ??",           // MOV  EAX,[0x2037cf68]
                 "89 86 ?? ?? ?? ??");       // MOV  dword ptr [ESI + 0x220],EAX
 
+            // and HL2SURVIVOR
+            // \x83\x3D\x2A\x2A\x2A\x2A\x02\x7C\x2A\x8B\x15\x2A\x2A\x2A\x2A
+            _serverStateTarget.AddSignature(2,
+                "83 3D ?? ?? ?? ?? 02",     // CMP  state,0x2
+                "7C ??",                    // JL   0x200117d6
+                "8B 15 ?? ?? ?? ??");       // MOV  EDX,dword ptr [0x203c2abc]
+
             // and source 2003 leak...
             _serverStateTarget2 = new SigScanTarget();
             _serverStateTarget2.OnFound = (proc, scanner, ptr) => {
@@ -216,6 +223,14 @@ namespace LiveSplit.SourceSplit
                 "E8 ?? ?? ?? ??",          // CALL    0x20034da0
                 "D9 1D ?? ?? ?? ??",       // FSTP    curtime
                 "8B 44 24 ??");            // MOV     EAX,dword ptr [ESP + 0x48]
+            // HL2SURVIVOR
+            // \xA1\x2A\x2A\x2A\x2A\x7D\x2A\xA1\x2A\x2A\x2A\x2A\x89\x81\x2A\x2A\x2A\x2A
+            _curTimeTarget.AddSignature(4,
+                "F3 0F 11 05 ?? ?? ?? ??",
+                "8B 01",
+                "52",
+                "FF 50 ??",
+                "8B 0D ?? ?? ?? ??");
 
             // CBaseClientState::m_nSignOnState (older engines)
             _signOnStateTarget1 = new SigScanTarget();
@@ -299,6 +314,12 @@ namespace LiveSplit.SourceSplit
                 "83 c4 ??",                // add     ESP,0x4
                 "80 ?? ?? ?? ?? ?? 00",    // cmp     map, 0x0
                 "B8 ?? ?? ?? ??");         // mov     EAX, map
+            // HL2SURVIVOR
+            //\x80\x3D\x2A\x2A\x2A\x2A\x00\x74\x2A\x8B\x01
+            _curMapTarget.AddSignature(2,
+                "80 3D ?? ?? ?? ?? 00",   // CMP    byte ptr [map],0x0
+                "74 ?? ",                 // JZ     LAB_200b7839
+                "8B 01");                 // MOV    EAX,dword ptr [ECX]=>PTR_PTR_FUN_202e5050
 
             // name[64] (old 2003 naming)
             // \xA0\x2A\x2A\x2A\x2A\x84\xC0\x74\x2A\xB8\x2A\x2A\x2A\x2A
@@ -669,7 +690,14 @@ namespace LiveSplit.SourceSplit
 
         void InitGameState(GameState state)
         {
-            state.GameDir = new DirectoryInfo(GetGameDir(state.GameProcess, state.GameOffsets)).Name.ToLower();
+            // special case for half-life 2 survivor, scan the subdirectories and find specifically-named folder.
+            string[] hl2SurvivorDirs = { "hl2mp_japanese", "hl2_japanese" };
+            string dir = Path.GetDirectoryName(state.GameProcess.MainModule.FileName);
+            var subdir = new DirectoryInfo(dir).GetDirectories();
+
+            if (dir != null && subdir.Any(di => hl2SurvivorDirs.Contains(di.Name.ToLower())))
+                state.GameDir = "survivor";
+            else state.GameDir = new DirectoryInfo(GetGameDir(state.GameProcess, state.GameOffsets)).Name.ToLower();
             Debug.WriteLine("gameDir = " + state.GameDir);
 
             state.CurrentMap = String.Empty;
@@ -681,6 +709,7 @@ namespace LiveSplit.SourceSplit
             state.GameOffsets.EntInfoSize = (!IsSource2003) ? ((serial > 0 && serial < SERIAL_MASK) ? CEntInfoSize.Portal2 : CEntInfoSize.HL2) : CEntInfoSize.Source2003;
 
             state.GameSupport = GameSupport.FromGameDir(state.GameDir);
+
             if (state.GameSupport != null)
             {
                 Debug.WriteLine("running game-specific code for: " + state.GameDir);
@@ -751,7 +780,7 @@ namespace LiveSplit.SourceSplit
                     return ServerState.Paused;
                 return (ServerState)serverState;
             }
-            else return (ServerState)serverState;
+            else return (ServerState)(serverState);
         }
 
         void UpdateGameState(GameState state)

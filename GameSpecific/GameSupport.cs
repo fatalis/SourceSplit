@@ -328,6 +328,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new PortalMods_PortalPrelude();
                 case "ptsd_2":
                     return new HL2Mods_Ptsd2();
+                case "survivor":
+                    return new HL2Survivor();
             }
 
             return null;
