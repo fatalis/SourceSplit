@@ -330,6 +330,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_Ptsd2();
                 case "survivor":
                     return new HL2Survivor();
+                case "offshore":
+                    return new HL2Mods_Offshore();
             }
 
             return null;

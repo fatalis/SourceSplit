@@ -440,4 +440,43 @@ namespace LiveSplit.SourceSplit.GameSpecific
             return GameSupportResult.DoNothing;
         }
     }
+
+    class HL2Mods_Offshore : HL2Mods_Misc
+    {
+        // how to match with demos:
+        // start: on map load
+        // ending: on game disconnect after final output has been fired.
+
+        public HL2Mods_Offshore()
+        {
+            this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
+            this.FirstMap = "islandescape";
+            this.LastMap = "islandcitytrain";
+            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+        }
+
+        public override void OnSessionStart(GameState state)
+        {
+            base.OnSessionStart(state);
+            OnceFlag = false;
+        }
+
+        public override GameSupportResult OnUpdate(GameState state)
+        {
+            if (OnceFlag)
+                return GameSupportResult.DoNothing;
+
+            if (this.IsLastMap)
+            {
+                float splitTime = state.FindOutputFireTime("launchQuit", 5);
+                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                {
+                    OnceFlag = true;
+                    this.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
+                }
+            }
+            return GameSupportResult.DoNothing;
+        }
+    }
 }
