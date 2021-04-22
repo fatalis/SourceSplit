@@ -72,6 +72,8 @@
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_EntropyZero.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_DeeperDown.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_Others.cs" />
+    <Compile Include="GameSpecific\HL2Mods\HL2Mods_ExperimentalFuel.cs" />
+    <Compile Include="GameSpecific\HL2Mods\HL2Mods_Tinje.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_TheLostCity.cs" />
     <Compile Include="GameSpecific\HL2Survivor.cs" />
     <Compile Include="GameSpecific\HLS.cs" />

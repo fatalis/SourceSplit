@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using LiveSplit.ComponentUtil;
@@ -11,23 +12,27 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // start: 
         // ending: the tick where velocity changes from 600.X to 0.0 AFTER the camera effects (cl_showpos 1)
 
-        // mods:
-            // dark intervention, hells mines, upmine struggle:
-                // start: on map load
-                // end: when final output to exit the map is fired
 
         private bool _onceFlag;
         private int _basePlayerLaggedMovementOffset = -1;
         private float _prevLaggedMovementValue;
-        private float _splitTime;
+
+        private HL2Mods_DarkIntervention _darkIntervention = new HL2Mods_DarkIntervention();
+        private HL2Mods_HellsMines _hellsMines = new HL2Mods_HellsMines();
+        private HL2Mods_UpmineStruggle _upmineStruggle = new HL2Mods_UpmineStruggle();
+        private List<GameSupport> _mods = new List<GameSupport>();
 
         public HL2Ep2()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "ep2_outland_01";
             this.LastMap = "ep2_outland_12a";
-            this.StartOnFirstLoadMaps.AddRange(new string[] { "Dark_intervention", "hells_mines", "twhl_upmine_struggle" });
             this.RequiredProperties = PlayerProperties.ParentEntity;
+
+            _mods = new List<GameSupport>(new GameSupport[] { _darkIntervention, _hellsMines, _upmineStruggle});
+
+            foreach (GameSupport mod in _mods)
+                this.StartOnFirstLoadMaps.AddRange(mod.StartOnFirstLoadMaps);
         }
 
         public override void OnGameAttached(GameState state)
@@ -48,14 +53,19 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _basePlayerLaggedMovementOffset != -1)
                 state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _basePlayerLaggedMovementOffset, out _prevLaggedMovementValue);
 
+            foreach (GameSupport mod in _mods)
+                mod.OnSessionStart(state);
+
             _onceFlag = false;
-            _splitTime = 0f;
         }
 
         public override void OnGenericUpdate(GameState state)
         {
-            if (state.HostState == HostState.GameShutdown)
-                this.OnUpdate(state);
+            foreach (GameSupport mod in _mods)
+            {
+                if (state.CurrentMap.ToLower() == mod.LastMap.ToLower() && state.HostState == HostState.GameShutdown)
+                    OnUpdate(state);
+            }
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -63,83 +73,48 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            switch (state.CurrentMap.ToLower())
+            if (this.IsFirstMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _basePlayerLaggedMovementOffset != -1)
             {
-                default:
-                    {
-                        if (this.IsFirstMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _basePlayerLaggedMovementOffset != -1)
-                        {
-                            // "OnMapSpawn" "startcar_speedmod,ModifySpeed,0,0,-1"
-                            // "OnMapSpawn" "startcar_speedmod,ModifySpeed,1,12.5,-1"
+                // "OnMapSpawn" "startcar_speedmod,ModifySpeed,0,0,-1"
+                // "OnMapSpawn" "startcar_speedmod,ModifySpeed,1,12.5,-1"
 
-                            float laggedMovementValue;
-                            state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _basePlayerLaggedMovementOffset, out laggedMovementValue);
+                float laggedMovementValue;
+                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _basePlayerLaggedMovementOffset, out laggedMovementValue);
 
-                            if (laggedMovementValue.BitEquals(1.0f) && !_prevLaggedMovementValue.BitEquals(1.0f))
-                            {
-                                Debug.WriteLine("ep2 start");
-                                _onceFlag = true;
-                                return GameSupportResult.PlayerGainedControl;
-                            }
+                if (laggedMovementValue.BitEquals(1.0f) && !_prevLaggedMovementValue.BitEquals(1.0f))
+                {
+                    Debug.WriteLine("ep2 start");
+                    _onceFlag = true;
+                    return GameSupportResult.PlayerGainedControl;
+                }
 
-                            _prevLaggedMovementValue = laggedMovementValue;
-                        }
-                        else if (this.IsLastMap)
-                        {
-                            // "OnTrigger4" "cvehicle.hangar,EnterVehicle,,0,1"
-
-                            if (state.PlayerParentEntityHandle != -1
-                                && state.PrevPlayerParentEntityHandle == -1)
-                            {
-                                Debug.WriteLine("ep2 end");
-                                _onceFlag = true;
-                                this.EndOffsetTicks = 0;
-                                return GameSupportResult.PlayerLostControl;
-                            }
-                        }
-                        break;
-                    }
-                case "dark_intervention":
-                    {
-                        float splitTime = state.FindOutputFireTime("command_ending", 3);
-                        _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
-                        if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
-                        {
-                            Debug.WriteLine("dark intervention end");
-                            _splitTime = 0f;
-                            _onceFlag = true;
-                            QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
-                        }
-                        break;
-                    }
-                case "hells_mines":
-                    {
-                        float splitTime = state.FindOutputFireTime("command", 3);
-                        _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
-                        if (state.CompareToInternalTimer(_splitTime, 0f, false , true))
-                        {
-                            _splitTime = 0f;
-                            _onceFlag = true;
-                            QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
-                        }
-                        break;
-                    }
-                case "twhl_upmine_struggle":
-                    {
-                        float splitTime = state.FindOutputFireTime("command", 3);
-
-                        _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
-                        if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
-                        {
-                            Debug.WriteLine("upmine struggle end");
-                            _splitTime = 0f;
-                            _onceFlag = true;
-                            QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
-                        }
-                        break;
-                    }
+                _prevLaggedMovementValue = laggedMovementValue;
             }
+            else if (this.IsLastMap)
+            {
+                // "OnTrigger4" "cvehicle.hangar,EnterVehicle,,0,1"
 
+                if (state.PlayerParentEntityHandle != -1
+                    && state.PrevPlayerParentEntityHandle == -1)
+                {
+                    Debug.WriteLine("ep2 end");
+                    _onceFlag = true;
+                    this.EndOffsetTicks = 0;
+                    return GameSupportResult.PlayerLostControl;
+                }
+            }
+            else
+            {
+                foreach (GameSupport mod in _mods)
+                {
+                    var result = mod.OnUpdate(state);
+                    if (result != GameSupportResult.DoNothing)
+                    {
+                        QueueOnNextSessionEnd = result;
+                        return GameSupportResult.DoNothing;
+                    }
+                }
+            }
             return GameSupportResult.DoNothing;
         }
     }

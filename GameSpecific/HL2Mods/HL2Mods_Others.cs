@@ -7,6 +7,7 @@
 
 using LiveSplit.ComponentUtil;
 using System.Diagnostics;
+using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -71,7 +72,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
             }
             return GameSupportResult.DoNothing;
-        } 
+        }
     }
 
     class HL2Mods_Gnome : HL2Mods_Misc
@@ -130,7 +131,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // start: on first map
         // end: on final output
         public HL2Mods_Reject()
-        { 
+        {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.LastMap = "reject";
             this.StartOnFirstLoadMaps.Add(this.LastMap);
@@ -165,7 +166,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
 
-        
+
         private Vector3f _endSector = new Vector3f(7953f, -11413f, 2515f);
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -434,6 +435,108 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     OnceFlag = true;
                     Debug.WriteLine("school_adventures end");
+                    return GameSupportResult.PlayerLostControl;
+                }
+            }
+            return GameSupportResult.DoNothing;
+        }
+    }
+
+    class HL2Mods_DarkIntervention : HL2Mods_Misc
+    {
+        // how to match with demos:
+        // start: on map load
+        // ending: when the output to enable the final teleport trigger is fired
+
+        public HL2Mods_DarkIntervention()
+        {
+            this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
+            this.FirstMap = "Dark_intervention";
+            this.LastMap = this.FirstMap;
+            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+        }
+
+        public override GameSupportResult OnUpdate(GameState state)
+        {
+            if (OnceFlag)
+                return GameSupportResult.DoNothing;
+
+            if (IsFirstMap)
+            {
+                float splitTime = state.FindOutputFireTime("command_ending", 3);
+                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                {
+                    Debug.WriteLine("dark intervention end");
+                    OnceFlag = true;
+                    return GameSupportResult.PlayerLostControl;
+                }
+            }
+            return GameSupportResult.DoNothing;
+        }
+    }
+
+    class HL2Mods_HellsMines : HL2Mods_Misc
+    {
+        // how to match with demos:
+        // start: on map load
+        // ending: when the output to enable the final teleport trigger is fired
+
+        public HL2Mods_HellsMines()
+        {
+            this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
+            this.FirstMap = "hells_mines";
+            this.LastMap = this.FirstMap;
+            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+        }
+
+        public override GameSupportResult OnUpdate(GameState state)
+        {
+            if (OnceFlag)
+                return GameSupportResult.DoNothing;
+
+            if (IsFirstMap)
+            {
+                float splitTime = state.FindOutputFireTime("command", 3);
+                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                {
+                    Debug.WriteLine("hells mines end");
+                    OnceFlag = true;
+                    return GameSupportResult.PlayerLostControl;
+                }
+            }
+            return GameSupportResult.DoNothing;
+        }
+    }
+
+    class HL2Mods_UpmineStruggle : HL2Mods_Misc
+    {
+        // how to match with demos:
+        // start: on map load
+        // ending: when the output to enable the final teleport trigger is fired
+
+        public HL2Mods_UpmineStruggle()
+        {
+            this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
+            this.FirstMap = "twhl_upmine_struggle";
+            this.LastMap = this.FirstMap;
+            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+        }
+
+        public override GameSupportResult OnUpdate(GameState state)
+        {
+            if (OnceFlag)
+                return GameSupportResult.DoNothing;
+
+            if (IsFirstMap)
+            {
+                float splitTime = state.FindOutputFireTime("command", 3);
+                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
+                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                {
+                    Debug.WriteLine("upmine struggle end");
+                    OnceFlag = true;
                     return GameSupportResult.PlayerLostControl;
                 }
             }
