@@ -241,7 +241,7 @@ namespace LiveSplit.SourceSplit
 
         // env_fades don't hold any live fade information and instead they network over fade infos to the client which add it to a list
         /// <summary>
-        /// Finds the time when a fade in or out finishes. Returns 0 on falure to find a fade with matching description.
+        /// Finds the time when a fade in or out finishes. Returns 0 on failure to find a fade with matching description.
         /// </summary>
         /// <param name="speed">The speed of the fade</param>
         public float FindFadeEndTime(float speed)
@@ -263,7 +263,7 @@ namespace LiveSplit.SourceSplit
         }
 
         /// <summary>
-        /// Finds the time when a fade in or out finishes. Returns 0 on falure to find a fade with matching description.
+        /// Finds the time when a fade in or out finishes. Returns 0 on failure to find a fade with matching description.
         /// </summary>
         /// <param name="speed">The speed of the fade</param>
         /// <param name="r">Red value of the color of the game</param>
@@ -292,7 +292,7 @@ namespace LiveSplit.SourceSplit
         // ioEvents are stored in a non-contiguous list where every ioEvent contain pointers to the next or previous event 
         // todo: add more input types and combinations to ensure the correct result
         /// <summary>
-        /// Finds the fire time of an output. Returns 0 on falure to find an output with matching description.
+        /// Finds the fire time of an output. Returns 0 on failure to find an output with matching description.
         /// </summary>
         /// <param name="targetName">The name of the targeted entity</param>
         /// <param name="clamp">The maximum number of inputs to check</param>
@@ -328,7 +328,7 @@ namespace LiveSplit.SourceSplit
         }
 
         /// <summary>
-        /// Finds the fire time of an output. Returns 0 on falure to find an output with matching description.
+        /// Finds the fire time of an output. Returns 0 on failure to find an output with matching description.
         /// </summary>
         /// <param name="targetName">The name of the targeted entity</param>
         /// <param name="command">The command of the output</param>

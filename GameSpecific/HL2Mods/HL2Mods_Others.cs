@@ -4,6 +4,7 @@
 
 // mods included: think tank, gnome, hl2 backwards mod, hl2 reject, trapville, rtslville, 
 // hl abridged, episode one, combination ville, phaseville, companion piece, school adventures, the citizen 1
+// hells mines, dark intervention, upmine struggle, offshore
 
 using LiveSplit.ComponentUtil;
 using System.Diagnostics;
@@ -469,7 +470,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("dark intervention end");
                     OnceFlag = true;
-                    return GameSupportResult.PlayerLostControl;
+                    this.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;
@@ -503,7 +504,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("hells mines end");
                     OnceFlag = true;
-                    return GameSupportResult.PlayerLostControl;
+                    this.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;
@@ -537,7 +538,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("upmine struggle end");
                     OnceFlag = true;
-                    return GameSupportResult.PlayerLostControl;
+                    this.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
             return GameSupportResult.DoNothing;

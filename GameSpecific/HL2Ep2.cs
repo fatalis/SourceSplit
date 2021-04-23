@@ -20,7 +20,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private HL2Mods_DarkIntervention _darkIntervention = new HL2Mods_DarkIntervention();
         private HL2Mods_HellsMines _hellsMines = new HL2Mods_HellsMines();
         private HL2Mods_UpmineStruggle _upmineStruggle = new HL2Mods_UpmineStruggle();
-        private List<GameSupport> _mods = new List<GameSupport>();
 
         public HL2Ep2()
         {
@@ -29,14 +28,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.LastMap = "ep2_outland_12a";
             this.RequiredProperties = PlayerProperties.ParentEntity;
 
-            _mods = new List<GameSupport>(new GameSupport[] { _darkIntervention, _hellsMines, _upmineStruggle});
-
-            foreach (GameSupport mod in _mods)
+            NonStandaloneMods = new List<GameSupport>(new GameSupport[] { _darkIntervention, _hellsMines, _upmineStruggle});
+            foreach (GameSupport mod in NonStandaloneMods)
                 this.StartOnFirstLoadMaps.AddRange(mod.StartOnFirstLoadMaps);
         }
 
         public override void OnGameAttached(GameState state)
         {
+            base.OnGameAttached(state);
+
             ProcessModuleWow64Safe server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
             Trace.Assert(server != null);
 
@@ -53,19 +53,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _basePlayerLaggedMovementOffset != -1)
                 state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _basePlayerLaggedMovementOffset, out _prevLaggedMovementValue);
 
-            foreach (GameSupport mod in _mods)
-                mod.OnSessionStart(state);
-
             _onceFlag = false;
-        }
-
-        public override void OnGenericUpdate(GameState state)
-        {
-            foreach (GameSupport mod in _mods)
-            {
-                if (state.CurrentMap.ToLower() == mod.LastMap.ToLower() && state.HostState == HostState.GameShutdown)
-                    OnUpdate(state);
-            }
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -105,15 +93,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             }
             else
             {
-                foreach (GameSupport mod in _mods)
-                {
-                    var result = mod.OnUpdate(state);
-                    if (result != GameSupportResult.DoNothing)
-                    {
-                        QueueOnNextSessionEnd = result;
-                        return GameSupportResult.DoNothing;
-                    }
-                }
+                return base.OnUpdate(state);
             }
             return GameSupportResult.DoNothing;
         }

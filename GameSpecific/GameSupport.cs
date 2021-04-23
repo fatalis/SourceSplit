@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -27,6 +28,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
         /// Timer behavior on the next session end (game disconnect / map change)
         /// </summary>
         public GameSupportResult QueueOnNextSessionEnd { get; set; } = GameSupportResult.DoNothing;
+        /// <summary>
+        /// The list of mods that run off the base game
+        /// </summary>
+        public List<GameSupport> NonStandaloneMods { get; internal set; } = new List<GameSupport>();
 
         // ticks to subtract
         /// <summary>
@@ -95,14 +100,28 @@ namespace LiveSplit.SourceSplit.GameSpecific
         /// Actions to do when the game process is found and game-specific code is initialized
         /// </summary>
         /// <param name="name">The name of the entity</param>
-        public virtual void OnGameAttached(GameState state) { }
+        public virtual void OnGameAttached(GameState state) 
+        {
+            if (NonStandaloneMods.Any())
+            {
+                foreach (GameSupport mod in NonStandaloneMods)
+                    mod.OnGameAttached(state);
+            }
+        }
 
         // called when the timer is reset
         /// <summary>
         /// Actions to do when the timer is manually reset
         /// </summary>
         /// <param name="resetFlagTo">Value of corresponding reset flag</param>
-        public virtual void OnTimerReset(bool resetFlagTo) { }
+        public virtual void OnTimerReset(bool resetFlagTo) 
+        {
+            if (NonStandaloneMods.Any())
+            {
+                foreach (GameSupport mod in NonStandaloneMods)
+                    mod.OnTimerReset(resetFlagTo);
+            }
+        }
 
         // called on the first tick when player is fully in the game (according to demos)
         /// <summary>
@@ -111,6 +130,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
         /// <param name="state">GameState</param>
         public virtual void OnSessionStart(GameState state)
         {
+            if (NonStandaloneMods.Any())
+            {
+                foreach (GameSupport mod in NonStandaloneMods)
+                    mod.OnSessionStart(state);
+            }
+
             _onceFlag = false;
 
             this.IsFirstMap = state.CurrentMap == this.FirstMap;
@@ -123,14 +148,28 @@ namespace LiveSplit.SourceSplit.GameSpecific
         /// Actions to do when a session ends and the player is no longer fully in-game
         /// </summary>
         /// <param name="state">GameState</param>
-        public virtual void OnSessionEnd(GameState state) { }
+        public virtual void OnSessionEnd(GameState state) 
+        {
+            if (NonStandaloneMods.Any())
+            {
+                foreach (GameSupport mod in NonStandaloneMods)
+                    mod.OnSessionEnd(state);
+            }
+        }
 
         // called every update loop, regardless if the player is full in-game
         /// <summary>
         /// Actions to do when the timer updates, regardless of game states
         /// </summary>
         /// <param name="state">GameState</param>
-        public virtual void OnGenericUpdate(GameState state) { }
+        public virtual void OnGenericUpdate(GameState state) 
+        {
+            if (NonStandaloneMods.Any())
+            {
+                foreach (GameSupport mod in NonStandaloneMods)
+                    mod.OnGenericUpdate(state);
+            }
+        }
 
         // called once per tick when player is fully in the game
         /// <summary>
@@ -141,6 +180,23 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
+
+            if (NonStandaloneMods.Any())
+            {
+                foreach (GameSupport mod in NonStandaloneMods)
+                {
+                    var result = mod.OnUpdate(state);
+                    if (mod.QueueOnNextSessionEnd != GameSupportResult.DoNothing)
+                    {
+                        this.QueueOnNextSessionEnd = mod.QueueOnNextSessionEnd;
+                        return GameSupportResult.DoNothing;
+                    }
+                    else if (result != GameSupportResult.DoNothing)
+                    {
+                        return result;
+                    }
+                }
+            }
 
             if (this.AutoStartType == AutoStart.Unfrozen
                 && !state.PlayerFlags.HasFlag(FL.FROZEN)

@@ -23,8 +23,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private HL2Mods_Tinje _tinje = new HL2Mods_Tinje();
         private HL2Mods_ExperimentalFuel _experimentalFuel = new HL2Mods_ExperimentalFuel();
 
-        private List<GameSupport> _mods = new List<GameSupport>();
-
         public HL2()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
@@ -32,13 +30,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.LastMap = "d3_breen_01";
             this.RequiredProperties = PlayerProperties.Position;
 
-            _mods = new List<GameSupport>(new GameSupport[] { _lostCity, _tinje, _experimentalFuel });
-            foreach (GameSupport mod in _mods)
+            NonStandaloneMods = new List<GameSupport>(new GameSupport[] { _lostCity, _tinje, _experimentalFuel });
+            foreach (GameSupport mod in NonStandaloneMods)
                 this.StartOnFirstLoadMaps.AddRange(mod.StartOnFirstLoadMaps);
         }
 
         public override void OnGameAttached(GameState state)
         {
+            base.OnGameAttached(state);
+
             ProcessModuleWow64Safe server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
             Trace.Assert(server != null);
 
@@ -48,9 +48,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 Debug.WriteLine("CBaseCombatCharacater::m_hActiveWeapon offset = 0x" + _baseCombatCharacaterActiveWeaponOffset.ToString("X"));
             if (GameMemory.GetBaseEntityMemberOffset("m_iHealth", state.GameProcess, scanner, out _baseEntityHealthOffset))
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
-
-            foreach (GameSupport mod in _mods)
-                mod.OnGameAttached(state);
         }
 
         public override void OnSessionStart(GameState state)
@@ -61,15 +58,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
                 state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out _prevActiveWeapon);
-
-            foreach (GameSupport mod in _mods)
-                mod.OnSessionStart(state);
-        }
-
-        public override void OnTimerReset(bool resetFlagTo)
-        {
-            foreach (GameSupport mod in _mods)
-                mod.OnTimerReset(resetFlagTo);
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -115,12 +103,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             }
             else
             {
-                foreach (GameSupport mod in _mods)
-                {
-                    var result = mod.OnUpdate(state);
-                    if (result != GameSupportResult.DoNothing)
-                        return result;
-                }
+                return base.OnUpdate(state);
             }
 
             return GameSupportResult.DoNothing;
