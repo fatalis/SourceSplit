@@ -14,14 +14,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending: first tick nihilanth's health is zero
         // earthbound ending: when view entity changes to the ending camera's
 
-        // hc mod start: when the tram door is opening
-        // hc mod end: when the flash sprites disappears
-
         private bool _onceFlag;
 
         // offsets and binary sizes
         private int _baseEntityHealthOffset = -1;
-        private int _baseEffectsFlagsOffset = -1;
         private const int _serverModernModuleSize = 0x9D6000;
         private const int _serverModModuleSize = 0x81B000;
         private const int _nihiPhaseCounterOffset = 0x1a6e4;
@@ -43,12 +39,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private MemoryWatcher<int> _nihiPhaseCounter;
         private int _xenCamIndex;
 
-        // hc mod start & end
-        private const string _hcStartMap = "hc_t0a0";
-        private Vector3f _hcStartDoorTargPos = new Vector3f(4152.7f, -2853.1f, 105f);
-        private MemoryWatcher<Vector3f> _hcStartDoorPos;
-        private const string _hcEndMap = "hc_t0a3";
-        private MemoryWatcher<uint> _hcEndSpriteFlags;
+        private BMSMods_HazardCourse _hazardCourse = new BMSMods_HazardCourse();
+        private BMSMods_FurtherData _furtherData = new BMSMods_FurtherData();
 
         public BMSRetail()
         {
@@ -57,10 +49,16 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.FirstMap = "bm_c1a0a";
             this.LastMap = "bm_c4a4a";
             this.RequiredProperties = PlayerProperties.ViewEntity;
+
+            this.NonStandaloneMods.AddRange(new GameSupport[] { _hazardCourse, _furtherData });
+            foreach (GameSupport mod in NonStandaloneMods)
+                this.StartOnFirstLoadMaps.AddRange(mod.StartOnFirstLoadMaps);
         }
 
         public override void OnGameAttached(GameState state)
         {
+            base.OnGameAttached(state);
+
             ProcessModuleWow64Safe server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
             Trace.Assert(server != null);
 
@@ -75,10 +73,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (GameMemory.GetBaseEntityMemberOffset("m_iHealth", state.GameProcess, scanner, out _baseEntityHealthOffset))
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
-
-            if (GameMemory.GetBaseEntityMemberOffset("m_fEffects", state.GameProcess, scanner, out _baseEffectsFlagsOffset))
-                Debug.WriteLine("CBaseEntity::m_fEffects offset = 0x" + _baseEffectsFlagsOffset.ToString("X"));
-
 
             _handleInputCommandEnabled = true;
             // for versions before .91, disable handleinputcommand as it's redundant
@@ -110,12 +104,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
             {
                 _ebCamIndex = state.GetEntIndexByName("locked_in");
             }
-
             else if (state.CurrentMap.ToLower() == _xenStartMap)
             {
                 _xenCamIndex = state.GetEntIndexByName("stand_viewcontrol");
             }
-
             else if (this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
                 IntPtr nihiPtr = state.GetEntityByName("nihilanth");
@@ -123,16 +115,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                 _nihiHP = new MemoryWatcher<int>(nihiPtr + _baseEntityHealthOffset);
                 _nihiPhaseCounter = new MemoryWatcher<int>(nihiPtr + _nihiPhaseCounterOffset);
-            }
-
-            else if (state.CurrentMap.ToLower() == _hcStartMap)
-            {
-                _hcStartDoorPos = new MemoryWatcher<Vector3f>(state.GetEntityByName("tram_door_door_out") + state.GameOffsets.BaseEntityAbsOriginOffset);
-            }
-
-            else if (state.CurrentMap.ToLower() == _hcEndMap)
-            {
-                _hcEndSpriteFlags = new MemoryWatcher<uint>(state.GetEntityByName("spr_camera_flash") + _baseEffectsFlagsOffset);
             }
         }
 
@@ -166,9 +148,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 // remove any carriage returns
                 string cleanedCmd = _command.Current.Replace("\n", "").Replace("\r", "").ToLower();
                 if (CheckCommand(cleanedCmd, "ebend"))
-                {
                     HandleArg(cleanedCmd, "Earthbound Auto-end", ref _ebEnd);
-                }
                 else if (cleanedCmd.Contains("xen"))
                 {
                     if (cleanedCmd.Contains("start"))
@@ -191,9 +171,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     }    
                 }
                 else if (CheckCommand(cleanedCmd, "nihisplit"))
-                {
                     HandleArg(cleanedCmd, "Nihilanth splits", ref _nihiSplit);
-                }
             }
         }
 
@@ -246,26 +224,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return _xenStart ? GameSupportResult.PlayerGainedControl : GameSupportResult.PlayerLostControl;
                 }
             }
-            else if (state.CurrentMap.ToLower() == _hcStartMap)
-            {
-                _hcStartDoorPos.Update(state.GameProcess);
+            else return base.OnUpdate(state);
 
-                if (_hcStartDoorPos.Old.Distance(_hcStartDoorTargPos) > 0.05f
-                    && _hcStartDoorPos.Current.Distance(_hcStartDoorTargPos) <= 0.05f)
-                {
-                    return DefaultEnd("bms hc mod start");
-                }
-            }
-            else if (state.CurrentMap.ToLower() == _hcEndMap)
-            {
-                _hcEndSpriteFlags.Update(state.GameProcess);
-
-                if (state.TickCount >= 10 && (_hcEndSpriteFlags.Old & 0x20) == 0 &&
-                    (_hcEndSpriteFlags.Current & 0x20) != 0)
-                {
-                    return DefaultEnd("bms hc mod end");
-                }
-            }
             return GameSupportResult.DoNothing;
         }
     }

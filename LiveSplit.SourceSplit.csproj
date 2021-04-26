@@ -55,6 +55,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GameSpecific\ApertureTag.cs" />
+    <Compile Include="GameSpecific\BMSMods\BMSMods_FurtherData.cs" />
+    <Compile Include="GameSpecific\BMSMods\BMSMods_HazardCourse.cs" />
     <Compile Include="GameSpecific\BMSRetail.cs" />
     <Compile Include="GameSpecific\GameSupport.cs" />
     <Compile Include="GameSpecific\HL2.cs" />
