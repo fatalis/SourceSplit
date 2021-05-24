@@ -3,3 +3,4 @@ bin/
 obj/
 *.cache
 *.suo
+app.config
