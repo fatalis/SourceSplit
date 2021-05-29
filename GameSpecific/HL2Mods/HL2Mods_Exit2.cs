@@ -25,17 +25,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
-            if (this.IsFirstMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
+            if (this.IsFirstMap || this.IsLastMap && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
                 this._camIndex = state.GetEntIndexByName("view");
                 Debug.WriteLine("_camIndex index is " + this._camIndex);
-            }
-
-            if (this.IsLastMap)
-            {
-                this._trigIndex = state.GetEntIndexByPos(-840f, -15096f, 48f);
-                Debug.WriteLine("_trigIndex index is " + this._trigIndex);
-
             }
             _onceFlag = false;
         }
@@ -58,11 +51,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
             }
             else if (this.IsLastMap)
             {
-                var newTrig = state.GetEntInfoByIndex(_trigIndex);
-                float splitTime = state.FindFadeEndTime(-127.5f);
-
-                if (newTrig.EntityPtr == IntPtr.Zero 
-                    && state.CompareToInternalTimer(splitTime, 0f, true))
+                if (state.PlayerViewEntityIndex == _camIndex &&
+                    state.PrevPlayerViewEntityIndex == 1)
                 {
                     Debug.WriteLine("exit2 end");
                     _onceFlag = true;
