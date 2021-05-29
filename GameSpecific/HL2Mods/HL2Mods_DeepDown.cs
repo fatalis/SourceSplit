@@ -32,7 +32,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (this.IsLastMap)
             {
-                _splitTime = state.FindOutputFireTime("Titles_music1", 7);
+                _splitTime = state.FindOutputFireTime("Titles_music1", 17);
             }
             _onceFlag = false;
         }

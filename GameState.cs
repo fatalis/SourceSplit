@@ -13,6 +13,7 @@ namespace LiveSplit.SourceSplit
         public const int ENT_INDEX_PLAYER = 1;
 
         public const float IO_EPSILON = 0.03f; // precision of about 2 ticks, could be lowered?
+        private const int _maxEnts = 2048;
 
         public Process GameProcess;
         public GameOffsets GameOffsets;
@@ -97,14 +98,8 @@ namespace LiveSplit.SourceSplit
             // so let's just use the old system for that
             if (GameMemory.IsSource2003)
             {
-                int maxEnts = GameOffsets.CurrentEntCountPtr != IntPtr.Zero ?
-                    GameProcess.ReadValue<int>(GameOffsets.CurrentEntCountPtr) : 2048;
-
-                for (int i = 0; i < maxEnts; i++)
+                for (int i = 0; i < _maxEnts; i++)
                 {
-                    if (i % 100 == 0)
-                        maxEnts = GameProcess.ReadValue<int>(GameOffsets.CurrentEntCountPtr);
-
                     CEntInfoV2 info = this.GetEntInfoByIndex(i);
                     if (info.EntityPtr == IntPtr.Zero)
                         continue;
@@ -149,15 +144,8 @@ namespace LiveSplit.SourceSplit
         /// <param name="name">The name of the entity</param>
         public int GetEntIndexByName(string name)
         {
-            int maxEnts = GameOffsets.CurrentEntCountPtr != IntPtr.Zero ?
-                GameProcess.ReadValue<int>(GameOffsets.CurrentEntCountPtr) : 2048;
-
-            for (int i = 0; i < maxEnts; i++)
+            for (int i = 0; i < _maxEnts; i++)
             {
-                // update our max entites value every 100 tries to account for mid-scan additions or removals
-                if (i % 100 == 0)
-                    maxEnts = GameProcess.ReadValue<int>(GameOffsets.CurrentEntCountPtr);
-
                 CEntInfoV2 info = this.GetEntInfoByIndex(i);
                 if (info.EntityPtr == IntPtr.Zero)
                     continue;
@@ -187,15 +175,9 @@ namespace LiveSplit.SourceSplit
         public int GetEntIndexByPos(float x, float y, float z, float d = 0f, bool xy = false)
         {
             Vector3f pos = new Vector3f(x, y, z);
-            int maxEnts = GameOffsets.CurrentEntCountPtr != IntPtr.Zero ?
-                GameProcess.ReadValue<int>(GameOffsets.CurrentEntCountPtr) : 2048;
 
-            for (int i = 0; i < maxEnts; i++)
+            for (int i = 0; i < _maxEnts; i++)
             {
-                // update our max entites value every 100 tries to account for mid-scan additions or removals
-                if (i % 100 == 0)
-                    maxEnts = GameProcess.ReadValue<int>(GameOffsets.CurrentEntCountPtr);
-
                 CEntInfoV2 info = this.GetEntInfoByIndex(i);
                 if (info.EntityPtr == IntPtr.Zero)
                     continue;
@@ -352,7 +334,7 @@ namespace LiveSplit.SourceSplit
                 string tempCommand = GameProcess.ReadString((IntPtr)ioEvent.m_iTargetInput, 256) ?? "";
                 string tempParam = GameProcess.ReadString((IntPtr)ioEvent.v_union, 256) ?? "";
 
-                if ((!nameInclusive) ? tempName == targetName : tempName.Contains(targetName) &&
+                if (((!nameInclusive) ? tempName == targetName : tempName.Contains(targetName)) &&
                    ((!commandInclusive) ? tempCommand.ToLower() == command.ToLower() : tempCommand.ToLower().Contains(command.ToLower())) && 
                    ((!paramInclusive) ? tempParam.ToLower() == param.ToLower() : tempParam.ToLower().Contains(param.ToLower())))
                     return ioEvent.m_flFireTime;
@@ -432,7 +414,6 @@ namespace LiveSplit.SourceSplit
         public IntPtr HostStateLevelNamePtr => this.HostStatePtr + (4 * (GameMemory.IsSource2003 ? 2 : 8));
         public IntPtr ServerStatePtr;
         public IntPtr EventQueuePtr;
-        public IntPtr CurrentEntCountPtr;
 
         public CEntInfoSize EntInfoSize;
 

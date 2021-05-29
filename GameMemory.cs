@@ -562,23 +562,6 @@ namespace LiveSplit.SourceSplit
                 || (!GetBaseEntityMemberOffset("m_hViewEntity", p, serverScanner, out offsets.BasePlayerViewEntity) && !IsSource2003))
                 return false;
 
-            // find entity count offset
-            // find the first function under globalvar's vftable and find the offset from there
-            offsets.CurrentEntCountPtr = IntPtr.Zero;
-            IntPtr funcBegin = p.ReadPointer(p.ReadPointer(offsets.GlobalEntityListPtr - 4));
-            if (funcBegin != IntPtr.Zero)
-            {
-                var tempScanner = new SignatureScanner(p, funcBegin, 0x500);
-                IntPtr offsetRefLoc = tempScanner.Scan(new SigScanTarget(4,
-                    "7E ??",
-                    "89 ?? ?? ?? ?? 00",
-                    "8B"));
-                int offset = BitConverter.ToInt32(p.ReadBytes(offsetRefLoc, 4), 0);
-                offsets.CurrentEntCountPtr = offsets.GlobalEntityListPtr + offset;
-            }
-            else
-                offsets.CurrentEntCountPtr = IntPtr.Zero;
-
             // find m_pParent offset. the string "m_pParent" occurs more than once so we have to do something else
             // in old engine it's right before m_iParentAttachment. in new engine it's right before m_nTransmitStateOwnedCounter
             // TODO: test on all engines
@@ -597,7 +580,6 @@ namespace LiveSplit.SourceSplit
             Debug.WriteLine("CBaseClientState::m_nSignonState ptr = 0x" + offsets.SignOnStatePtr.ToString("X"));
             Debug.WriteLine("CViewEffects::m_FadeList (g_ViewEffects) ptr = 0x" + offsets.FadeListPtr.ToString("X"));
             Debug.WriteLine("CBaseEntityList::(CEntInfo)m_EntPtrArray ptr = 0x" + offsets.GlobalEntityListPtr.ToString("X"));
-            Debug.WriteLine("CGlobalEntityList::m_iNumEnts ptr  = 0x" + offsets.CurrentEntCountPtr.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_fFlags offset = 0x" + offsets.BaseEntityFlagsOffset.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_vecAbsOrigin offset = 0x" + offsets.BaseEntityAbsOriginOffset.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_iName offset = 0x" + offsets.BaseEntityTargetNameOffset.ToString("X"));

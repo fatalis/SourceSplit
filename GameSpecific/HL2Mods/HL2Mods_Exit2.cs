@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LiveSplit.ComponentUtil;
+using System;
 using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
@@ -60,7 +61,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 var newTrig = state.GetEntInfoByIndex(_trigIndex);
                 float splitTime = state.FindFadeEndTime(-127.5f);
 
-                if (state.CompareToInternalTimer(splitTime, 0f, true))
+                if (newTrig.EntityPtr == IntPtr.Zero 
+                    && state.CompareToInternalTimer(splitTime, 0f, true))
                 {
                     Debug.WriteLine("exit2 end");
                     _onceFlag = true;

@@ -25,8 +25,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
             if (state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                _splitTime = state.FindOutputFireTime("blackout", "Kill", "", 5);
-                _splitTime2 = state.FindOutputFireTime("csystem_sound_start", "PlaySound", "", 5);
+                _splitTime = state.FindOutputFireTime("blackout", "Kill", "", 10);
+                _splitTime2 = state.FindOutputFireTime("csystem_sound_start", "PlaySound", "", 10);
             }
             _onceFlag = false;
         }
