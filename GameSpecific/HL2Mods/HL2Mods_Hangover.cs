@@ -10,18 +10,24 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
         private float _splitTime;
 
+        private int _startCamIndex;
+
         public HL2Mods_Hangover()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "hangover_00";
             this.LastMap = "hangover_02";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
+            if (IsFirstMap)
+            {
+                _startCamIndex = state.GetEntIndexByName("at1_viewcontrol");
+                Debug.WriteLine($"start cam index is {_startCamIndex}");
+            }
             if (IsLastMap)
                 _splitTime = state.FindOutputFireTime("credits_weaponstrip", 10);
             _onceFlag = false;
@@ -32,7 +38,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsLastMap)
+            if (this.IsFirstMap)
+            {
+                if (state.PrevPlayerViewEntityIndex == _startCamIndex &&
+                    state. PlayerViewEntityIndex == 1)
+                {
+                    _onceFlag = true;
+                    Debug.WriteLine("hangover start");
+                    return GameSupportResult.PlayerGainedControl;
+                }
+            }
+            else if (this.IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("credits_weaponstrip", 10);
                 try
