@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using LiveSplit.ComponentUtil;
 using LiveSplit.SourceSplit.GameSpecific;
@@ -396,6 +397,13 @@ namespace LiveSplit.SourceSplit
             int mask = 0xFFF;
             return (EHANDLE & mask) == mask ? -1 : (int)(EHANDLE & mask);
         }
+
+        public ProcessModuleWow64Safe GetModule(string name)
+        {
+            var proc = GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == name.ToLower());
+            Trace.Assert(proc != null);
+            return proc;
+        }
     }
 
     struct GameOffsets
@@ -485,4 +493,24 @@ namespace LiveSplit.SourceSplit
         public uint m_pNext;
         public uint m_pPrev;
     };
+
+    // custom command system for games that need their own specific settings
+    // usually set through monitoring a buffer for invalid console command inputs
+    class CustomCommand
+    {
+        public string Name;
+        public bool Enabled { get; set; }
+
+        public CustomCommand(string name, bool enabled = false)
+        {
+            Name = name;
+            Enabled = enabled;
+        }
+
+        public void Update(bool enabled)
+        {
+            Enabled = enabled;
+            Debug.WriteLine($"{Name} is {Enabled}");
+        }
+    }
 }

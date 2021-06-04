@@ -25,7 +25,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override void OnGameAttached(GameState state)
         {
-            ProcessModuleWow64Safe server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
+            ProcessModuleWow64Safe server = state.GetModule("server.dll");
             Trace.Assert(server != null);
 
             var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);

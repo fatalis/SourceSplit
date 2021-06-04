@@ -390,6 +390,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Mods_Offshore();
                 case "hangover":
                     return new HL2Mods_Hangover();
+                case "synergy":
+                    return new Synergy();
             }
 
             return null;

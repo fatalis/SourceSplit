@@ -202,11 +202,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override void OnGameAttached(GameState state)
         {
-            server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
-            client = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "client.dll");
-            engine = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "engine.dll");
-
-            Trace.Assert(server != null && client != null && engine != null);
+            server = state.GetModule("server.dll");
+            client = state.GetModule("client.dll");
+            engine = state.GetModule("engine.dll");
 
             var serverScanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
 

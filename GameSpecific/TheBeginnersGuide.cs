@@ -1,7 +1,6 @@
 ﻿using LiveSplit.ComponentUtil;
 using System;
 using System.Diagnostics;
-using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -26,9 +25,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnGameAttached(GameState state)
         {
             ProcessModuleWow64Safe server;
-            server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
-            Trace.Assert(server != null);
-
+            server = state.GetModule("server.dll");
             _playerMoveSpeed = new MemoryWatcher<float>(server.BaseAddress + 0x761310);
         }
 

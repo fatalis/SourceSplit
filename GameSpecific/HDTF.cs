@@ -2,7 +2,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -36,10 +35,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         }
         public override void OnGameAttached(GameState state)
         {
-            ProcessModuleWow64Safe server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
-            ProcessModuleWow64Safe bink = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "video_bink.dll");
-          
-            Trace.Assert(server != null && bink != null);
+            ProcessModuleWow64Safe server = state.GetModule("server.dll");
+            ProcessModuleWow64Safe bink = state.GetModule("video_bink.dll");
 
             var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
 

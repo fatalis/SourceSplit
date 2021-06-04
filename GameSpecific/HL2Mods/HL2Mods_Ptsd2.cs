@@ -25,7 +25,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override void OnGameAttached(GameState state)
         {
-            var bink = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "video_bink.dll");
+            var bink = state.GetModule("video_bink.dll");
             Trace.Assert(bink != null);
 
             var binkScanner = new SignatureScanner(state.GameProcess, bink.BaseAddress, bink.ModuleMemorySize);

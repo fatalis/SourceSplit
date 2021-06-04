@@ -23,11 +23,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // vorts' hp
         private int[] _vortHP = { -1, -1, -1, -1 };
         private int[] _vortHPOld = { 100, 100, 100, 100 };
-        // vorts' entity pointer
+        // vorts' entity pointers
         private IntPtr[] _vortPtr = { IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero };
         // vorts' spawners' pointers
         private IntPtr[] _spawnersPtr = { IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero };
-        // vorts' spawners' live children count. this variable only gets decremented when the vorts' entity are killed
+        // vorts' spawners' live children count. this variable only gets decremented when the vorts' entities are killed
         // which takes place a bit after theyre killed by the player. used to determine when we should scan for their pointers
         private int[] _curLiveChildren = { -1, -1, -1, -1 };
         // vorts' spawners' number of spawnable npcs left. this variable gets decremented when the vorts spawn in. used to check if we have
@@ -54,8 +54,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             base.OnGameAttached(state);
 
-            ProcessModuleWow64Safe server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
-            Trace.Assert(server != null);
+            ProcessModuleWow64Safe server = state.GetModule("server.dll");
 
             var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
 

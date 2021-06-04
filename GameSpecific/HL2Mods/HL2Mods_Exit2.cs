@@ -12,7 +12,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag = false;
 
         private int _camIndex;
-        private int _trigIndex;
 
         public HL2Mods_Exit2()
         {

@@ -1,7 +1,6 @@
 ﻿using LiveSplit.ComponentUtil;
 using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Media;
 
 namespace LiveSplit.SourceSplit.GameSpecific
@@ -27,17 +26,19 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         // earthbound start
         private string _ebEndMap = "bm_c3a2i";
-        private bool _ebEnd = false;
+        private CustomCommand _ebEndCommand = new CustomCommand("ebend");
         private int _ebCamIndex;
 
         // xen start & run end
         private const string _xenStartMap = "bm_c4a1a";
-        private bool _xenStart = false;
-        private bool _xenSplit = false;
-        private bool _nihiSplit = false;
+        private CustomCommand _xenStartCommand = new CustomCommand("xenstart");
+        private CustomCommand _xenSplitCommand = new CustomCommand("xensplit");
+        private CustomCommand _nihiSplitCommand = new CustomCommand("nihisplit");
         private MemoryWatcher<int> _nihiHP;
         private MemoryWatcher<int> _nihiPhaseCounter;
         private int _xenCamIndex;
+
+        private CustomCommand[] _commands;
 
         private BMSMods_HazardCourse _hazardCourse = new BMSMods_HazardCourse();
         private BMSMods_FurtherData _furtherData = new BMSMods_FurtherData();
@@ -53,14 +54,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.NonStandaloneMods.AddRange(new GameSupport[] { _hazardCourse, _furtherData });
             foreach (GameSupport mod in NonStandaloneMods)
                 this.StartOnFirstLoadMaps.AddRange(mod.StartOnFirstLoadMaps);
+
+            _commands = new CustomCommand[]{ _xenSplitCommand, _xenStartCommand, _nihiSplitCommand, _ebEndCommand };
         }
 
         public override void OnGameAttached(GameState state)
         {
             base.OnGameAttached(state);
 
-            ProcessModuleWow64Safe server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
-            Trace.Assert(server != null);
+            ProcessModuleWow64Safe server = state.GetModule("server.dll");
 
             var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
             var commandTarg = new SigScanTarget(16, "55 8B EC 8D 45 ?? 50 FF 75 ?? 68 00 04 00 00 68 ?? ?? ?? ??");
@@ -78,7 +80,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             // for versions before .91, disable handleinputcommand as it's redundant
             if (server.ModuleMemorySize < _serverModernModuleSize)
             {
-                _ebEnd = true;
+                _ebEndCommand.Enabled = true;
                 _handleInputCommandEnabled = false;
                 // for mod, eb's final map name is different
                 if (server.ModuleMemorySize <= _serverModModuleSize)
@@ -120,23 +122,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         // allow disabling and enabling of features through monitoring specific console input
         // format: ebend<arg>, xenstart<arg>, eg: ebend1, xenstart0, characters are also accepted which will be interpreted as true
-        void HandleArg(string command, string name, ref bool target)
-        {
-            string arg = command.Substring(command.Length - 1, 1);
-            if (arg != "0") target = true;
-            else target = false;
-
-            Debug.WriteLine(name + " is " + ((arg != "0") ? "Enabled" : "Disabled"));
-
-            // play the warning sound to let people know its toggled
-            SystemSounds.Asterisk.Play();
-        }
-
-        bool CheckCommand(string cmd, string targetCmd)
-        {
-            return cmd.Length - 1 == (targetCmd).Length && cmd.Substring(0, cmd.Length - 1) == targetCmd;
-        }
-
         void HandleInputCommand(GameState state, bool ignoreChanged = false)
         {
             if (!_handleInputCommandEnabled)
@@ -145,33 +130,20 @@ namespace LiveSplit.SourceSplit.GameSpecific
             _command.Update(state.GameProcess);
             if (ignoreChanged || _command.Changed)
             {
-                // remove any carriage returns
+                if (string.IsNullOrEmpty(_command.Current))
+                    return;
+
                 string cleanedCmd = _command.Current.Replace("\n", "").Replace("\r", "").ToLower();
-                if (CheckCommand(cleanedCmd, "ebend"))
-                    HandleArg(cleanedCmd, "Earthbound Auto-end", ref _ebEnd);
-                else if (cleanedCmd.Contains("xen"))
+
+                foreach (CustomCommand cmd in _commands)
                 {
-                    if (cleanedCmd.Contains("start"))
+                    if (cleanedCmd.Contains(cmd.Name) && cleanedCmd.Length > cmd.Name.Length)
                     {
-                        HandleArg(cleanedCmd, "Xen Auto-start", ref _xenStart);
-                        if (_xenStart)
-                        {
-                            Debug.WriteLine("Xen Auto-split is now disabled");
-                            _xenSplit = false;
-                        }
+                        string arg = cleanedCmd.Substring(cleanedCmd.IndexOf(cmd.Name) + cmd.Name.Length, 1);
+                        SystemSounds.Asterisk.Play();
+                        cmd.Update(arg != "0");
                     }
-                    else if (cleanedCmd.Contains("split"))
-                    {
-                        HandleArg(cleanedCmd, "Xen Auto-split", ref _xenSplit);
-                        if (_xenSplit)
-                        {
-                            Debug.WriteLine("Xen Auto-start is now disabled");
-                            _xenStart = false;
-                        }
-                    }    
                 }
-                else if (CheckCommand(cleanedCmd, "nihisplit"))
-                    HandleArg(cleanedCmd, "Nihilanth splits", ref _nihiSplit);
             }
         }
 
@@ -192,12 +164,11 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsLastMap)
             {
                 _nihiHP.Update(state.GameProcess);
-                if (_nihiHP.Current <= 0 && _nihiHP.Old > 0)
-                {
-                    return DefaultEnd("black mesa end");
-                }
 
-                if (_nihiSplit)
+                if (_nihiHP.Current <= 0 && _nihiHP.Old > 0)
+                    return DefaultEnd("black mesa end");
+
+                if (_nihiSplitCommand.Enabled)
                 {
                     _nihiPhaseCounter.Update(state.GameProcess);
 
@@ -208,20 +179,19 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     }
                 }
             }
-            else if (_ebEnd && state.CurrentMap.ToLower() == _ebEndMap)
+            else if (_ebEndCommand.Enabled && state.CurrentMap.ToLower() == _ebEndMap)
             {
                 if (state.PlayerViewEntityIndex == _ebCamIndex && state.PrevPlayerViewEntityIndex == 1)
-                {
                     return DefaultEnd("bms eb end");
-                }
             }
-            else if ((_xenStart || _xenSplit) && state.CurrentMap.ToLower() == _xenStartMap)
+            else if ((_xenStartCommand.Enabled || _xenSplitCommand.Enabled) 
+                && state.CurrentMap.ToLower() == _xenStartMap)
             {
                 if (state.PlayerViewEntityIndex == 1 && state.PrevPlayerViewEntityIndex == _xenCamIndex)
                 {
                     _onceFlag = true;
                     Debug.WriteLine("bms xen start");
-                    return _xenStart ? GameSupportResult.PlayerGainedControl : GameSupportResult.PlayerLostControl;
+                    return _xenStartCommand.Enabled ? GameSupportResult.PlayerGainedControl : GameSupportResult.PlayerLostControl;
                 }
             }
             else return base.OnUpdate(state);

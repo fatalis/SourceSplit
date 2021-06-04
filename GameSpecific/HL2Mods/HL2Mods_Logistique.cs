@@ -1,6 +1,5 @@
 ﻿using LiveSplit.ComponentUtil;
 using System.Diagnostics;
-using System.Linq;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {      
@@ -29,8 +28,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             base.OnGameAttached(state);
 
-            ProcessModuleWow64Safe vguimatsurface = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "vguimatsurface.dll");
-            Trace.Assert(vguimatsurface != null);
+            ProcessModuleWow64Safe vguimatsurface = state.GetModule("vguimatsurface.dll");
 
             // there are other cleaner pointers but vguimatsurface is most unlikely to change
             // i would've tried to find a sigscanned method but the pointer is extremely hard to get to
