@@ -24,6 +24,7 @@ namespace LiveSplit.SourceSplit
         public event EventHandler<SessionTicksUpdateEventArgs> OnSessionTimeUpdate;
         public event EventHandler<PlayerControlChangedEventArgs> OnPlayerGainedControl;
         public event EventHandler<PlayerControlChangedEventArgs> OnPlayerLostControl;
+        public event EventHandler<PlayerControlChangedEventArgs> ManualSplit;
         public event EventHandler<MapChangedEventArgs> OnMapChanged;
         public event EventHandler<SessionStartedEventArgs> OnSessionStarted;
         public event EventHandler<GamePausedEventArgs> OnGamePaused;
@@ -42,10 +43,25 @@ namespace LiveSplit.SourceSplit
         private SigScanTarget _gameDirTarget;
         private SigScanTarget _hostStateTarget;
         private SigScanTarget _serverStateTarget;
+        private SigScanTarget _serverStateTarget2;
+        private SigScanTarget _fadeListTarget;
+        private SigScanTarget _eventQueueTarget;
+        private SigScanTarget _eventQueueTarget2;
+
+        private SigScanTarget _infraIsLoadingTarget;
+        private MemoryWatcher<byte> _infraIsLoading;
+        private bool _isInfra = false;
+
+        public static bool IsSource2003 = false;
 
         private bool _gotTickRate;
 
+        private int _timesOver;
+        private int _timeOverSpent;
+
         private SourceSplitSettings _settings;
+
+        public GameState _state;
 
         // TODO: match tickrate as closely as possible without going over
         // otherwise we will most likely read when the game isn't sleeping
@@ -60,6 +76,34 @@ namespace LiveSplit.SourceSplit
 
             // TODO: refine hl2 2014 signatures once an update after the may 29th one is released
 
+            _infraIsLoadingTarget = new SigScanTarget();
+
+            // \x80\x3D\x2A\x2A\x2A\x2A\x00\x0F\x84\x2A\x2A\x2A\x2A\x56\xC6\x05\x2A\x2A\x2A\x2A\x00
+            _infraIsLoadingTarget.AddSignature(2,
+                "80 3D ?? ?? ?? ?? 00",     // CMP  loadingbyte,0x0
+                "0F 84 ?? ?? ?? ??",        // JZ   0x10028ebb
+                "56",                       // PUSH ESI
+                "C6 05 ?? ?? ?? ?? 00");    // MOV  byte ptr [0x10458c04],0x0
+            // \x80\x3D\x2A\x2A\x2A\x2A\x00\x0F\x84\x2A\x2A\x2A\x2A\x56\x57\xC6\x05\x2A\x2A\x2A\x2A\x00
+            _infraIsLoadingTarget.AddSignature(2,
+                "80 3D ?? ?? ?? ?? 00",     // CMP  loadingbyte,0x0
+                "0F 84 ?? ?? ?? ??",        // JZ   0x1002b7db
+                "56",                       // PUSH ESI
+                "57",                       // PUSH EDI
+                "C6 05 ?? ?? ?? ?? 00");    // MOV  byte ptr [0x1047ccd4],0x0
+
+            // CViewEffects::m_FadeList (g_ViewEffects)
+            _fadeListTarget = new SigScanTarget();
+            _fadeListTarget.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
+            
+            // infra
+            _fadeListTarget.AddSignature(2, 
+                "8D 88 ?? ?? ?? ??",        // LEA ECX,[EAX + fadeList]
+                "8B 01",                    // MOV EAX,dword ptr [ECX]
+                "8B 40 ??",                 // MOV EAX,dword ptr [EAX + 0xc]
+                "8D 55 ??");                // LEA EDX,[EBP + -0x2c]
+
+
             // CBaseServer::(server_state_t)m_State
             _serverStateTarget = new SigScanTarget();
             _serverStateTarget.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr;
@@ -72,6 +116,37 @@ namespace LiveSplit.SourceSplit
                 "0F 8F ?? ?? 00 00",       // jg      loc_200087FB
                 "83 3d ?? ?? ?? ?? 02",    // cmp     m_State, 2
                 "7D");                     // jge     short loc_200085FD
+
+            // except HLS OE...
+            // \x83\x3D\x2A\x2A\x2A\x2A\x02\xA1\x2A\x2A\x2A\x2A\x7D\x2A\xA1\x2A\x2A\x2A\x2A\x89\x86\x2A\x2A\x2A\x2A
+            _serverStateTarget.AddSignature(2,
+                "83 3D ?? ?? ?? ?? 02",     // CMP  state,0x2
+                "A1 ?? ?? ?? ??",           // MOV  EAX,[0x20554d0c]
+                "7D ??",                    // JGE  0x2006811c
+                "A1 ?? ?? ?? ??",           // MOV  EAX,[0x2037cf68]
+                "89 86 ?? ?? ?? ??");       // MOV  dword ptr [ESI + 0x220],EAX
+
+            // and HL2SURVIVOR
+            // \x83\x3D\x2A\x2A\x2A\x2A\x02\x7C\x2A\x8B\x15\x2A\x2A\x2A\x2A
+            _serverStateTarget.AddSignature(2,
+                "83 3D ?? ?? ?? ?? 02",     // CMP  state,0x2
+                "7C ??",                    // JL   0x200117d6
+                "8B 15 ?? ?? ?? ??");       // MOV  EDX,dword ptr [0x203c2abc]
+
+            // and source 2003 leak...
+            _serverStateTarget2 = new SigScanTarget();
+            _serverStateTarget2.OnFound = (proc, scanner, ptr) => {
+                IsSource2003 = true;
+                return !proc.ReadPointer(ptr, out ptr) ? IntPtr.Zero : ptr; };
+
+            // state (old 2003 naming)
+            // \xB9\x2A\x2A\x2A\x2A\xE8\x2A\x2A\x2A\x2A\xD9\x1D\x2A\x2A\x2A\x2A\xA1\x2A\x2A\x2A\x2A\x8B\x38
+            _serverStateTarget2.AddSignature(1,
+                "B9 ?? ?? ?? ??",          // MOV     ECX, state
+                "E8 ?? ?? ?? ??",          // CALL    0x200fecb0
+                "D9 1D ?? ?? ?? ??",       // FSTP    dword ptr [0x207c9f44]
+                "A1 ?? ?? ?? ??",          // MOV     EAX,[0x20a40e5c]
+                "8B 38");                  // MOV     EDI,dword ptr [EAX]
 
             // TODO: find a generic curTime signature
             // frameTime->curtime WIP sig, 76% success
@@ -141,6 +216,21 @@ namespace LiveSplit.SourceSplit
                 "E8 ?? ?? ?? ??",          // call    sub_100CE390
                 "8B 0D ?? ?? ?? ??",       // mov     ecx, dword_1043686C
                 "D9 1D");                  // fstp    frametime
+            // source 2003 leak
+            // \xA3\x2A\x2A\x2A\x2A\xE8\x2A\x2A\x2A\x2A\xD9\x1D\x2A\x2A\x2A\x2A\x8B\x44\x24\x2A
+            _curTimeTarget.AddSignature(12,
+                "A3 ?? ?? ?? ??",          // MOV     intervalpertick,EAX
+                "E8 ?? ?? ?? ??",          // CALL    0x20034da0
+                "D9 1D ?? ?? ?? ??",       // FSTP    curtime
+                "8B 44 24 ??");            // MOV     EAX,dword ptr [ESP + 0x48]
+            // HL2SURVIVOR
+            // \xA1\x2A\x2A\x2A\x2A\x7D\x2A\xA1\x2A\x2A\x2A\x2A\x89\x81\x2A\x2A\x2A\x2A
+            _curTimeTarget.AddSignature(4,
+                "F3 0F 11 05 ?? ?? ?? ??",
+                "8B 01",
+                "52",
+                "FF 50 ??",
+                "8B 0D ?? ?? ?? ??");
 
             // CBaseClientState::m_nSignOnState (older engines)
             _signOnStateTarget1 = new SigScanTarget();
@@ -154,6 +244,14 @@ namespace LiveSplit.SourceSplit
                 "C3",                      // retn
                 "83 3D ?? ?? ?? ?? 02",    // cmp     CBaseClientState__m_nSignonState, 2
                 "B8 ?? ?? ?? ??");         // mov     eax, offset MultiByteStr
+
+            // source 2003 leak
+            // \xA1\x2A\x2A\x2A\x2A\x85\xC0\x75\x2A\xB8\x2A\x2A\x2A\x2A
+            _signOnStateTarget1.AddSignature(1,
+                "A1 ?? ?? ?? ??",          // MOV     EAX, state
+                "85 C0",                   // TEST    EAX,EAX
+                "75 ??",                   // JNZ     0x2001492f
+                "B8 ?? ?? ?? ??");         // MOV     EAX,0x20193f74
 
             // CBaseClientState::m_nSignOnState
             _signOnStateTarget2 = new SigScanTarget();
@@ -172,7 +270,7 @@ namespace LiveSplit.SourceSplit
                 "83 7E 18 00",             // cmp     dword ptr [esi+18h], 0
                 "74 2D",                   // jz      short loc_693D4DFC
                 "8B 0D ?? ?? ?? ??",       // mov     ecx, baseclientstate
-                "8B 49 18");               // mov     mov     ecx, [ecx+18h]
+                "8B 49 18");               // mov     ecx, [ecx+18h]
 
             // CBaseServer::m_szMapname[64]
             _curMapTarget = new SigScanTarget();
@@ -208,6 +306,29 @@ namespace LiveSplit.SourceSplit
                 "DD D8",                   // fstp    st
                 "76 ??",                   // jbe     short loc_101B8F6F
                 "80 ?? ?? ?? ?? ?? 00");   // cmp     map, 0
+            // infra
+            _curMapTarget.AddSignature(16,
+                "68 ?? ?? ?? ??",          // push    0x103603e0
+                "c6 ?? ?? ??",             // mov     byte ptr [EBP + -0x1],0x1
+                "ff ??",                   // call    ESI
+                "83 c4 ??",                // add     ESP,0x4
+                "80 ?? ?? ?? ?? ?? 00",    // cmp     map, 0x0
+                "B8 ?? ?? ?? ??");         // mov     EAX, map
+            // HL2SURVIVOR
+            //\x80\x3D\x2A\x2A\x2A\x2A\x00\x74\x2A\x8B\x01
+            _curMapTarget.AddSignature(2,
+                "80 3D ?? ?? ?? ?? 00",   // CMP    byte ptr [map],0x0
+                "74 ?? ",                 // JZ     LAB_200b7839
+                "8B 01");                 // MOV    EAX,dword ptr [ECX]=>PTR_PTR_FUN_202e5050
+
+            // name[64] (old 2003 naming)
+            // \xA0\x2A\x2A\x2A\x2A\x84\xC0\x74\x2A\xB8\x2A\x2A\x2A\x2A
+            // source 2003 leak
+            _curMapTarget.AddSignature(1,
+                "A0 ?? ?? ?? ??",          // MOV     AL, name[64]
+                "84 C0",                   // TEST    AL, AL
+                "74 ??",                   // JZ      0x20090dca
+                "B8 ?? ?? ?? ??");         // MOV     EAX,0x207cab64
 
             // CBaseEntityList::(CEntInfo)m_EntPtrArray
             _globalEntityListTarget = new SigScanTarget();
@@ -245,6 +366,25 @@ namespace LiveSplit.SourceSplit
                 proc.ReadPointer(ptrPtr, out ret);
                 return ret;
             };
+
+            // CEventQueue::m_Events
+            _eventQueueTarget = new SigScanTarget();
+            _eventQueueTarget.OnFound = (proc, scanner, ptr) => proc.ReadPointer(ptr, out ptr) ? ptr : IntPtr.Zero;
+            // source 2007 and newer
+            _eventQueueTarget.AddSignature(1,
+                "A1 ?? ?? ?? ??",           // MOV  EAX,[m_Events]
+                "85 C0",                    // TEST EAX,EAX
+                "74 ??",                    // JZ   LAB_10425dd5
+                "56",                       // PUSH ESI
+                "8D 9B 00 00 00 00");       // LEA  EBX,[EBX]
+
+            // source 2006
+            _eventQueueTarget2 = new SigScanTarget();
+            _eventQueueTarget2.OnFound = (proc, scanner, ptr) => proc.ReadPointer(ptr, out ptr) ? ptr + 0x30 : IntPtr.Zero;
+            _eventQueueTarget2.AddSignature(1,
+               "B9 ?? ?? ?? ??",            // MOV  ECX,DAT_22570180
+               "E8 ?? ?? ?? ??",            // CALL FUN_22258f40
+               "45");                       // INC EBP
         }
 
 #if DEBUG
@@ -253,7 +393,6 @@ namespace LiveSplit.SourceSplit
             Debug.WriteLine("GameMemory finalizer");
         }
 #endif
-
         public void StartReading()
         {
             if (_thread != null && _thread.Status == TaskStatus.Running)
@@ -316,12 +455,29 @@ namespace LiveSplit.SourceSplit
             timeEndPeriod(1);
         }
 
+        string GetGameDir(Process p, GameOffsets offsets)
+        {
+            string absoluteGameDir;
+            p.ReadString(offsets.GameDirPtr, ReadStringType.UTF8, 260, out absoluteGameDir);
+
+            switch (new DirectoryInfo(absoluteGameDir).Name.ToLower())
+            {
+                case "infra":
+                    _isInfra = true;
+                    break;
+            }
+
+            return absoluteGameDir;
+        }
+
         // TODO: log fails
         bool TryGetGameProcess(out Process p, out GameOffsets offsets)
         {
 #if DEBUG
             var sw = Stopwatch.StartNew();
 #endif
+            _isInfra = false;
+            IsSource2003 = false;
 
             string[] procs = _settings.GameProcesses.Select(x => x.ToLower().Replace(".exe", String.Empty)).ToArray();
             p = Process.GetProcesses().FirstOrDefault(x => procs.Contains(x.ProcessName.ToLower()));
@@ -340,16 +496,23 @@ namespace LiveSplit.SourceSplit
             // required engine stuff
             var scanner = new SignatureScanner(p, engine.BaseAddress, engine.ModuleMemorySize);
 
-            if ((offsets.CurMapPtr = scanner.Scan(_curMapTarget)) == IntPtr.Zero
+            if (((offsets.ServerStatePtr = scanner.Scan(_serverStateTarget)) == IntPtr.Zero &&
+                (offsets.ServerStatePtr = scanner.Scan(_serverStateTarget2)) == IntPtr.Zero)
+                || (offsets.CurMapPtr = scanner.Scan(_curMapTarget)) == IntPtr.Zero
                 || (offsets.CurTimePtr = scanner.Scan(_curTimeTarget)) == IntPtr.Zero
                 || (offsets.GameDirPtr = scanner.Scan(_gameDirTarget)) == IntPtr.Zero
-                || (offsets.HostStatePtr = scanner.Scan(_hostStateTarget)) == IntPtr.Zero
-                || (offsets.ServerStatePtr = scanner.Scan(_serverStateTarget)) == IntPtr.Zero)
+                || (offsets.HostStatePtr = scanner.Scan(_hostStateTarget)) == IntPtr.Zero)
                 return false;
 
             if ((offsets.SignOnStatePtr = scanner.Scan(_signOnStateTarget1)) == IntPtr.Zero
                 && (offsets.SignOnStatePtr = scanner.Scan(_signOnStateTarget2)) == IntPtr.Zero)
                 return false;
+
+            // get the game dir now to evaluate game-specific stuff
+            GetGameDir(p, offsets);
+
+            if (_isInfra)
+                _infraIsLoading = new MemoryWatcher<byte>(new DeepPointer(scanner.Scan(_infraIsLoadingTarget), 0x0));
 
             // required server stuff
             var serverScanner = new SignatureScanner(p, server.BaseAddress, server.ModuleMemorySize);
@@ -357,11 +520,46 @@ namespace LiveSplit.SourceSplit
             if ((offsets.GlobalEntityListPtr = serverScanner.Scan(_globalEntityListTarget)) == IntPtr.Zero)
                 return false;
 
+            if ((offsets.EventQueuePtr = serverScanner.Scan(_eventQueueTarget)) == IntPtr.Zero)
+                offsets.EventQueuePtr = serverScanner.Scan(_eventQueueTarget2);
+
+            // optional client fade list
+            ProcessModuleWow64Safe client = p.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "client.dll");
+            if (client != null)
+            {
+                var clientScanner = new SignatureScanner(p, client.BaseAddress, client.ModuleMemorySize);
+                IntPtr tmpfade = clientScanner.Scan(_fadeListTarget);
+                if (tmpfade == IntPtr.Zero) 
+                {
+                    // because of how annoyingly hard it is to traditionally sigscan this we'll have to resort to function searching
+                    // find the reference to the string "%i gametitle fade\n" near which lies gViewEffects/m_FadeList
+                    // subtract 12 bytes from that pointer to get past a gpGlobals reference which would bring up a 2nd result in our final sigscan
+                    // subtract another 0x50 bytes from that pointer to get a new base address, then set 0x50 as the module size
+                    // then sigscan
+
+                    // support range: old engine 4104 & new engine non-portal branch between 2007 and 2013
+
+                    IntPtr stringptr = clientScanner.Scan(new SigScanTarget(0, "25692067616D657469746C6520666164650A"));
+                    byte[] b = BitConverter.GetBytes(stringptr.ToInt32());
+                    var target = new SigScanTarget(-12, $"68 {b[0]:X02} {b[1]:X02} {b[2]:X02} {b[3]:X02}");
+
+                    IntPtr endptr = clientScanner.Scan(target);
+                    clientScanner = new SignatureScanner(p, endptr - 0x50, 0x50);
+
+                    target = new SigScanTarget(2, "8B 0D ?? ?? ?? ??"); // push m_FadeList
+                    target.OnFound = (proc, scanner, ptr) => !proc.ReadPointer(proc.ReadPointer(ptr), out ptr) ? IntPtr.Zero : ptr;
+                    tmpfade = clientScanner.Scan(target);
+                }
+
+                offsets.FadeListPtr = tmpfade;
+            }
+
             // entity offsets
             if ( !GetBaseEntityMemberOffset("m_fFlags", p, serverScanner, out offsets.BaseEntityFlagsOffset)
                 || !GetBaseEntityMemberOffset("m_vecAbsOrigin", p, serverScanner, out offsets.BaseEntityAbsOriginOffset)
                 || !GetBaseEntityMemberOffset("m_iName", p, serverScanner, out offsets.BaseEntityTargetNameOffset)
-                || !GetBaseEntityMemberOffset("m_hViewEntity", p, serverScanner, out offsets.BasePlayerViewEntity))
+                // source 2003 leak doesn't define m_hViewEntity as a field so for the time being this is ignored
+                || (!GetBaseEntityMemberOffset("m_hViewEntity", p, serverScanner, out offsets.BasePlayerViewEntity) && !IsSource2003))
                 return false;
 
             // find m_pParent offset. the string "m_pParent" occurs more than once so we have to do something else
@@ -380,12 +578,14 @@ namespace LiveSplit.SourceSplit
             Debug.WriteLine("CBaseServer::m_szMapname ptr = 0x" + offsets.CurMapPtr.ToString("X"));
             Debug.WriteLine("CGlobalVarsBase::curtime ptr = 0x" + offsets.CurTimePtr.ToString("X"));
             Debug.WriteLine("CBaseClientState::m_nSignonState ptr = 0x" + offsets.SignOnStatePtr.ToString("X"));
+            Debug.WriteLine("CViewEffects::m_FadeList (g_ViewEffects) ptr = 0x" + offsets.FadeListPtr.ToString("X"));
             Debug.WriteLine("CBaseEntityList::(CEntInfo)m_EntPtrArray ptr = 0x" + offsets.GlobalEntityListPtr.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_fFlags offset = 0x" + offsets.BaseEntityFlagsOffset.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_vecAbsOrigin offset = 0x" + offsets.BaseEntityAbsOriginOffset.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_iName offset = 0x" + offsets.BaseEntityTargetNameOffset.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_pParent offset = 0x" + offsets.BaseEntityParentHandleOffset.ToString("X"));
             Debug.WriteLine("CBasePlayer::m_hViewEntity offset = 0x" + offsets.BasePlayerViewEntity.ToString("X"));
+            Debug.WriteLine("CEventQueue::m_Events ptr = 0x" + offsets.EventQueuePtr.ToString("X"));
 
 #if DEBUG
             Debug.WriteLine("TryGetGameProcess took: " + sw.Elapsed);
@@ -436,6 +636,7 @@ namespace LiveSplit.SourceSplit
             Debug.WriteLine("HandleProcess " + game.ProcessName);
 
             var state = new GameState(game, offsets);
+            _state = state;
             this.InitGameState(state);
             _gotTickRate = false;
 
@@ -443,15 +644,20 @@ namespace LiveSplit.SourceSplit
             while (!game.HasExited && !cts.IsCancellationRequested)
             {
                 // iteration must never take longer than 1 tick
-
                 this.UpdateGameState(state);
+                state.GameSupport?.OnGenericUpdate(state);
                 this.CheckGameState(state);
 
                 state.UpdateCount++;
                 TimedTraceListener.Instance.UpdateCount = state.UpdateCount;
 
                 if (profiler.ElapsedMilliseconds >= TARGET_UPDATE_RATE)
-                    Debug.WriteLine("**** update iteration took too long: " + profiler.ElapsedMilliseconds);
+                {
+                    _timesOver += 1;
+                    _timeOverSpent += Convert.ToInt32(profiler.ElapsedMilliseconds) - TARGET_UPDATE_RATE;
+                    Debug.WriteLine("**** update iteration took too long: " + profiler.ElapsedMilliseconds + "ms, times: " + _timesOver + ", total: " + _timeOverSpent + "ms");
+                }
+
                 //var sleep = Stopwatch.StartNew();
                 //MapTimesForm.Instance.Text = profiler.Elapsed.ToString();
                 Thread.Sleep(Math.Max(TARGET_UPDATE_RATE - (int)profiler.ElapsedMilliseconds, 1));
@@ -466,9 +672,14 @@ namespace LiveSplit.SourceSplit
 
         void InitGameState(GameState state)
         {
-            string absoluteGameDir;
-            state.GameProcess.ReadString(state.GameOffsets.GameDirPtr, ReadStringType.UTF8, 260, out absoluteGameDir);
-            state.GameDir = new DirectoryInfo(absoluteGameDir).Name.ToLower();
+            // special case for half-life 2 survivor, scan the subdirectories and find specifically-named folder.
+            string[] hl2SurvivorDirs = { "hl2mp_japanese", "hl2_japanese" };
+            string dir = Path.GetDirectoryName(state.GameProcess.MainModule.FileName);
+            var subdir = new DirectoryInfo(dir).GetDirectories();
+
+            if (dir != null && subdir.Any(di => hl2SurvivorDirs.Contains(di.Name.ToLower())))
+                state.GameDir = "survivor";
+            else state.GameDir = new DirectoryInfo(GetGameDir(state.GameProcess, state.GameOffsets)).Name.ToLower();
             Debug.WriteLine("gameDir = " + state.GameDir);
 
             state.CurrentMap = String.Empty;
@@ -477,15 +688,81 @@ namespace LiveSplit.SourceSplit
             const int SERIAL_MASK = 0x7FFF;
             int serial;
             state.GameProcess.ReadValue(state.GameOffsets.GlobalEntityListPtr + (4 * 7), out serial);
-            state.GameOffsets.EntInfoSize = (serial > 0 && serial < SERIAL_MASK) ? CEntInfoSize.Portal2 : CEntInfoSize.HL2;
+            state.GameOffsets.EntInfoSize = (!IsSource2003) ? ((serial > 0 && serial < SERIAL_MASK) ? CEntInfoSize.Portal2 : CEntInfoSize.HL2) : CEntInfoSize.Source2003;
 
             state.GameSupport = GameSupport.FromGameDir(state.GameDir);
+
             if (state.GameSupport != null)
             {
                 Debug.WriteLine("running game-specific code for: " + state.GameDir);
                 state.GameSupport.OnGameAttached(state);
             }
+
             this.SendSetTimingMethodEvent(state.GameSupport?.GameTimingMethod ?? GameTimingMethod.EngineTicks);
+        }
+
+        HostState GetHostState(Process game, GameOffsets offsets)
+        {
+            game.ReadValue(offsets.HostStatePtr, out int hostState);
+
+            // in infra, hoststates above 1 are offset by 1
+            if (_isInfra)
+                return (HostState)((hostState > 1) ? hostState - 1 : hostState);
+            else
+                return (HostState)hostState;
+        }
+
+        SignOnState GetSignOnState(Process game, GameOffsets offsets)
+        {
+            game.ReadValue(offsets.SignOnStatePtr, out int signOnState);
+
+            // infra's signonstate is unreliable because it isn't updated on the "load" command and some others
+            // so we'll have to settle with a loading byte
+            if (_isInfra)
+            {
+                _infraIsLoading.Update(game);
+
+                switch (_infraIsLoading.Current)
+                {
+                    case 0:
+                        return SignOnState.Full;
+
+                    case 1:
+                        return SignOnState.None;
+
+                    default:
+                        return (SignOnState)signOnState;
+                }
+            }
+            // source 2003 leak has a completely different signonstate structure with only 5 entries
+            else if (IsSource2003) 
+            {
+                if (signOnState <= 1)
+                    return SignOnState.None;
+                else
+                {
+                    if (signOnState == 4)
+                        return SignOnState.Full;
+                    return SignOnState.Connected;
+                }
+            }
+            else return (SignOnState)signOnState;
+        }
+
+        ServerState GetServerState(Process game, GameOffsets offsets)
+        {
+            game.ReadValue(offsets.ServerStatePtr, out int serverState);
+
+            if (IsSource2003)
+            {
+                // this is actually how the game knows if it's paused or not..., source 2003 leak's serverstate enum doesn't have
+                // paused as an entry for some reason
+                game.ReadValue(offsets.CurTimePtr + 0x4, out float curFrameTime);
+                if (curFrameTime == 0f)
+                    return ServerState.Paused;
+                return (ServerState)serverState;
+            }
+            else return (ServerState)(serverState);
         }
 
         void UpdateGameState(GameState state)
@@ -494,17 +771,19 @@ namespace LiveSplit.SourceSplit
             GameOffsets offsets = state.GameOffsets;
 
             // update all the stuff that doesn't depend on the signon state
+            state.PrevRawTickCount = state.RawTickCount;
             game.ReadValue(offsets.TickCountPtr, out state.RawTickCount);
+            game.ReadValue(offsets.CurTimePtr + 0x4, out state.FrameTime);
             game.ReadValue(offsets.IntervalPerTickPtr, out state.IntervalPerTick);
 
             state.PrevSignOnState = state.SignOnState;
-            game.ReadValue(offsets.SignOnStatePtr, out state.SignOnState);
+            state.SignOnState = GetSignOnState(game, offsets);
 
             state.PrevHostState = state.HostState;
-            game.ReadValue(offsets.HostStatePtr, out state.HostState);
+            state.HostState = GetHostState(game, offsets);
 
             state.PrevServerState = state.ServerState;
-            game.ReadValue(offsets.ServerStatePtr, out state.ServerState);
+            state.ServerState = GetServerState(game, offsets);
 
             bool firstTick = false;
 
@@ -525,6 +804,11 @@ namespace LiveSplit.SourceSplit
 
                     // update map name
                     state.GameProcess.ReadString(state.GameOffsets.CurMapPtr, ReadStringType.ASCII, 64, out state.CurrentMap);
+                }
+                if ((IsSource2003 || _isInfra) && state.RawTickCount - state.TickBase < 0)
+                {
+                    Debug.WriteLine("based ticks is wrong by " + (state.RawTickCount - state.TickBase) + " rebasing from " + state.TickBase);
+                    state.TickBase = state.RawTickCount;
                 }
 
                 // update time and rebase it against the first signon state full tick
@@ -631,6 +915,22 @@ namespace LiveSplit.SourceSplit
                     // the map changed or a save was loaded
                     this.SendSessionEndedEvent();
 
+                    if (state.GameSupport != null && state.HostState == HostState.GameShutdown)
+                    {
+                        if (state.GameSupport.QueueOnNextSessionEnd == GameSupportResult.PlayerLostControl)
+                            this.HandleGameSupportResult(GameSupportResult.PlayerLostControl, state);
+
+                        // note: logically map name should only have been set when host state is NewGame, 
+                        // however the map and disconnect commands queue host state changes and host disconnect is always called first
+                        // always leaving a window of time between map name changing and host state changing to newgame
+                        else if (state.GameSupport.QueueOnNextSessionEnd == GameSupportResult.ManualSplit)
+                        {
+                            string levelName;
+                            state.GameProcess.ReadString(state.GameOffsets.HostStateLevelNamePtr, ReadStringType.ASCII, 256 - 1, out levelName);
+                            this.SendMapChangedEvent(levelName, state.CurrentMap);
+                        }
+                    }
+                        
                     state.GameSupport?.OnSessionEnd(state);
                 }
 
@@ -642,13 +942,26 @@ namespace LiveSplit.SourceSplit
                     || state.HostState == HostState.NewGame)
                 {
                     string levelName;
-                    state.GameProcess.ReadString(state.GameOffsets.HostStateLevelNamePtr, ReadStringType.ASCII, 256-1, out levelName);
+                    state.GameProcess.ReadString(state.GameOffsets.HostStateLevelNamePtr, ReadStringType.ASCII, 256 - 1, out levelName);
                     Debug.WriteLine("host state m_levelName changed to " + levelName);
 
-                    if (state.HostState == HostState.NewGame)
+                    // only for the beginner's guide, the "restart the level" option does a changelevel back to the currentmap rather than
+                    // simply doing "restart"
+                    // if the runner uses this option to reset at the first map then restart the timer
+                    if (state.HostState == HostState.NewGame || state.GameDir.ToLower() == "beginnersguide")
                     {
-                        if (state.GameSupport != null && levelName == state.GameSupport.FirstMap)
-                            this.SendNewGameStartedEvent(levelName);
+                        if (state.GameSupport != null)
+                        {
+                            if (levelName == state.GameSupport.FirstMap || levelName == state.GameSupport.FirstMap2)
+                                this.SendNewGameStartedEvent(levelName);
+
+                            if (state.GameSupport.StartOnFirstLoadMaps.Contains(levelName))
+                            {
+                                // do a debug spew of the timer start
+                                Debug.WriteLine(state.GameDir + " start on " + levelName);
+                                this.HandleGameSupportResult(GameSupportResult.PlayerGainedControl, state);
+                            }
+                        }
                     }
                     else // changelevel sp/mp
                     {
@@ -656,6 +969,9 @@ namespace LiveSplit.SourceSplit
                         this.SendMapChangedEvent(levelName, state.CurrentMap);
                     }
                 }
+
+                if (state.GameSupport != null)
+                    state.GameSupport.QueueOnNextSessionEnd = GameSupportResult.DoNothing;
             }
         }
 
@@ -671,6 +987,9 @@ namespace LiveSplit.SourceSplit
                     break;
                 case GameSupportResult.PlayerLostControl:
                     this.SendLostControlEvent(state.GameSupport.EndOffsetTicks);
+                    break;
+                case GameSupportResult.ManualSplit:
+                    this.SendManualSplit(state.GameSupport.EndOffsetTicks);
                     break;
             }
         }
@@ -702,6 +1021,13 @@ namespace LiveSplit.SourceSplit
         {
             _uiThread.Post(d => {
                 this.OnPlayerLostControl?.Invoke(this, new PlayerControlChangedEventArgs(ticksOffset));
+            }, null);
+        }
+
+        public void SendManualSplit(int ticksOffset)
+        {
+            _uiThread.Post(d => {
+                this.ManualSplit?.Invoke(this, new PlayerControlChangedEventArgs(ticksOffset));
             }, null);
         }
 
@@ -904,6 +1230,7 @@ namespace LiveSplit.SourceSplit
 
     enum CEntInfoSize
     {
+        Source2003 = 4 * 3,
         HL2 = 4 * 4,
         Portal2 = 4 * 6
     }

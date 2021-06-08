@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using LiveSplit.ComponentUtil;
 
 namespace LiveSplit.SourceSplit.GameSpecific
@@ -18,19 +18,27 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _baseEntityHealthOffset = -1;
         private int _prevActiveWeapon;
 
+        private HL2Mods_TheLostCity _lostCity = new HL2Mods_TheLostCity();
+        private HL2Mods_Tinje _tinje = new HL2Mods_Tinje();
+        private HL2Mods_ExperimentalFuel _experimentalFuel = new HL2Mods_ExperimentalFuel();
+
         public HL2()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "d1_trainstation_01";
             this.LastMap = "d3_breen_01";
             this.RequiredProperties = PlayerProperties.Position;
+
+            NonStandaloneMods = new List<GameSupport>(new GameSupport[] { _lostCity, _tinje, _experimentalFuel });
+            foreach (GameSupport mod in NonStandaloneMods)
+                this.StartOnFirstLoadMaps.AddRange(mod.StartOnFirstLoadMaps);
         }
 
         public override void OnGameAttached(GameState state)
         {
-            ProcessModuleWow64Safe server = state.GameProcess.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "server.dll");
-            Trace.Assert(server != null);
+            base.OnGameAttached(state);
 
+            ProcessModuleWow64Safe server = state.GetModule("server.dll");
             var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
 
             if (GameMemory.GetBaseEntityMemberOffset("m_hActiveWeapon", state.GameProcess, scanner, out _baseCombatCharacaterActiveWeaponOffset))
@@ -54,7 +62,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap)
+            if (this.IsFirstMap) 
             {
                 // "OnTrigger" "point_teleport_destination,Teleport,,0.1,-1"
 
@@ -66,8 +74,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-            else if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero
-                && _baseEntityHealthOffset != -1)
+            else if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _baseEntityHealthOffset != -1)
             {
                 // "OnTrigger2" "weaponstrip_end_game,Strip,,0,-1"
                 // "OnTrigger2" "fade_blast_1,Fade,,0,-1"
@@ -90,6 +97,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }
 
                 _prevActiveWeapon = activeWeapon;
+            }
+            else
+            {
+                return base.OnUpdate(state);
             }
 
             return GameSupportResult.DoNothing;
