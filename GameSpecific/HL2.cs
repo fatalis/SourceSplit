@@ -12,11 +12,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending: first tick when screen flashes white
 
         private bool _onceFlag;
+        private float _splitTime;
 
         private Vector3f _startPos = new Vector3f(-9419f, -2483f, 22f);
-        private int _baseCombatCharacaterActiveWeaponOffset = -1;
-        private int _baseEntityHealthOffset = -1;
-        private int _prevActiveWeapon;
 
         private HL2Mods_TheLostCity _lostCity = new HL2Mods_TheLostCity();
         private HL2Mods_Tinje _tinje = new HL2Mods_Tinje();
@@ -37,14 +35,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnGameAttached(GameState state)
         {
             base.OnGameAttached(state);
-
-            ProcessModuleWow64Safe server = state.GetModule("server.dll");
-            var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
-
-            if (GameMemory.GetBaseEntityMemberOffset("m_hActiveWeapon", state.GameProcess, scanner, out _baseCombatCharacaterActiveWeaponOffset))
-                Debug.WriteLine("CBaseCombatCharacater::m_hActiveWeapon offset = 0x" + _baseCombatCharacaterActiveWeaponOffset.ToString("X"));
-            if (GameMemory.GetBaseEntityMemberOffset("m_iHealth", state.GameProcess, scanner, out _baseEntityHealthOffset))
-                Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
         }
 
         public override void OnSessionStart(GameState state)
@@ -53,8 +43,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             _onceFlag = false;
 
-            if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
-                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out _prevActiveWeapon);
+            if (this.IsLastMap)
+                _splitTime = state.FindOutputFireTime("sprite_end_final_explosion_1", "ShowSprite", "", 20);
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -74,29 +64,24 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-            else if (this.IsLastMap && _baseCombatCharacaterActiveWeaponOffset != -1 && state.PlayerEntInfo.EntityPtr != IntPtr.Zero && _baseEntityHealthOffset != -1)
+            else if (this.IsLastMap)
             {
                 // "OnTrigger2" "weaponstrip_end_game,Strip,,0,-1"
                 // "OnTrigger2" "fade_blast_1,Fade,,0,-1"
-
-                int activeWeapon;
-                state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseCombatCharacaterActiveWeaponOffset, out activeWeapon);
-
-                if (activeWeapon == -1 && _prevActiveWeapon != -1
-                    && state.PlayerPosition.Distance(new Vector3f(-2449.5f, -1380.2f, -446.0f)) > 256f) // ignore the initial strip that happens at around 2.19 seconds
+                float splitTime = state.FindOutputFireTime("sprite_end_final_explosion_1", "ShowSprite", "", 20);
+                try
                 {
-                    int health;
-                    state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _baseEntityHealthOffset, out health);
-
-                    if (health > 0)
+                    if (splitTime > 0 && _splitTime == 0)
                     {
                         Debug.WriteLine("hl2 end");
                         _onceFlag = true;
                         return GameSupportResult.PlayerLostControl;
                     }
                 }
-
-                _prevActiveWeapon = activeWeapon;
+                finally
+                {
+                    _splitTime = splitTime;
+                }
             }
             else
             {

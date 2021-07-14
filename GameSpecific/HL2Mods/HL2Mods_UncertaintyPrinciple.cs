@@ -15,7 +15,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "up_retreat_a";
             this.LastMap = "up_night";
-            this.RequiredProperties = PlayerProperties.Flags;
+            this.RequiredProperties = PlayerProperties.Flags | PlayerProperties.ViewEntity;
         }
 
         public override void OnSessionStart(GameState state)
