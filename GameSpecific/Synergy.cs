@@ -1,5 +1,7 @@
 ﻿using LiveSplit.ComponentUtil;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -7,20 +9,19 @@ namespace LiveSplit.SourceSplit.GameSpecific
     {
         // how to match with demos:
         // start: on map load
-        // xen start: when view entity changes back to the player's
-        // ending: first tick nihilanth's health is zero
-        // earthbound ending: when view entity changes to the ending camera's
-
-        private bool _onceFlag;
 
         private CustomCommand _autosplitIL = new CustomCommand("ilstart");
-        private List<string> _startMaps = new List<string>() { "d1_trainstation_01", "ep1_citadel_00", "ep2_outland_01" };
         private CustomCommandHandler _cmdHandler;
+
+        private HL2 _hl2 = new HL2();
+        private HL2Ep1 _ep1 = new HL2Ep1();
+        private HL2Ep2 _ep2 = new HL2Ep2();
 
         public Synergy()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             _cmdHandler = new CustomCommandHandler( new CustomCommand[] { _autosplitIL });
+            this.AdditionaGamelSupport.AddRange(new GameSupport[] { _hl2 , _ep1 , _ep2 });
         }
 
         public override void OnGameAttached(GameState state)
@@ -30,6 +31,20 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override void OnGenericUpdate(GameState state)
         {
+            // HACKHACK: when the player dies and respawn, the map is also lightly reloaded,
+            // potentially causing all the entity indicies to change
+            // players when killed also have these flags applied to them and removed when respawning
+            // so lets fire onsessionstart then
+            if (state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
+            {
+                if (!state.PlayerFlags.HasFlag(FL.ATCONTROLS | FL.NOTARGET | FL.AIMTARGET) &&
+                    state.PrevPlayerFlags.HasFlag(FL.ATCONTROLS | FL.NOTARGET | FL.AIMTARGET))
+                {
+                    this.OnSessionStartFull(state);
+                    Debug.WriteLine("synergy session start");
+                }    
+            }
+
             if (_autosplitIL.Enabled)
             {
                 if (!StartOnFirstLoadMaps.Contains(state.CurrentMap))
@@ -45,10 +60,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override GameSupportResult OnUpdate(GameState state)
         {
             _cmdHandler.Update(state);
-
-            if (_onceFlag)
-                return GameSupportResult.DoNothing;
-
             return GameSupportResult.DoNothing;
         }
     }

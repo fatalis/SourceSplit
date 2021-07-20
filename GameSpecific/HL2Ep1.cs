@@ -11,8 +11,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending: the first tick where your position changes on while on train (cl_showpos 1)
 
         private bool _onceFlag;
-        private IntPtr _endDetectEntity;
-        private IntPtr _startDetectEntity;
+        private int _entityIndex;
 
         // initial position of the train before it starts moving
         private Vector3f _trainStartPos = new Vector3f(11957.6f, 8368.25f, -731.75f);
@@ -29,13 +28,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
             base.OnSessionStart(state);
 
             _onceFlag = false;
-            _startDetectEntity = IntPtr.Zero;
-            _endDetectEntity = IntPtr.Zero;
 
             if (this.IsFirstMap)
-                _startDetectEntity = state.GetEntityByName("ghostanim_DogIntro");
+                _entityIndex = state.GetEntIndexByName("ghostanim_DogIntro");
             else if (this.IsLastMap)
-                _endDetectEntity = state.GetEntityByName("outro_train_1");
+                _entityIndex = state.GetEntIndexByName("razortrain1");
+
+            if (IsFirstMap || IsLastMap)
+                Debug.WriteLine($"_entityIndex is {_entityIndex}");
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -43,36 +43,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap && _startDetectEntity != IntPtr.Zero)
+            if ((this.IsFirstMap || this.IsLastMap) && _entityIndex != -1)
             {
-                // "PlayerOff" "ghostanim_DogIntro,Kill,,0,-1"
-
-                FL flags;
-                state.GameProcess.ReadValue(_startDetectEntity + state.GameOffsets.BaseEntityFlagsOffset, out flags);
-                if (flags.HasFlag(FL.KILLME))
+                // "PlayerOff" "ghostanim_DogIntro,Kill,,0,-1" (start)
+                // "OnTrigger" "razortrain1,Kill,,0,-1" (end)
+                var newEntity = state.GetEntInfoByIndex(_entityIndex).EntityPtr;
+                if (newEntity == IntPtr.Zero)
                 {
-                    Debug.WriteLine("ep1 start");
+                    Debug.WriteLine($"ep1 {(this.IsFirstMap ? "start" : "end")}");
                     _onceFlag = true;
-                    _startDetectEntity = IntPtr.Zero;
-                    return GameSupportResult.PlayerGainedControl;
-                }
-            }
-            else if (this.IsLastMap && _endDetectEntity != IntPtr.Zero)
-            {
-                // "OnTrigger" "razortrain3,StartForward,,0,-1"
-                // "OnTrigger" "outro_train_1,SetParent,razortrain3,0,-1"
-
-                Vector3f trainPos;
-                if (!state.GameProcess.ReadValue(_endDetectEntity + state.GameOffsets.BaseEntityAbsOriginOffset, out trainPos))
-                    return GameSupportResult.DoNothing;
-
-                // if the train started moving, stop timing
-                if (!trainPos.BitEquals(_trainStartPos))
-                {
-                    Debug.WriteLine("ep1 end");
-                    _onceFlag = true;
-                    _endDetectEntity = IntPtr.Zero;
-                    return GameSupportResult.PlayerLostControl;
+                    _entityIndex = -1;
+                    return this.IsFirstMap ? GameSupportResult.PlayerGainedControl : GameSupportResult.PlayerLostControl;
                 }
             }
 

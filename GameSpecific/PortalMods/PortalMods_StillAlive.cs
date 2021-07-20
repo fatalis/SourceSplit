@@ -61,7 +61,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 _splitTime = 0f;
                 Debug.WriteLine("portal still alive " + (!this.IsLastMap ? "split" : "end"));
                 _onceFlag = true;
-                QueueOnNextSessionEnd = this.IsLastMap ? GameSupportResult.PlayerLostControl : GameSupportResult.ManualSplit;
+                state.QueueOnNextSessionEnd = this.IsLastMap ? GameSupportResult.PlayerLostControl : GameSupportResult.ManualSplit;
             }
 
             return GameSupportResult.DoNothing;

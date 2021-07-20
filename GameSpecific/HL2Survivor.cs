@@ -49,7 +49,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
             {
-                this.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
+                state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 _splitTime = 0f;
             }
         }

@@ -23,15 +23,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
         /// The list of maps on a new session of which the timer should auto-start
         /// </summary>
         public List<string> StartOnFirstLoadMaps { get; internal set; } = new List<string>();
-        // action upon the next session end
         /// <summary>
-        /// Timer behavior on the next session end (game disconnect / map change)
+        /// The list of additional games and mods to do checks for
         /// </summary>
-        public GameSupportResult QueueOnNextSessionEnd { get; set; } = GameSupportResult.DoNothing;
-        /// <summary>
-        /// The list of mods that don't run off a separate directory
-        /// </summary>
-        public List<GameSupport> NonStandaloneMods { get; internal set; } = new List<GameSupport>();
+        public List<GameSupport> AdditionaGamelSupport { get; internal set; } = new List<GameSupport>();
 
         // ticks to subtract
         /// <summary>
@@ -175,29 +170,52 @@ namespace LiveSplit.SourceSplit.GameSpecific
             return GameSupportResult.DoNothing;
         }
 
-        // called once per tick when player is fully in the game
-        /// <summary>
-        /// Actions to do when the timer updates and the player is fully in the game.
-        /// </summary>
-        /// <param name="state">GameState</param>
+        // RECURSIVE FUNCTIONS
         public GameSupportResult OnUpdateFull(GameState state)
         {
             var result = OnUpdate(state);
-            if (result == GameSupportResult.DoNothing && NonStandaloneMods.Any())
+            if (result == GameSupportResult.DoNothing && AdditionaGamelSupport.Any())
             {
-                foreach (GameSupport mod in NonStandaloneMods)
+                foreach (GameSupport mod in AdditionaGamelSupport)
                 {
-                    result = mod.OnUpdate(state);
-                    state.GameSupport = mod;
+                    result = mod.OnUpdateFull(state);
 
-                    if (mod.QueueOnNextSessionEnd != GameSupportResult.DoNothing)
-                        return GameSupportResult.DoNothing;
                     if (result != GameSupportResult.DoNothing)
                         return result;
                 }
             }
             state.GameSupport = this;
             return result;
+        }
+
+        public void OnSessionStartFull(GameState state)
+        {
+            OnSessionStart(state);
+            AdditionaGamelSupport?.ForEach(x => x.OnSessionStartFull(state));
+        }
+
+        public void OnSessionEndFull(GameState state)
+        {
+            OnSessionEnd(state);
+            AdditionaGamelSupport?.ForEach(x => x.OnSessionEndFull(state));
+        }
+
+        public void OnGameAttachedFull(GameState state)
+        {
+            OnGameAttached(state);
+            AdditionaGamelSupport?.ForEach(x => x.OnGameAttachedFull(state));
+        }
+
+        public void OnTimerResetFull(bool resetFlagTo)
+        {
+            OnTimerReset(resetFlagTo);
+            AdditionaGamelSupport?.ForEach(x => x.OnTimerResetFull(resetFlagTo));
+        }
+
+        public void OnGenericUpdateFull(GameState state)
+        {
+            OnGenericUpdate(state);
+            AdditionaGamelSupport?.ForEach(x => x.OnGenericUpdateFull(state));
         }
 
         /// <summary>
@@ -222,8 +240,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new HL2Ep2();
                 case "portal":
                 case "portalelevators":
-                case "portal_tfv":
                     return new Portal();
+                case "portal_tfv":
+                    return new PortalMods_TheFlashVersion();
                 case "portal2":
                     return new Portal2();
                 case "aperturetag":

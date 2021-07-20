@@ -57,7 +57,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     Debug.WriteLine("wdp ce ending");
                     _splitTime = 0f;
                     _onceFlag = true;
-                    this.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
+                    state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
         }

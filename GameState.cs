@@ -53,6 +53,11 @@ namespace LiveSplit.SourceSplit
         public GameSupport GameSupport;
         public int UpdateCount;
 
+        /// <summary>
+        /// Timer behavior on the next session end (game disconnect / map change)
+        /// </summary>
+        public GameSupportResult QueueOnNextSessionEnd = GameSupportResult.DoNothing;
+
         public GameState(Process game, GameOffsets offsets)
         {
             this.GameProcess = game;

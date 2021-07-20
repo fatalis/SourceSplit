@@ -10,14 +10,10 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // start: 
             // portal: crosshair appear
             // portal tfv map pack: on first map
-        // ending: 
-            // portal: when glados' body entity is deleted
-            // portal tfv map pack: first tick player is slowed down by the ending trigger 
 
         private bool _onceFlag;
         private int _laggedMovementOffset = -1;
         private const int VAULT_SAVE_TICK = 4261;
-        private const int TFV_VAULT_SAVE_TICK = 3876;
         private int _gladosIndex;
 
         public Portal()
@@ -25,9 +21,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.AutoStartType = AutoStart.ViewEntityChanged;
             this.FirstMap = "testchmb_a_00";
-            this.LastMap = "escape_02";
-            this.StartOnFirstLoadMaps.Add("portaltfv1");           
+            this.LastMap = "escape_02";        
             this.RequiredProperties = PlayerProperties.Position | PlayerProperties.ViewEntity;
+            this.AdditionaGamelSupport.Add(new PortalMods_TheFlashVersion());
         }
 
         public override void OnGameAttached(GameState state)
@@ -84,34 +80,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                                 Debug.WriteLine("robot lady boom detected");
                                 _onceFlag = true;
                                 this.EndOffsetTicks = -1;
-                                return GameSupportResult.PlayerLostControl;
-                            }
-                        }
-                        break;
-                    }
-                case "portaltfv1":
-                    {
-                        if ((state.TickBase >= TFV_VAULT_SAVE_TICK && state.TickBase <= TFV_VAULT_SAVE_TICK + 4))
-                        {
-                            Debug.WriteLine("tfv start");
-                            _onceFlag = true;
-                            int ticksSinceVaultSaveTick = state.TickBase - TFV_VAULT_SAVE_TICK; // account for missing ticks if update interval missed it
-                            this.StartOffsetTicks = -3803 - ticksSinceVaultSaveTick; // 57.045 seconds
-                            return GameSupportResult.PlayerGainedControl;
-                        }
-                        break;
-                    }
-                case "portaltfv5":
-                    {
-                        if (state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
-                        {
-                            float laggedMovementValue;
-                            state.GameProcess.ReadValue(state.PlayerEntInfo.EntityPtr + _laggedMovementOffset, out laggedMovementValue);
-                            if (laggedMovementValue == 0.4f)
-                            {
-                                Debug.WriteLine("tfv end");
-                                _onceFlag = true;
-                                this.EndOffsetTicks = 0;
                                 return GameSupportResult.PlayerLostControl;
                             }
                         }

@@ -11,7 +11,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // start: 
         // ending: the tick where velocity changes from 600.X to 0.0 AFTER the camera effects (cl_showpos 1)
 
-
         private bool _onceFlag;
         private int _basePlayerLaggedMovementOffset = -1;
         private float _prevLaggedMovementValue;
@@ -27,7 +26,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.LastMap = "ep2_outland_12a";
             this.RequiredProperties = PlayerProperties.ParentEntity;
 
-            NonStandaloneMods = new List<GameSupport>(new GameSupport[] { _darkIntervention, _hellsMines, _upmineStruggle});
+            AdditionaGamelSupport = new List<GameSupport>(new GameSupport[] { _darkIntervention, _hellsMines, _upmineStruggle});
         }
 
         public override void OnGameAttached(GameState state)

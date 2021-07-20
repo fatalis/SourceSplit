@@ -60,7 +60,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     Debug.WriteLine("ptsd end");
                     _onceFlag = true;
-                    this.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
+                    state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
         }

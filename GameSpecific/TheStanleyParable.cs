@@ -614,7 +614,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                         if (state.CompareToInternalTimer(_defOutputSplitTime, 0f, false, true))
                         {
                             DefaultEnd("confusion");
-                            QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
+                            state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                         }
                         break;
                     }
