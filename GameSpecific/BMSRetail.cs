@@ -1,7 +1,6 @@
 ﻿using LiveSplit.ComponentUtil;
 using System;
 using System.Diagnostics;
-using System.Media;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -21,9 +20,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private const int _serverModModuleSize = 0x81B000;
         private const int _nihiPhaseCounterOffset = 0x1a6e4;
 
-        private StringWatcher _command;
-        private bool _handleInputCommandEnabled = true;
-
         // earthbound start
         private string _ebEndMap = "bm_c3a2i";
         private CustomCommand _ebEndCommand = new CustomCommand("ebend");
@@ -38,7 +34,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private MemoryWatcher<int> _nihiPhaseCounter;
         private int _xenCamIndex;
 
-        private CustomCommand[] _commands;
+        private CustomCommandHandler _cmdHandler;
 
         private BMSMods_HazardCourse _hazardCourse = new BMSMods_HazardCourse();
         private BMSMods_FurtherData _furtherData = new BMSMods_FurtherData();
@@ -52,47 +48,27 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.RequiredProperties = PlayerProperties.ViewEntity;
 
             this.NonStandaloneMods.AddRange(new GameSupport[] { _hazardCourse, _furtherData });
-            foreach (GameSupport mod in NonStandaloneMods)
-                this.StartOnFirstLoadMaps.AddRange(mod.StartOnFirstLoadMaps);
-
-            _commands = new CustomCommand[]{ _xenSplitCommand, _xenStartCommand, _nihiSplitCommand, _ebEndCommand };
+            _cmdHandler = new CustomCommandHandler(new CustomCommand[] { _xenSplitCommand, _xenStartCommand, _nihiSplitCommand, _ebEndCommand });
         }
 
         public override void OnGameAttached(GameState state)
         {
             base.OnGameAttached(state);
+            _cmdHandler.Init(state);
 
             ProcessModuleWow64Safe server = state.GetModule("server.dll");
 
             var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
-            var commandTarg = new SigScanTarget(16, "55 8B EC 8D 45 ?? 50 FF 75 ?? 68 00 04 00 00 68 ?? ?? ?? ??");
-
-            IntPtr commandPtr = state.GameProcess.ReadPointer(scanner.Scan(commandTarg));
-            if (commandPtr != IntPtr.Zero)
-                Debug.WriteLine("Command ptr found at 0x" + commandPtr.ToString("X"));
-            else
-                Debug.WriteLine("Command ptr not found!");
 
             if (GameMemory.GetBaseEntityMemberOffset("m_iHealth", state.GameProcess, scanner, out _baseEntityHealthOffset))
                 Debug.WriteLine("CBaseEntity::m_iHealth offset = 0x" + _baseEntityHealthOffset.ToString("X"));
 
-            _handleInputCommandEnabled = true;
-            // for versions before .91, disable handleinputcommand as it's redundant
             if (server.ModuleMemorySize < _serverModernModuleSize)
             {
                 _ebEndCommand.Enabled = true;
-                _handleInputCommandEnabled = false;
                 // for mod, eb's final map name is different
                 if (server.ModuleMemorySize <= _serverModModuleSize)
                     _ebEndMap = "bm_c3a2h";
-            }
-
-            if (_handleInputCommandEnabled)
-            {
-                _command = new StringWatcher(commandPtr + 0x11, 20);
-
-                // if livesplit is loaded after the player has put in a valid command, then check
-                HandleInputCommand(state, true);
             }
         }
 
@@ -120,33 +96,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             }
         }
 
-        // allow disabling and enabling of features through monitoring specific console input
-        // format: ebend<arg>, xenstart<arg>, eg: ebend1, xenstart0, characters are also accepted which will be interpreted as true
-        void HandleInputCommand(GameState state, bool ignoreChanged = false)
-        {
-            if (!_handleInputCommandEnabled)
-                return;
-
-            _command.Update(state.GameProcess);
-            if (ignoreChanged || _command.Changed)
-            {
-                if (string.IsNullOrEmpty(_command.Current))
-                    return;
-
-                string cleanedCmd = _command.Current.Replace("\n", "").Replace("\r", "").ToLower();
-
-                foreach (CustomCommand cmd in _commands)
-                {
-                    if (cleanedCmd.Contains(cmd.Name) && cleanedCmd.Length > cmd.Name.Length)
-                    {
-                        string arg = cleanedCmd.Substring(cleanedCmd.IndexOf(cmd.Name) + cmd.Name.Length, 1);
-                        SystemSounds.Asterisk.Play();
-                        cmd.Update(arg != "0");
-                    }
-                }
-            }
-        }
-
         public GameSupportResult DefaultEnd(string endingname)
         {
             _onceFlag = true;
@@ -156,7 +105,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            HandleInputCommand(state);
+            _cmdHandler.Update(state);
 
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
@@ -184,8 +133,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 if (state.PlayerViewEntityIndex == _ebCamIndex && state.PrevPlayerViewEntityIndex == 1)
                     return DefaultEnd("bms eb end");
             }
-            else if ((_xenStartCommand.Enabled || _xenSplitCommand.Enabled) 
-                && state.CurrentMap.ToLower() == _xenStartMap)
+            else if ((_xenStartCommand.Enabled || _xenSplitCommand.Enabled) && state.CurrentMap.ToLower() == _xenStartMap)
             {
                 if (state.PlayerViewEntityIndex == 1 && state.PrevPlayerViewEntityIndex == _xenCamIndex)
                 {
@@ -194,7 +142,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return _xenStartCommand.Enabled ? GameSupportResult.PlayerGainedControl : GameSupportResult.PlayerLostControl;
                 }
             }
-            else return base.OnUpdate(state);
 
             return GameSupportResult.DoNothing;
         }

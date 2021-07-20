@@ -45,7 +45,7 @@ namespace LiveSplit.SourceSplit
 
         private string _currentMap = String.Empty;
         private int _splitCount;
-        private List<string> _mapsVisited;
+        private List<Tuple<string, string>> _mapTransitions;
 
         private GameTimingMethod GameTimingMethod
         {
@@ -104,7 +104,7 @@ namespace LiveSplit.SourceSplit
             state.OnReset += state_OnReset;
             state.OnStart += state_OnStart;
 
-            _mapsVisited = new List<string>();
+            _mapTransitions = new List<Tuple<string, string>>();
 
             _intervalPerTick = 0.015f; // will update these when attached to game
             _gameRecommendedTimingMethod = GameTimingMethod.EngineTicks;
@@ -211,14 +211,14 @@ namespace LiveSplit.SourceSplit
         {
             _timer.InitializeGameTime();
             _totalTicks = 0;
-            _mapsVisited.Clear();
+            _mapTransitions.Clear();
             MapTimesForm.Instance.Reset();
             _splitCount = 0;
             _totalMapTicks = 0;
             _gamePauseTime = null;
 
-            if (_gameMemory._state != null && _gameMemory._state.GameSupport != null)
-                _gameMemory._state.GameSupport.OnTimerReset(true);
+            _gameMemory._state?.GameSupport?.OnTimerReset(true);
+            _gameMemory._state?.GameSupport?.NonStandaloneMods.ForEach(x => x.OnTimerReset(true));
 
 
             // hack to make sure Portal players aren't using manual offset. we handle offset automatically now.
@@ -242,8 +242,8 @@ namespace LiveSplit.SourceSplit
 
             // some game has unspecific starts like if the player's position isn't something which
             // can be repeated easily by accident, so this is a _onceflag but reset on timer reset.
-            if (_gameMemory._state != null && _gameMemory._state.GameSupport != null)
-                _gameMemory._state.GameSupport.OnTimerReset(false);
+            _gameMemory._state?.GameSupport?.OnTimerReset(false);
+            _gameMemory._state?.GameSupport?.NonStandaloneMods.ForEach(x => x.OnTimerReset(false));
         }
 
         void state_OnSplit(object sender, EventArgs e)
@@ -305,9 +305,12 @@ namespace LiveSplit.SourceSplit
 
             // this is in case they load a save that was made before current map
             // fuck time travel
-            if (!_mapsVisited.Contains(e.PrevMap))
+
+            if (!_mapTransitions.Any(x => 
+                (x.Item1 == e.Map && x.Item2 == e.PrevMap) ||
+                (x.Item1 == e.PrevMap && x.Item2 == e.Map)))
             {
-                _mapsVisited.Add(e.PrevMap);
+                _mapTransitions.Add(new Tuple<string, string>(e.PrevMap, e.Map));
                 this.AutoSplit(e.PrevMap);
             }
 

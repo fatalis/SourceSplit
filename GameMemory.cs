@@ -646,6 +646,9 @@ namespace LiveSplit.SourceSplit
                 // iteration must never take longer than 1 tick
                 this.UpdateGameState(state);
                 state.GameSupport?.OnGenericUpdate(state);
+                if (state.GameSupport != null && state.GameSupport.NonStandaloneMods.Any())
+                    foreach (GameSupport mod in state.GameSupport.NonStandaloneMods)
+                        mod.OnSessionEnd(state);
                 this.CheckGameState(state);
 
                 state.UpdateCount++;
@@ -696,6 +699,7 @@ namespace LiveSplit.SourceSplit
             {
                 Debug.WriteLine("running game-specific code for: " + state.GameDir);
                 state.GameSupport.OnGameAttached(state);
+                state.GameSupport.NonStandaloneMods.ForEach(x => x.OnGameAttached(state));
             }
 
             this.SendSetTimingMethodEvent(state.GameSupport?.GameTimingMethod ?? GameTimingMethod.EngineTicks);
@@ -889,6 +893,7 @@ namespace LiveSplit.SourceSplit
                     this.SendSessionStartedEvent(state.CurrentMap);
 
                     state.GameSupport?.OnSessionStart(state);
+                    state?.GameSupport?.NonStandaloneMods.ForEach(x => x.OnSessionStart(state));
                 }
 
                 if (state.ServerState == ServerState.Paused && state.PrevServerState == ServerState.Active)
@@ -897,7 +902,7 @@ namespace LiveSplit.SourceSplit
                     this.SendGamePausedEvent(false);
 
                 if (state.GameSupport != null)
-                    this.HandleGameSupportResult(state.GameSupport.OnUpdate(state), state);
+                    this.HandleGameSupportResult(state.GameSupport.OnUpdateFull(state), state);
 
 #if DEBUG
                 if (state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
@@ -932,6 +937,7 @@ namespace LiveSplit.SourceSplit
                     }
                         
                     state.GameSupport?.OnSessionEnd(state);
+                    state?.GameSupport?.NonStandaloneMods.ForEach(x => x.OnSessionEnd(state));
                 }
 
                 Debug.WriteLine("host state changed to " + state.HostState);
@@ -955,7 +961,18 @@ namespace LiveSplit.SourceSplit
                             if (levelName == state.GameSupport.FirstMap || levelName == state.GameSupport.FirstMap2)
                                 this.SendNewGameStartedEvent(levelName);
 
-                            if (state.GameSupport.StartOnFirstLoadMaps.Contains(levelName))
+                            bool startMap = state.GameSupport.StartOnFirstLoadMaps.Contains(levelName);
+                            if (!startMap & state.GameSupport.NonStandaloneMods.Any())
+                            {
+                                foreach (var mod in state.GameSupport.NonStandaloneMods)
+                                    if (mod.StartOnFirstLoadMaps.Contains(levelName))
+                                    {
+                                        startMap = true;
+                                        break;
+                                    }
+                            }
+
+                            if (startMap)
                             {
                                 // do a debug spew of the timer start
                                 Debug.WriteLine(state.GameDir + " start on " + levelName);

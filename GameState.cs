@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Media;
 using System.Runtime.InteropServices;
 using LiveSplit.ComponentUtil;
 using LiveSplit.SourceSplit.GameSpecific;
@@ -511,6 +512,67 @@ namespace LiveSplit.SourceSplit
         {
             Enabled = enabled;
             Debug.WriteLine($"{Name} is {Enabled}");
+        }
+    }
+
+    class CustomCommandHandler
+    {
+        public CustomCommand[] Commands { get; set; }
+        private IntPtr _cmdBufferPtr = IntPtr.Zero;
+        private StringWatcher _cmdBuffer;
+
+        public CustomCommandHandler(CustomCommand[] commands)
+        {
+            Commands = commands;
+        }
+
+        public void Init(GameState state)
+        {
+            _cmdBufferPtr = IntPtr.Zero;
+            ProcessModuleWow64Safe server = state.GetModule("server.dll");
+            if (server == null)
+            {
+                Debug.WriteLine("Failed to initialize custom command handler!");
+                return;
+            }
+
+            var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
+            var commandTarg = new SigScanTarget(16, "55 8B EC 8D 45 ?? 50 FF 75 ?? 68 00 04 00 00 68 ?? ?? ?? ??");
+            _cmdBufferPtr = state.GameProcess.ReadPointer(scanner.Scan(commandTarg));
+            if (_cmdBufferPtr != IntPtr.Zero)
+                _cmdBuffer = new StringWatcher(_cmdBufferPtr + 0x11, 256);
+
+            Update(state, true);
+        }
+
+        // allow disabling and enabling of features through monitoring specific console input
+        // format: ebend<arg>, xenstart<arg>, eg: ebend1, xenstart0, characters are also accepted which will be interpreted as true
+        public void Update(GameState state, bool ignoreChanged = false)
+        {
+            if (_cmdBufferPtr == IntPtr.Zero)
+                return;
+
+            _cmdBuffer.Update(state.GameProcess);
+            if (ignoreChanged || _cmdBuffer.Changed)
+            {
+                if (string.IsNullOrEmpty(_cmdBuffer.Current))
+                    return;
+
+                string cleanedCmd = _cmdBuffer.Current.Replace("\n", "").Replace("\r", "").ToLower();
+
+                foreach (CustomCommand cmd in Commands)
+                {
+                    if (cleanedCmd.Contains(cmd.Name) && cleanedCmd.Length > cmd.Name.Length)
+                    {
+                        string arg = cleanedCmd.Substring(cleanedCmd.IndexOf(cmd.Name) + cmd.Name.Length, 1);
+                        if (cmd.Enabled != (arg != "0"))
+                        {
+                            SystemSounds.Asterisk.Play();
+                            cmd.Update(arg != "0");
+                        }
+                    }
+                }
+            }
         }
     }
 }

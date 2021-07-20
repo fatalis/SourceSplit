@@ -28,13 +28,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.RequiredProperties = PlayerProperties.Position;
 
             NonStandaloneMods = new List<GameSupport>(new GameSupport[] { _lostCity, _tinje, _experimentalFuel });
-            foreach (GameSupport mod in NonStandaloneMods)
-                this.StartOnFirstLoadMaps.AddRange(mod.StartOnFirstLoadMaps);
-        }
-
-        public override void OnGameAttached(GameState state)
-        {
-            base.OnGameAttached(state);
         }
 
         public override void OnSessionStart(GameState state)
@@ -82,10 +75,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 {
                     _splitTime = splitTime;
                 }
-            }
-            else
-            {
-                return base.OnUpdate(state);
             }
 
             return GameSupportResult.DoNothing;

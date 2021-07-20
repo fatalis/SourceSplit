@@ -402,7 +402,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_TheCitizen()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "thecitizen_part1";
+            this.FirstMap = "TheCitizen_part1";
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
     }
