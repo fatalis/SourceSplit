@@ -27,7 +27,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.LastMap = "d3_breen_01";
             this.RequiredProperties = PlayerProperties.Position;
 
-            AdditionaGamelSupport = new List<GameSupport>(new GameSupport[] { _lostCity, _tinje, _experimentalFuel });
+            AdditionaGameSupport = new List<GameSupport>(new GameSupport[] { _lostCity, _tinje, _experimentalFuel });
         }
 
         public override void OnSessionStart(GameState state)

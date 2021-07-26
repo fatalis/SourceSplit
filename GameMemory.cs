@@ -958,9 +958,9 @@ namespace LiveSplit.SourceSplit
                                 this.SendNewGameStartedEvent(levelName);
 
                             bool startMap = state.GameSupport.StartOnFirstLoadMaps.Contains(levelName);
-                            if (!startMap & state.GameSupport.AdditionaGamelSupport.Any())
+                            if (!startMap & state.GameSupport.AdditionaGameSupport.Any())
                             {
-                                foreach (var mod in state.GameSupport.AdditionaGamelSupport)
+                                foreach (var mod in state.GameSupport.AdditionaGameSupport)
                                     if (mod.StartOnFirstLoadMaps.Contains(levelName))
                                     {
                                         startMap = true;

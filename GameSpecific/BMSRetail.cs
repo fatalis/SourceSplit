@@ -47,7 +47,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.LastMap = "bm_c4a4a";
             this.RequiredProperties = PlayerProperties.ViewEntity;
 
-            this.AdditionaGamelSupport.AddRange(new GameSupport[] { _hazardCourse, _furtherData });
+            this.AdditionaGameSupport.AddRange(new GameSupport[] { _hazardCourse, _furtherData });
             _cmdHandler = new CustomCommandHandler(new CustomCommand[] { _xenSplitCommand, _xenStartCommand, _nihiSplitCommand, _ebEndCommand });
         }
 

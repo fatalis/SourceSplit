@@ -26,7 +26,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         /// <summary>
         /// The list of additional games and mods to do checks for
         /// </summary>
-        public List<GameSupport> AdditionaGamelSupport { get; internal set; } = new List<GameSupport>();
+        public List<GameSupport> AdditionaGameSupport { get; internal set; } = new List<GameSupport>();
 
         // ticks to subtract
         /// <summary>
@@ -174,9 +174,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public GameSupportResult OnUpdateFull(GameState state)
         {
             var result = OnUpdate(state);
-            if (result == GameSupportResult.DoNothing && AdditionaGamelSupport.Any())
+            if (result == GameSupportResult.DoNothing && AdditionaGameSupport.Any())
             {
-                foreach (GameSupport mod in AdditionaGamelSupport)
+                foreach (GameSupport mod in AdditionaGameSupport)
                 {
                     result = mod.OnUpdateFull(state);
 
@@ -191,31 +191,31 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public void OnSessionStartFull(GameState state)
         {
             OnSessionStart(state);
-            AdditionaGamelSupport?.ForEach(x => x.OnSessionStartFull(state));
+            AdditionaGameSupport?.ForEach(x => x.OnSessionStartFull(state));
         }
 
         public void OnSessionEndFull(GameState state)
         {
             OnSessionEnd(state);
-            AdditionaGamelSupport?.ForEach(x => x.OnSessionEndFull(state));
+            AdditionaGameSupport?.ForEach(x => x.OnSessionEndFull(state));
         }
 
         public void OnGameAttachedFull(GameState state)
         {
             OnGameAttached(state);
-            AdditionaGamelSupport?.ForEach(x => x.OnGameAttachedFull(state));
+            AdditionaGameSupport?.ForEach(x => x.OnGameAttachedFull(state));
         }
 
         public void OnTimerResetFull(bool resetFlagTo)
         {
             OnTimerReset(resetFlagTo);
-            AdditionaGamelSupport?.ForEach(x => x.OnTimerResetFull(resetFlagTo));
+            AdditionaGameSupport?.ForEach(x => x.OnTimerResetFull(resetFlagTo));
         }
 
         public void OnGenericUpdateFull(GameState state)
         {
             OnGenericUpdate(state);
-            AdditionaGamelSupport?.ForEach(x => x.OnGenericUpdateFull(state));
+            AdditionaGameSupport?.ForEach(x => x.OnGenericUpdateFull(state));
         }
 
         /// <summary>
