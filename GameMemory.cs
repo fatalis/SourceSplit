@@ -686,6 +686,7 @@ namespace LiveSplit.SourceSplit
             }
 
             cancelForceExit.Cancel();
+            forceExit = false;
 
             // if the game crashed, make sure session ends
             if (state.HostState == HostState.Run)
