@@ -640,8 +640,26 @@ namespace LiveSplit.SourceSplit
             this.InitGameState(state);
             _gotTickRate = false;
 
+            bool forceExit = false;
+
+            CancellationTokenSource cancelForceExit = new CancellationTokenSource();
+            Thread checkGameProcess = new Thread( new ThreadStart(() => 
+            {
+                // REALLY make sure the game has exited, as sometimes the splitter stops functioning
+                // after game crash for some people
+                while (!cancelForceExit.IsCancellationRequested)
+                {
+                    forceExit = !Process.GetProcesses().Any(x => x.ProcessName == game.ProcessName);
+                    if (forceExit && !game.HasExited)
+                        Debug.WriteLine("HasExited was wrong!!!!");
+                    Thread.Sleep(7500);
+                }
+            }));
+
+            checkGameProcess.Start();
+
             var profiler = Stopwatch.StartNew();
-            while (!game.HasExited && !cts.IsCancellationRequested)
+            while (!game.HasExited && !forceExit && !cts.IsCancellationRequested)
             {
                 // iteration must never take longer than 1 tick
                 var temp = state.GameSupport;
@@ -666,6 +684,8 @@ namespace LiveSplit.SourceSplit
                 //MapTimesForm.Instance.Text = sleep.Elapsed.ToString();
                 profiler.Restart();
             }
+
+            cancelForceExit.Cancel();
 
             // if the game crashed, make sure session ends
             if (state.HostState == HostState.Run)

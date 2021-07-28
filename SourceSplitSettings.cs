@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Xml;
@@ -93,6 +94,20 @@ namespace LiveSplit.SourceSplit
             this.chkAutoSplitEnabled.CheckedChanged += UpdateDisabledControls;
 
             // defaults
+            lbGameProcessesSetDefault();
+            this.SplitInterval = DEFAULT_SPLITINTERVAL;
+            this.AutoSplitType = DEFAULT_AUTOSPLITYPE;
+            this.ShowGameTime = DEFAULT_SHOWGAMETIME;
+            this.AutoSplitEnabled = DEFAULT_AUTOSPLIT_ENABLED;
+            this.AutoStartEndResetEnabled = DEFAULT_AUTOSTARTENDRESET_ENABLED;
+            this.GameTimingMethod = DEFAULT_GAME_TIMING_METHOD;
+
+            this.UpdateDisabledControls(this, EventArgs.Empty);
+        }
+
+        private void lbGameProcessesSetDefault()
+        {
+            this.lbGameProcesses.Rows.Clear();
             this.lbGameProcesses.Rows.Add("hl2.exe");
             this.lbGameProcesses.Rows.Add("portal2.exe");
             this.lbGameProcesses.Rows.Add("dearesther.exe");
@@ -103,14 +118,7 @@ namespace LiveSplit.SourceSplit
             this.lbGameProcesses.Rows.Add("stanley.exe");
             this.lbGameProcesses.Rows.Add("hdtf.exe");
             this.lbGameProcesses.Rows.Add("beginnersguide.exe");
-            this.SplitInterval = DEFAULT_SPLITINTERVAL;
-            this.AutoSplitType = DEFAULT_AUTOSPLITYPE;
-            this.ShowGameTime = DEFAULT_SHOWGAMETIME;
-            this.AutoSplitEnabled = DEFAULT_AUTOSPLIT_ENABLED;
-            this.AutoStartEndResetEnabled = DEFAULT_AUTOSTARTENDRESET_ENABLED;
-            this.GameTimingMethod = DEFAULT_GAME_TIMING_METHOD;
-
-            this.UpdateDisabledControls(this, EventArgs.Empty);
+            this.lbGameProcesses.Rows.Add("synergy.exe");
         }
 
         protected override void OnParentChanged(EventArgs e)
@@ -195,13 +203,23 @@ namespace LiveSplit.SourceSplit
             foreach (string map in blacklist.Split('|'))
                 this.lbMapBlacklist.Rows.Add(map);
 
-            lock (_lock)
-            {
-                this.lbGameProcesses.Rows.Clear();
-                string gameProcesses = settings[nameof(this.GameProcesses)]?.InnerText ?? String.Empty;
-                foreach (string process in gameProcesses.Split('|'))
-                    this.lbGameProcesses.Rows.Add(process);
-            }
+            if (settings[nameof(this.GameProcesses)] != null)
+                lock (_lock)
+                {
+                    string gameProcesses = settings[nameof(this.GameProcesses)]?.InnerText ?? String.Empty;
+                    string[] processes = gameProcesses.Split('|');
+
+                    if (new List<string>(processes).All(x => string.IsNullOrWhiteSpace(x)))
+                        MessageBox.Show("Saved Game Process list is empty!\n" +
+                            "Please fill your game's process name for the spliter to function!", 
+                            "SourceSplit Warning", 
+                            MessageBoxButtons.OK, 
+                            MessageBoxIcon.Warning);
+
+                    this.lbGameProcesses.Rows.Clear();
+                    foreach (string process in processes)
+                        this.lbGameProcesses.Rows.Add(process);
+                }
         }
 
         void rdoAutoSplitType_CheckedChanged(object sender, EventArgs e)
@@ -254,6 +272,11 @@ namespace LiveSplit.SourceSplit
         void btnShowMapTimes_Click(object sender, EventArgs e)
         {
             MapTimesForm.Instance.Show();
+        }
+
+        private void btnGameProcessesDefault_Click(object sender, EventArgs e)
+        {
+            lbGameProcessesSetDefault();
         }
     }
 }

@@ -30,7 +30,7 @@ namespace LiveSplit.SourceSplit
                 MessageBox.Show(
                     "SourceSplit is already loaded in the " +
                         (_instance.IsLayoutComponent ? "Layout Editor" : "Splits Editor") + "!",
-                    "Error",
+                    "SourceSplit Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Exclamation);
 

@@ -52,7 +52,9 @@
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.lbMapWhitelist = new LiveSplit.SourceSplit.EditableListBox();
             this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.label1 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.btnGameProcessesDefault = new System.Windows.Forms.Button();
             this.lbGameProcesses = new LiveSplit.SourceSplit.EditableListBox();
             this.dataGridViewTextBoxColumn2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tlpAutoStartEndReset = new System.Windows.Forms.TableLayoutPanel();
@@ -105,7 +107,7 @@
             this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox1.Location = new System.Drawing.Point(3, 3);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(450, 157);
+            this.groupBox1.Size = new System.Drawing.Size(450, 197);
             this.groupBox1.TabIndex = 10;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Auto Split";
@@ -119,13 +121,15 @@
             this.tableLayoutPanel3.Controls.Add(this.chkAutoSplitEnabled, 0, 0);
             this.tableLayoutPanel3.Controls.Add(this.tableLayoutPanel4, 1, 0);
             this.tableLayoutPanel3.Controls.Add(this.groupBox3, 0, 1);
+            this.tableLayoutPanel3.Controls.Add(this.label1, 0, 2);
             this.tableLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel3.Location = new System.Drawing.Point(3, 16);
             this.tableLayoutPanel3.Name = "tableLayoutPanel3";
-            this.tableLayoutPanel3.RowCount = 2;
+            this.tableLayoutPanel3.RowCount = 3;
             this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel3.Size = new System.Drawing.Size(444, 138);
+            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 40F));
+            this.tableLayoutPanel3.Size = new System.Drawing.Size(444, 178);
             this.tableLayoutPanel3.TabIndex = 20;
             // 
             // groupBox4
@@ -166,7 +170,6 @@
             dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.lbMapBlacklist.DefaultCellStyle = dataGridViewCellStyle5;
-            this.lbMapBlacklist.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lbMapBlacklist.Location = new System.Drawing.Point(3, 16);
             this.lbMapBlacklist.Name = "lbMapBlacklist";
             dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
@@ -182,6 +185,7 @@
             this.lbMapBlacklist.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.lbMapBlacklist.Size = new System.Drawing.Size(210, 83);
             this.lbMapBlacklist.TabIndex = 15;
+            this.toolTip.SetToolTip(this.lbMapBlacklist, "Don\'t split if the player was on one of these maps before a level change.");
             // 
             // Column1
             // 
@@ -268,7 +272,6 @@
             // groupBox3
             // 
             this.groupBox3.Controls.Add(this.lbMapWhitelist);
-            this.groupBox3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox3.Location = new System.Drawing.Point(3, 33);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(216, 102);
@@ -303,7 +306,6 @@
             dataGridViewCellStyle8.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             dataGridViewCellStyle8.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.lbMapWhitelist.DefaultCellStyle = dataGridViewCellStyle8;
-            this.lbMapWhitelist.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lbMapWhitelist.Location = new System.Drawing.Point(3, 16);
             this.lbMapWhitelist.Name = "lbMapWhitelist";
             dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
@@ -319,22 +321,46 @@
             this.lbMapWhitelist.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.lbMapWhitelist.Size = new System.Drawing.Size(210, 83);
             this.lbMapWhitelist.TabIndex = 16;
+            this.toolTip.SetToolTip(this.lbMapWhitelist, "Only split if the player was on one of these maps before a level change.");
             // 
             // dataGridViewTextBoxColumn1
             // 
             this.dataGridViewTextBoxColumn1.HeaderText = "Column1";
             this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
             // 
+            // label1
+            // 
+            this.label1.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F);
+            this.label1.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
+            this.label1.Location = new System.Drawing.Point(3, 145);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(191, 26);
+            this.label1.TabIndex = 21;
+            this.label1.Text = "(these lists will be checked against the previous map in a level change)";
+            // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.btnGameProcessesDefault);
             this.groupBox2.Controls.Add(this.lbGameProcesses);
             this.groupBox2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBox2.Location = new System.Drawing.Point(231, 166);
+            this.groupBox2.Location = new System.Drawing.Point(231, 206);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(222, 105);
+            this.groupBox2.Size = new System.Drawing.Size(222, 133);
             this.groupBox2.TabIndex = 11;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Game Process List";
+            // 
+            // btnGameProcessesDefault
+            // 
+            this.btnGameProcessesDefault.Location = new System.Drawing.Point(144, 105);
+            this.btnGameProcessesDefault.Name = "btnGameProcessesDefault";
+            this.btnGameProcessesDefault.Size = new System.Drawing.Size(75, 23);
+            this.btnGameProcessesDefault.TabIndex = 18;
+            this.btnGameProcessesDefault.Text = "Defaults";
+            this.btnGameProcessesDefault.UseVisualStyleBackColor = true;
+            this.btnGameProcessesDefault.Click += new System.EventHandler(this.btnGameProcessesDefault_Click);
             // 
             // lbGameProcesses
             // 
@@ -363,7 +389,6 @@
             dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.lbGameProcesses.DefaultCellStyle = dataGridViewCellStyle2;
-            this.lbGameProcesses.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lbGameProcesses.Location = new System.Drawing.Point(3, 16);
             this.lbGameProcesses.Name = "lbGameProcesses";
             dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
@@ -377,7 +402,7 @@
             this.lbGameProcesses.RowHeadersVisible = false;
             this.lbGameProcesses.RowTemplate.Height = 14;
             this.lbGameProcesses.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.lbGameProcesses.Size = new System.Drawing.Size(216, 86);
+            this.lbGameProcesses.Size = new System.Drawing.Size(216, 83);
             this.lbGameProcesses.TabIndex = 17;
             // 
             // dataGridViewTextBoxColumn2
@@ -399,9 +424,9 @@
             this.tlpAutoStartEndReset.Location = new System.Drawing.Point(7, 7);
             this.tlpAutoStartEndReset.Name = "tlpAutoStartEndReset";
             this.tlpAutoStartEndReset.RowCount = 4;
-            this.tlpAutoStartEndReset.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 163F));
-            this.tlpAutoStartEndReset.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 111F));
-            this.tlpAutoStartEndReset.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 122F));
+            this.tlpAutoStartEndReset.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 203F));
+            this.tlpAutoStartEndReset.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 139F));
+            this.tlpAutoStartEndReset.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 83F));
             this.tlpAutoStartEndReset.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 8F));
             this.tlpAutoStartEndReset.Size = new System.Drawing.Size(456, 435);
             this.tlpAutoStartEndReset.TabIndex = 13;
@@ -410,9 +435,9 @@
             // 
             this.gbMisc.Controls.Add(this.tlpMisc);
             this.gbMisc.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gbMisc.Location = new System.Drawing.Point(3, 277);
+            this.gbMisc.Location = new System.Drawing.Point(3, 345);
             this.gbMisc.Name = "gbMisc";
-            this.gbMisc.Size = new System.Drawing.Size(222, 116);
+            this.gbMisc.Size = new System.Drawing.Size(222, 77);
             this.gbMisc.TabIndex = 14;
             this.gbMisc.TabStop = false;
             this.gbMisc.Text = "Misc.";
@@ -431,7 +456,7 @@
             this.tlpMisc.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tlpMisc.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tlpMisc.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tlpMisc.Size = new System.Drawing.Size(216, 97);
+            this.tlpMisc.Size = new System.Drawing.Size(216, 58);
             this.tlpMisc.TabIndex = 0;
             // 
             // chkShowGameTime
@@ -459,9 +484,9 @@
             // 
             this.gbAutoStartEndReset.Controls.Add(this.tableLayoutPanel2);
             this.gbAutoStartEndReset.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gbAutoStartEndReset.Location = new System.Drawing.Point(3, 166);
+            this.gbAutoStartEndReset.Location = new System.Drawing.Point(3, 206);
             this.gbAutoStartEndReset.Name = "gbAutoStartEndReset";
-            this.gbAutoStartEndReset.Size = new System.Drawing.Size(222, 105);
+            this.gbAutoStartEndReset.Size = new System.Drawing.Size(222, 133);
             this.gbAutoStartEndReset.TabIndex = 13;
             this.gbAutoStartEndReset.TabStop = false;
             this.gbAutoStartEndReset.Text = "Auto Start / End / Reset";
@@ -477,7 +502,7 @@
             this.tableLayoutPanel2.RowCount = 2;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(216, 86);
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(216, 114);
             this.tableLayoutPanel2.TabIndex = 0;
             // 
             // chkAutoStartEndReset
@@ -494,9 +519,9 @@
             // 
             this.gbTiming.Controls.Add(this.tlpTiming);
             this.gbTiming.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gbTiming.Location = new System.Drawing.Point(231, 277);
+            this.gbTiming.Location = new System.Drawing.Point(231, 345);
             this.gbTiming.Name = "gbTiming";
-            this.gbTiming.Size = new System.Drawing.Size(222, 116);
+            this.gbTiming.Size = new System.Drawing.Size(222, 77);
             this.gbTiming.TabIndex = 21;
             this.gbTiming.TabStop = false;
             this.gbTiming.Text = "Game Time";
@@ -514,7 +539,7 @@
             this.tlpTiming.RowCount = 2;
             this.tlpTiming.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tlpTiming.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tlpTiming.Size = new System.Drawing.Size(216, 97);
+            this.tlpTiming.Size = new System.Drawing.Size(216, 58);
             this.tlpTiming.TabIndex = 1;
             // 
             // cmbTimingMethod
@@ -614,5 +639,7 @@
         private System.Windows.Forms.ComboBox cmbTimingMethod;
         private System.Windows.Forms.TableLayoutPanel tlpTiming;
         private System.Windows.Forms.Label lblTimingMethod;
+        private System.Windows.Forms.Button btnGameProcessesDefault;
+        private System.Windows.Forms.Label label1;
     }
 }
