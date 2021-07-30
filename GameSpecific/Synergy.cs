@@ -21,7 +21,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             _cmdHandler = new CustomCommandHandler( new CustomCommand[] { _autosplitIL });
-            this.AdditionaGameSupport.AddRange(new GameSupport[] { _hl2 , _ep1 , _ep2 });
+            this.AdditionalGameSupport.AddRange(new GameSupport[] { _hl2 , _ep1 , _ep2 });
         }
 
         public override void OnGameAttached(GameState state)

@@ -23,7 +23,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.FirstMap = "testchmb_a_00";
             this.LastMap = "escape_02";        
             this.RequiredProperties = PlayerProperties.Position | PlayerProperties.ViewEntity;
-            this.AdditionaGameSupport.Add(new PortalMods_TheFlashVersion());
+            this.AdditionalGameSupport.Add(new PortalMods_TheFlashVersion());
         }
 
         public override void OnGameAttached(GameState state)

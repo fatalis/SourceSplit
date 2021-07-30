@@ -26,7 +26,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.LastMap = "ep2_outland_12a";
             this.RequiredProperties = PlayerProperties.ParentEntity;
 
-            AdditionaGameSupport = new List<GameSupport>(new GameSupport[] { _darkIntervention, _hellsMines, _upmineStruggle});
+            AdditionalGameSupport = new List<GameSupport>(new GameSupport[] { _darkIntervention, _hellsMines, _upmineStruggle});
         }
 
         public override void OnGameAttached(GameState state)
