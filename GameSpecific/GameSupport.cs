@@ -310,6 +310,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "backwardsmod":
                     return new HL2Mods_BackwardsMod();
                 case "school_adventures":
+                case "school_adventures_oe":
+                case "school_adventures oe":
                     return new HL2Mods_SchoolAdventures();
                 case "the lost city":
                 case "thelostcity":

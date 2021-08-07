@@ -15,7 +15,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_EntropyZero()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "az_c1_1";
+            this.FirstMap = "az_intro";
             this.LastMap = "az_c4_3";
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
