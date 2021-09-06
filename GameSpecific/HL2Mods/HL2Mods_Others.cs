@@ -402,7 +402,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_TheCitizen()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "TheCitizen_part1";
+            this.FirstMap = "thecitizen_part1";
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
         }
     }
@@ -419,20 +419,32 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.FirstMap = "sa_01";
             this.LastMap = "sa_04";
             this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
+        private int _endCameraIndex = -1;
+
         public override void OnGenericUpdate(GameState state) { }
+
+        public override void OnSessionStart(GameState state)
+        {
+            base.OnSessionStart(state);
+            if (IsLastMap)
+            {
+                _endCameraIndex = state.GetEntIndexByName("viewcontrol_credits");
+                Debug.WriteLine($"Found end camera index at {_endCameraIndex}");
+            }
+        }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (OnceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsLastMap)
+            if (this.IsLastMap && _endCameraIndex != -1)
             {
-                float splitTime = state.FindOutputFireTime("final_teleport1", 3);
-                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-                if (state.CompareToInternalTimer(SplitTime, 0f, true))
+                if (state.PrevPlayerViewEntityIndex == 1 &&
+                    state.PlayerViewEntityIndex == _endCameraIndex)
                 {
                     OnceFlag = true;
                     Debug.WriteLine("school_adventures end");

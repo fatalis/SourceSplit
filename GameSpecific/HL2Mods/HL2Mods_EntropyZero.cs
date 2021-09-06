@@ -30,7 +30,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
             _onceFlag = false;
         }
 
-
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (_onceFlag)
