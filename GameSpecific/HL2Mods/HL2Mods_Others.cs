@@ -14,8 +14,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 {
     class HL2Mods_Misc : GameSupport
     {
-        public float SplitTime;
-        public bool OnceFlag;
+        internal float _splitTime;
+        internal bool _onceFlag;
 
         public override void OnGenericUpdate(GameState state)
         {
@@ -31,8 +31,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
-            OnceFlag = false;
-            SplitTime = 0f;
+            _onceFlag = false;
+            _splitTime = 0f;
         }
     }
 
@@ -53,21 +53,21 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
-            OnceFlag = false;
+            _onceFlag = false;
         }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             if (this.IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("servercommand", 3);
-                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                 {
-                    OnceFlag = true;
+                    _onceFlag = true;
                     Debug.WriteLine("think tank end");
                     state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
@@ -93,22 +93,22 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
-            OnceFlag = false;
+            _onceFlag = false;
         }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             if (this.IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("cmd_end", 2);
-                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                 {
                     Debug.WriteLine("gnome end");
-                    OnceFlag = true;
+                    _onceFlag = true;
                     state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
@@ -140,15 +140,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             float splitTime = state.FindOutputFireTime("komenda", 3);
-            SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-            if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+            _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+            if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
             {
                 Debug.WriteLine("hl2 reject end");
-                OnceFlag = true;
+                _onceFlag = true;
                 state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
             }
             return GameSupportResult.DoNothing;
@@ -172,18 +172,18 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             // todo: probably should use the helicopter's position?
             if (IsLastMap && state.PlayerPosition.Distance(_endSector) <= 300f)
             {
                 float splitTime = state.FindOutputFireTime("game_end", 10);
-                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                 {
                     Debug.WriteLine("trapville end");
-                    OnceFlag = true;
+                    _onceFlag = true;
                     state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
@@ -205,17 +205,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsLastMap && state.PlayerViewEntityIndex != GameState.ENT_INDEX_PLAYER)
             {
                 float splitTime = state.FindOutputFireTime("clientcommand", 8);
-                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                 {
                     Debug.WriteLine("rtslville end");
-                    OnceFlag = true;
+                    _onceFlag = true;
                     state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
@@ -237,17 +237,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("end_disconnect", "command", "disconnect; map_background background_ml05", 6);
-                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                 {
                     Debug.WriteLine("hl abridged end");
-                    OnceFlag = true;
+                    _onceFlag = true;
                     state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
@@ -269,17 +269,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("point_clientcommand2", 4);
-                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                 {
                     Debug.WriteLine("episode one end");
-                    OnceFlag = true;
+                    _onceFlag = true;
                     state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
@@ -309,22 +309,22 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (IsLastMap)
                 _tramPtr = state.GetEntIndexByName("tram");
 
-            OnceFlag = false;
+            _onceFlag = false;
         }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsLastMap && state.GetEntityPos(_tramPtr).Distance(_tramEndPos) <= 100)
             {
                 float splitTime = state.FindOutputFireTime("pcc", "command", "startupmenu force", 8);
-                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                 {
                     Debug.WriteLine("combination ville end");
-                    OnceFlag = true;
+                    _onceFlag = true;
                     state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
@@ -346,17 +346,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("clientcommand", 3);
-                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                 {
                     Debug.WriteLine("phaseville end");
-                    OnceFlag = true;
+                    _onceFlag = true;
                     state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
@@ -378,17 +378,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("piss_off_egg_head", 4);
-                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                 {
                     Debug.WriteLine("companion piece end");
-                    OnceFlag = true;
+                    _onceFlag = true;
                     state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
@@ -438,7 +438,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             if (this.IsLastMap && _endCameraIndex != -1)
@@ -446,7 +446,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 if (state.PrevPlayerViewEntityIndex == 1 &&
                     state.PlayerViewEntityIndex == _endCameraIndex)
                 {
-                    OnceFlag = true;
+                    _onceFlag = true;
                     Debug.WriteLine("school_adventures end");
                     return GameSupportResult.PlayerLostControl;
                 }
@@ -471,17 +471,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsFirstMap)
             {
                 float splitTime = state.FindOutputFireTime("command_ending", 3);
-                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                 {
                     Debug.WriteLine("dark intervention end");
-                    OnceFlag = true;
+                    _onceFlag = true;
                     state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
@@ -505,17 +505,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsFirstMap)
             {
                 float splitTime = state.FindOutputFireTime("command", 3);
-                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                 {
                     Debug.WriteLine("hells mines end");
-                    OnceFlag = true;
+                    _onceFlag = true;
                     state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
@@ -539,17 +539,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             if (IsFirstMap)
             {
                 float splitTime = state.FindOutputFireTime("command", 3);
-                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                 {
                     Debug.WriteLine("upmine struggle end");
-                    OnceFlag = true;
+                    _onceFlag = true;
                     state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }
@@ -574,21 +574,21 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
-            OnceFlag = false;
+            _onceFlag = false;
         }
 
         public override GameSupportResult OnUpdate(GameState state)
         {
-            if (OnceFlag)
+            if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
             if (this.IsLastMap)
             {
                 float splitTime = state.FindOutputFireTime("launchQuit", 5);
-                SplitTime = (splitTime == 0f) ? SplitTime : splitTime;
-                if (state.CompareToInternalTimer(SplitTime, 0f, false, true))
+                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
+                if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
                 {
-                    OnceFlag = true;
+                    _onceFlag = true;
                     state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
                 }
             }

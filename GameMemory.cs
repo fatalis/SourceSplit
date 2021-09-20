@@ -47,6 +47,7 @@ namespace LiveSplit.SourceSplit
         private SigScanTarget _fadeListTarget;
         private SigScanTarget _eventQueueTarget;
         private SigScanTarget _eventQueueTarget2;
+        private SigScanTarget _eventQueueTarget3;
 
         private SigScanTarget _infraIsLoadingTarget;
         private MemoryWatcher<byte> _infraIsLoading;
@@ -385,6 +386,15 @@ namespace LiveSplit.SourceSplit
                "B9 ?? ?? ?? ??",            // MOV  ECX,DAT_22570180
                "E8 ?? ?? ?? ??",            // CALL FUN_22258f40
                "45");                       // INC EBP
+
+            // source 2003
+            _eventQueueTarget3 = new SigScanTarget();
+            _eventQueueTarget3.OnFound = (proc, scanner, ptr) => proc.ReadPointer(ptr, out ptr) ? ptr + 0x64 : IntPtr.Zero;
+            _eventQueueTarget3.AddSignature(1,
+               "B9 ?? ?? ?? ??",            // MOV  ECX,DAT_2231d908
+               "50",                        // PUSH EAX
+               "E8 ?? ?? ?? ??",            // CALL FUN_2211c300
+               "D9 46 ??");                 // FLD  DWORD PTR [ESI + 0xC]
         }
 
 #if DEBUG
@@ -496,8 +506,8 @@ namespace LiveSplit.SourceSplit
             // required engine stuff
             var scanner = new SignatureScanner(p, engine.BaseAddress, engine.ModuleMemorySize);
 
-            if (((offsets.ServerStatePtr = scanner.Scan(_serverStateTarget)) == IntPtr.Zero &&
-                (offsets.ServerStatePtr = scanner.Scan(_serverStateTarget2)) == IntPtr.Zero)
+            if (((offsets.ServerStatePtr = scanner.Scan(_serverStateTarget)) == IntPtr.Zero 
+                && (offsets.ServerStatePtr = scanner.Scan(_serverStateTarget2)) == IntPtr.Zero)
                 || (offsets.CurMapPtr = scanner.Scan(_curMapTarget)) == IntPtr.Zero
                 || (offsets.CurTimePtr = scanner.Scan(_curTimeTarget)) == IntPtr.Zero
                 || (offsets.GameDirPtr = scanner.Scan(_gameDirTarget)) == IntPtr.Zero
@@ -520,8 +530,12 @@ namespace LiveSplit.SourceSplit
             if ((offsets.GlobalEntityListPtr = serverScanner.Scan(_globalEntityListTarget)) == IntPtr.Zero)
                 return false;
 
-            if ((offsets.EventQueuePtr = serverScanner.Scan(_eventQueueTarget)) == IntPtr.Zero)
-                offsets.EventQueuePtr = serverScanner.Scan(_eventQueueTarget2);
+            if (((offsets.EventQueuePtr = serverScanner.Scan(_eventQueueTarget)) == IntPtr.Zero)
+                && ((offsets.EventQueuePtr = serverScanner.Scan(_eventQueueTarget2)) == IntPtr.Zero)
+                && ((offsets.EventQueuePtr = serverScanner.Scan(_eventQueueTarget3)) == IntPtr.Zero))
+            {
+                Debug.WriteLine("Event Queue ptr not found!");
+            }
 
             // optional client fade list
             ProcessModuleWow64Safe client = p.ModulesWow64Safe().FirstOrDefault(x => x.ModuleName.ToLower() == "client.dll");

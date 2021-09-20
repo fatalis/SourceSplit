@@ -326,7 +326,7 @@ namespace LiveSplit.SourceSplit
         /// <param name="nameInclusive">If the name specified is a substring of the target name</param>
         /// <param name="commandInclusive">If the command specified is a substring of the command</param>
         /// <param name="paramInclusive">If the parameters specified are a substring of the parameters</param>
-        public float FindOutputFireTime(string targetName, string command, string param, int clamp = 100, 
+        public unsafe float FindOutputFireTime(string targetName, string command, string param, int clamp = 100, 
             bool nameInclusive = false, bool commandInclusive = false, bool paramInclusive = false)
         {
             if (GameProcess.ReadPointer(GameOffsets.EventQueuePtr) == IntPtr.Zero)
@@ -339,7 +339,7 @@ namespace LiveSplit.SourceSplit
             {
                 string tempName = GameProcess.ReadString((IntPtr)ioEvent.m_iTarget, 256) ?? "";
                 string tempCommand = GameProcess.ReadString((IntPtr)ioEvent.m_iTargetInput, 256) ?? "";
-                string tempParam = GameProcess.ReadString((IntPtr)ioEvent.v_union, 256) ?? "";
+                string tempParam = GameProcess.ReadString((IntPtr)ioEvent.m_VariantValue[0], 256) ?? "";
 
                 if (((!nameInclusive) ? tempName == targetName : tempName.Contains(targetName)) &&
                    ((!commandInclusive) ? tempCommand.ToLower() == command.ToLower() : tempCommand.ToLower().Contains(command.ToLower())) && 
@@ -484,7 +484,7 @@ namespace LiveSplit.SourceSplit
 
     // todo: figure out a way to utilize ehandles
     [StructLayout(LayoutKind.Sequential)]
-    public struct EventQueuePrioritizedEvent
+    public unsafe struct EventQueuePrioritizedEvent
     {
         public float m_flFireTime;
         public uint m_iTarget;
@@ -495,9 +495,15 @@ namespace LiveSplit.SourceSplit
         public uint m_pEntTarget;       // EHANDLE
         // variant_t m_VariantValue, class, only relevant members
         // most notable is v_union which stores the parameters of the i/o event
-        public uint v_union, v_eval, v_fieldtype, v_tostringfunc, v_CVariantSaveDataOpsclass;
+        public fixed uint m_VariantValue[5];
         public uint m_pNext;
         public uint m_pPrev;
+        /*
+        // the aformentioned union has a different size for se2003, so we'll have to hack our way around
+        public fixed uint m_Other[15];
+        public uint m_pNext => GameMemory.IsSource2003 ? m_Other[13] : m_Other[0];
+        public uint m_pPrev => GameMemory.IsSource2003 ? m_Other[14] : m_Other[1];
+        */
     };
 
     // custom command system for games that need their own specific settings

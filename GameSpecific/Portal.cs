@@ -15,6 +15,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _laggedMovementOffset = -1;
         private const int VAULT_SAVE_TICK = 4261;
         private int _gladosIndex;
+        private Vector3f _vaultStartPos = new Vector3f(-544f, -368.776001f, 160.031250f);
 
         public Portal()
         {
@@ -59,15 +60,23 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 case "testchmb_a_00":
                     {
                         // vault save starts at tick 4261, but update interval may miss it so be a little lenient
-                        if (state.TickBase >= VAULT_SAVE_TICK && state.TickBase <= VAULT_SAVE_TICK + 4)
+                        // player must be somewhere within the vault as well due to new vault skip
+                        if (state.PlayerPosition.Distance(_vaultStartPos) < 100 &&
+                            state.TickBase >= VAULT_SAVE_TICK 
+                            && state.TickBase <= VAULT_SAVE_TICK + 4)
                         {
                             _onceFlag = true;
                             int ticksSinceVaultSaveTick = state.TickBase - VAULT_SAVE_TICK; // account for missing ticks if update interval missed it
                             this.StartOffsetTicks = -3534 - ticksSinceVaultSaveTick; // 53.01 seconds
                             return GameSupportResult.PlayerGainedControl;
                         }
-                        this.StartOffsetTicks = 1;
-                        return base.OnUpdate(state);
+
+                        if (state.PrevPlayerViewEntityIndex != state.PlayerViewEntityIndex)
+                        {
+                            this.StartOffsetTicks = 1;
+                            return GameSupportResult.PlayerGainedControl;
+                        }
+                        break;
                     }
                 case "escape_02":
                     {

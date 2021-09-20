@@ -391,6 +391,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new PortalMods_EpicEdition();
                 case "error":
                     return new PortalMods_ERROR();
+                case "dangerousworld":
+                    return new HL2Mods_DangerousWorld();
             }
 
             return null;
