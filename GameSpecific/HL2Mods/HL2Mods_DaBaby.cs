@@ -10,12 +10,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private bool _onceFlag;
 
         private int _endingCamIndex;
+        private int _startCamIndex;
 
         public HL2Mods_DaBaby()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.FirstMap = "dababy_hallway_ai";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
@@ -26,7 +26,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (this.IsFirstMap)
             {
                 _endingCamIndex = state.GetEntIndexByName("final_viewcontrol");
-                Debug.WriteLine("found end cam index at " + _endingCamIndex);
+                _startCamIndex = state.GetEntIndexByName("viewcontrol");
+                Debug.WriteLine($"found start cam index at {_startCamIndex} and end cam at {_endingCamIndex}");
             }
 
             _onceFlag = false;
@@ -36,6 +37,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
+
+            if (_startCamIndex != -1)
+            {
+                if (state.PlayerViewEntityIndex == 1 && state.PrevPlayerViewEntityIndex == _startCamIndex)
+                {
+                    Debug.WriteLine("da baby start");
+                    return GameSupportResult.PlayerGainedControl;
+                }
+            }
 
             if (_endingCamIndex != -1)
             {

@@ -232,6 +232,14 @@ namespace LiveSplit.SourceSplit
                 "52",
                 "FF 50 ??",
                 "8B 0D ?? ?? ?? ??");
+            // sin episodes: emergence
+            // \xA1\x2A\x2A\x2A\x2A\x7D\x2A\xA1\x2A\x2A\x2A\x2A\x89\x81\x2A\x2A\x2A\x2A
+            _curTimeTarget.AddSignature(8,
+                "D8 0D ?? ?? ?? ??",    // FMUL     dword ptr [0x2079da04]
+                "D9 1D ?? ?? ?? ??",    // FSTP     dword ptr [DAT_2076ea0c]
+                "8B 01",                // MOV      EAX,dword ptr [ECX]
+                "FF 50 ??",             // CALL     dword ptr [EAX + 0x8]
+                "8B 15 ?? ?? ?? ??");   // MOV      EDX,dword ptr [0x20349650]
 
             // CBaseClientState::m_nSignOnState (older engines)
             _signOnStateTarget1 = new SigScanTarget();
@@ -506,16 +514,24 @@ namespace LiveSplit.SourceSplit
             // required engine stuff
             var scanner = new SignatureScanner(p, engine.BaseAddress, engine.ModuleMemorySize);
 
-            if (((offsets.ServerStatePtr = scanner.Scan(_serverStateTarget)) == IntPtr.Zero 
-                && (offsets.ServerStatePtr = scanner.Scan(_serverStateTarget2)) == IntPtr.Zero)
-                || (offsets.CurMapPtr = scanner.Scan(_curMapTarget)) == IntPtr.Zero
-                || (offsets.CurTimePtr = scanner.Scan(_curTimeTarget)) == IntPtr.Zero
-                || (offsets.GameDirPtr = scanner.Scan(_gameDirTarget)) == IntPtr.Zero
-                || (offsets.HostStatePtr = scanner.Scan(_hostStateTarget)) == IntPtr.Zero)
+            bool scanForPtr(ref IntPtr ptr, SigScanTarget target, SignatureScanner scanner, string ptrName, string sigName = " ")
+            {
+                bool found = (ptr = scanner.Scan(target)) != IntPtr.Zero;
+                Debug.WriteLine($"{ptrName} = {(found ? $"0x{ptr.ToString("X")}" : "NOT FOUND")} through sig {sigName}");
+                return found;
+            }
+
+            if ((!scanForPtr(ref offsets.ServerStatePtr, _serverStateTarget, scanner, "CBaseServer::(server_state_t)m_State", "1")
+                && !scanForPtr(ref offsets.ServerStatePtr, _serverStateTarget2, scanner, "CBaseServer::(server_state_t)m_State", "2"))
+                || !scanForPtr(ref offsets.CurMapPtr, _curMapTarget, scanner, "CBaseServer::m_szMapname")
+                || !scanForPtr(ref offsets.CurTimePtr, _curTimeTarget, scanner, "CGlobalVarsBase::curtime")
+                || !scanForPtr(ref offsets.GameDirPtr, _gameDirTarget, scanner, "game dir")
+                || !scanForPtr(ref offsets.HostStatePtr, _hostStateTarget, scanner, "host state")
+                || !scanForPtr(ref offsets.CurMapPtr, _curMapTarget, scanner, "current map"))
                 return false;
 
-            if ((offsets.SignOnStatePtr = scanner.Scan(_signOnStateTarget1)) == IntPtr.Zero
-                && (offsets.SignOnStatePtr = scanner.Scan(_signOnStateTarget2)) == IntPtr.Zero)
+            if (!scanForPtr(ref offsets.SignOnStatePtr, _signOnStateTarget1, scanner, "CBaseClientState::m_nSignonState", "1")
+                && !scanForPtr(ref offsets.SignOnStatePtr, _signOnStateTarget2, scanner, "CBaseClientState::m_nSignonState", "2"))
                 return false;
 
             // get the game dir now to evaluate game-specific stuff
@@ -527,12 +543,12 @@ namespace LiveSplit.SourceSplit
             // required server stuff
             var serverScanner = new SignatureScanner(p, server.BaseAddress, server.ModuleMemorySize);
 
-            if ((offsets.GlobalEntityListPtr = serverScanner.Scan(_globalEntityListTarget)) == IntPtr.Zero)
+            if (!scanForPtr(ref offsets.GlobalEntityListPtr, _globalEntityListTarget, serverScanner, "CBaseEntityList::(CEntInfo)m_EntPtrArray"))
                 return false;
 
-            if (((offsets.EventQueuePtr = serverScanner.Scan(_eventQueueTarget)) == IntPtr.Zero)
-                && ((offsets.EventQueuePtr = serverScanner.Scan(_eventQueueTarget2)) == IntPtr.Zero)
-                && ((offsets.EventQueuePtr = serverScanner.Scan(_eventQueueTarget3)) == IntPtr.Zero))
+            if (!scanForPtr(ref offsets.EventQueuePtr, _eventQueueTarget, serverScanner, "CEventQueue::m_Events", "1")
+                && !scanForPtr(ref offsets.EventQueuePtr, _eventQueueTarget2, serverScanner, "CEventQueue::m_Events", "2")
+                && !scanForPtr(ref offsets.EventQueuePtr, _eventQueueTarget3, serverScanner, "CEventQueue::m_Events", "3"))
             {
                 Debug.WriteLine("Event Queue ptr not found!");
             }
@@ -589,11 +605,7 @@ namespace LiveSplit.SourceSplit
             tmp -= 4; // sizeof m_nTransmitStateOwnedCounter (4 aligned byte)
             offsets.BaseEntityParentHandleOffset = tmp;
 
-            Debug.WriteLine("CBaseServer::m_szMapname ptr = 0x" + offsets.CurMapPtr.ToString("X"));
-            Debug.WriteLine("CGlobalVarsBase::curtime ptr = 0x" + offsets.CurTimePtr.ToString("X"));
-            Debug.WriteLine("CBaseClientState::m_nSignonState ptr = 0x" + offsets.SignOnStatePtr.ToString("X"));
             Debug.WriteLine("CViewEffects::m_FadeList (g_ViewEffects) ptr = 0x" + offsets.FadeListPtr.ToString("X"));
-            Debug.WriteLine("CBaseEntityList::(CEntInfo)m_EntPtrArray ptr = 0x" + offsets.GlobalEntityListPtr.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_fFlags offset = 0x" + offsets.BaseEntityFlagsOffset.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_vecAbsOrigin offset = 0x" + offsets.BaseEntityAbsOriginOffset.ToString("X"));
             Debug.WriteLine("CBaseEntity::m_iName offset = 0x" + offsets.BaseEntityTargetNameOffset.ToString("X"));

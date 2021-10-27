@@ -393,6 +393,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return new PortalMods_ERROR();
                 case "dangerousworld":
                     return new HL2Mods_DangerousWorld();
+                case "se1":
+                    return new SiNEpisodes();
             }
 
             return null;

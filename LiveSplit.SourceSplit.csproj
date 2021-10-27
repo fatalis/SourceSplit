@@ -58,6 +58,7 @@
     <Compile Include="GameSpecific\BMSMods\BMSMods_FurtherData.cs" />
     <Compile Include="GameSpecific\BMSMods\BMSMods_HazardCourse.cs" />
     <Compile Include="GameSpecific\HL2Mods\HL2Mods_DangerousWorld.cs" />
+    <Compile Include="GameSpecific\SiNEpisodes.cs" />
     <Compile Include="GameSpecific\PortalMods\PortalMods_TheFlashVersion.cs" />
     <Compile Include="GameSpecific\PortalMods\PortalMods_ERROR.cs" />
     <Compile Include="GameSpecific\PortalMods\PortalMods_EpicEdition.cs" />
