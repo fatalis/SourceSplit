@@ -19,8 +19,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public ApertureTag()
         {
-            this.FirstMap = "gg_intro_wakeup";
-            this.LastMap = "gg_stage_theend";
+            this.AddFirstMap("gg_intro_wakeup");
+            this.AddLastMap("gg_stage_theend");
             this.RequiredProperties = PlayerProperties.Position;
         }
 

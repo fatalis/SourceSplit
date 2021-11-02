@@ -12,23 +12,21 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending: when nihi's hp drops down to 1 or lower
 
         private bool _onceFlag;
-        private bool _minusSeven = false;
         private int _nihiDeadOffset = -1;
         private MemoryWatcher<bool> _nihiDead;
 
         public HLS()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "c1a0";
-            this.LastMap = "c4a3";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("c1a0");
+            this.AddLastMap("c4a3");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
         public override void OnGameAttached(GameState state)
         {
             ProcessModuleWow64Safe server = state.GetModule("server.dll");
             var scanner = new SignatureScanner(state.GameProcess, server.BaseAddress, server.ModuleMemorySize);
 
-            _minusSeven = false;
             this.EndOffsetTicks = 0;
 
             string getStringByteArray(byte[] input)

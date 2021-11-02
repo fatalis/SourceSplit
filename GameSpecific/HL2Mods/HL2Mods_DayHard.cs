@@ -16,8 +16,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_DayHard()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "dayhardpart1";
-            this.LastMap = "breencave";
+            this.AddFirstMap("dayhardpart1");
+            this.AddLastMap("breencave");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

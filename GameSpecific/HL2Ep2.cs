@@ -22,8 +22,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Ep2()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "ep2_outland_01";
-            this.LastMap = "ep2_outland_12a";
+            this.AddFirstMap("ep2_outland_01");
+            this.AddLastMap("ep2_outland_12a");
             this.RequiredProperties = PlayerProperties.ParentEntity;
 
             AdditionalGameSupport = new List<GameSupport>(new GameSupport[] { _darkIntervention, _hellsMines, _upmineStruggle});

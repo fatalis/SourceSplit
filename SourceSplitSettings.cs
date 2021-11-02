@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
@@ -28,6 +30,7 @@ namespace LiveSplit.SourceSplit
         public AutoSplitType AutoSplitType { get; private set; }
         public bool ShowGameTime { get; set; }
         public bool AutoStartEndResetEnabled { get; set; }
+        public string StartMap { get; set; }
 
         public string[] MapWhitelist => GetListboxValues(this.lbMapWhitelist);
         public string[] MapBlacklist => GetListboxValues(this.lbMapBlacklist);
@@ -88,6 +91,7 @@ namespace LiveSplit.SourceSplit
             this.dmnSplitInterval.DataBindings.Add("Value", this, nameof(this.SplitInterval), false, DataSourceUpdateMode.OnPropertyChanged);
             this.chkShowGameTime.DataBindings.Add("Checked", this, nameof(this.ShowGameTime), false, DataSourceUpdateMode.OnPropertyChanged);
             this.chkAutoStartEndReset.DataBindings.Add("Checked", this, nameof(this.AutoStartEndResetEnabled), false, DataSourceUpdateMode.OnPropertyChanged);
+            this.boxStartMap.DataBindings.Add("Text", this, nameof(this.StartMap), false, DataSourceUpdateMode.OnPropertyChanged);
 
             this.rdoWhitelist.CheckedChanged += rdoAutoSplitType_CheckedChanged;
             this.rdoInterval.CheckedChanged += rdoAutoSplitType_CheckedChanged;
@@ -101,6 +105,7 @@ namespace LiveSplit.SourceSplit
             this.AutoSplitEnabled = DEFAULT_AUTOSPLIT_ENABLED;
             this.AutoStartEndResetEnabled = DEFAULT_AUTOSTARTENDRESET_ENABLED;
             this.GameTimingMethod = DEFAULT_GAME_TIMING_METHOD;
+            this.StartMap = "";
 
             this.UpdateDisabledControls(this, EventArgs.Empty);
         }
@@ -138,6 +143,7 @@ namespace LiveSplit.SourceSplit
             settingsNode.AppendChild(ToElement(doc, "Version", Assembly.GetExecutingAssembly().GetName().Version.ToString(3)));
 
             settingsNode.AppendChild(ToElement(doc, nameof(this.AutoSplitEnabled), this.AutoSplitEnabled));
+
             settingsNode.AppendChild(ToElement(doc, nameof(this.SplitInterval), this.SplitInterval));
 
             string whitelist = String.Join("|", this.MapWhitelist);
@@ -157,39 +163,37 @@ namespace LiveSplit.SourceSplit
 
             settingsNode.AppendChild(ToElement(doc, nameof(this.AutoStartEndResetEnabled), this.AutoStartEndResetEnabled));
 
+            settingsNode.AppendChild(ToElement(doc, nameof(this.StartMap), this.StartMap));
+
             return settingsNode;
+        }
+
+        private T GetSetting<T>(XmlNode settings, T setting, string name, T def)
+        {
+            var converter = TypeDescriptor.GetConverter(typeof(T));
+            if (converter == null)
+                converter = TypeDescriptor.GetConverter(typeof(Enum));
+            string settingEntry = settings[name]?.InnerText ?? null;
+            try
+            {
+                return settingEntry == null ? def : (T)converter.ConvertFromString(settingEntry);
+            }
+            catch (NotSupportedException)
+            {
+                return def;
+            }
         }
 
         public void SetSettings(XmlNode settings)
         {
-            bool bval;
-            int ival;
+            AutoSplitEnabled = GetSetting(settings, AutoSplitEnabled, nameof(AutoSplitEnabled), DEFAULT_AUTOSPLIT_ENABLED);
+            AutoStartEndResetEnabled = GetSetting(settings, AutoStartEndResetEnabled, nameof(AutoStartEndResetEnabled), DEFAULT_AUTOSTARTENDRESET_ENABLED);
+            SplitInterval = GetSetting(settings, SplitInterval, nameof(SplitInterval), DEFAULT_SPLITINTERVAL);
+            ShowGameTime = GetSetting(settings, ShowGameTime, nameof(ShowGameTime), DEFAULT_SHOWGAMETIME);
+            GameTimingMethod = GetSetting(settings, GameTimingMethod, nameof(GameTimingMethod), DEFAULT_GAME_TIMING_METHOD);
+            AutoSplitType = GetSetting(settings, AutoSplitType, nameof(AutoSplitType), DEFAULT_AUTOSPLITYPE);
+            StartMap = GetSetting(settings, StartMap, nameof(StartMap), "");
 
-            this.AutoSplitEnabled = settings[nameof(this.AutoSplitEnabled)] != null ?
-                (Boolean.TryParse(settings[nameof(this.AutoSplitEnabled)].InnerText, out bval) ? bval : DEFAULT_AUTOSPLIT_ENABLED)
-                : DEFAULT_AUTOSPLIT_ENABLED;
-
-            this.AutoStartEndResetEnabled = settings[nameof(this.AutoStartEndResetEnabled)] != null ?
-                (Boolean.TryParse(settings[nameof(this.AutoStartEndResetEnabled)].InnerText, out bval) ? bval : DEFAULT_AUTOSTARTENDRESET_ENABLED)
-                : DEFAULT_AUTOSTARTENDRESET_ENABLED;
-
-            this.SplitInterval = settings[nameof(this.SplitInterval)] != null ?
-                (Int32.TryParse(settings[nameof(this.SplitInterval)].InnerText, out ival) ? ival : DEFAULT_SPLITINTERVAL)
-                : DEFAULT_SPLITINTERVAL;
-
-            this.ShowGameTime = settings[nameof(this.ShowGameTime)] != null ?
-                (Boolean.TryParse(settings[nameof(this.ShowGameTime)].InnerText, out bval) ? bval : DEFAULT_SHOWGAMETIME)
-                : DEFAULT_SHOWGAMETIME;
-
-            GameTimingMethodSetting gtm;
-            this.GameTimingMethod = settings[nameof(this.GameTimingMethod)] != null ?
-                Enum.TryParse(settings[nameof(this.GameTimingMethod)].InnerText, out gtm) ? gtm : DEFAULT_GAME_TIMING_METHOD
-                : DEFAULT_GAME_TIMING_METHOD;
-
-            AutoSplitType splitType;
-            this.AutoSplitType = settings[nameof(this.AutoSplitType)] != null ?
-                (Enum.TryParse(settings[nameof(this.AutoSplitType)].InnerText, out splitType) ? splitType : DEFAULT_AUTOSPLITYPE)
-                : AutoSplitType.Interval;
             this.rdoInterval.Checked = this.AutoSplitType == AutoSplitType.Interval;
             this.rdoWhitelist.Checked = this.AutoSplitType == AutoSplitType.Whitelist;
 

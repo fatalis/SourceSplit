@@ -14,8 +14,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public BMSMods_FurtherData()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "fd01";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("fd01");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

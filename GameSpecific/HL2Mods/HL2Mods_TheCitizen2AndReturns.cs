@@ -21,8 +21,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_TheCitizen2AndReturns()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "sp_intro";
-            this.LastMap = "sp_square";
+            this.AddFirstMap("sp_intro");
+            this.AddLastMap("sp_square");
         }
 
         public override void OnGameAttached(GameState state)

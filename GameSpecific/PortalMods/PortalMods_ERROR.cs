@@ -15,8 +15,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public PortalMods_ERROR()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "err1";
-            this.LastMap = "err18";
+            this.AddFirstMap("err1");
+            this.AddLastMap("err18");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

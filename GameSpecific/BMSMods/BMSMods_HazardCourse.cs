@@ -22,8 +22,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public BMSMods_HazardCourse()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "hc_t0a0";
-            this.LastMap = "hc_t0a3";
+            this.AddFirstMap("hc_t0a0");
+            this.AddLastMap("hc_t0a3");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

@@ -17,8 +17,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_DeeperDown()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "ep2_dd2_1";
-            this.LastMap = "ep2_dd2_9";
+            this.AddFirstMap("ep2_dd2_1");
+            this.AddLastMap("ep2_dd2_9");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

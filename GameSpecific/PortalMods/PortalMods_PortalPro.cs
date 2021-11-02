@@ -17,8 +17,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public PortalMods_PortalPro()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "start";
-            this.LastMap = "boss";
+            this.AddFirstMap("start");
+            this.AddLastMap("boss");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

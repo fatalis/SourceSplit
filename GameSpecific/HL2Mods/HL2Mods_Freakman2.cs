@@ -16,8 +16,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_Freakman2()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "kleiner0";
-            this.LastMap = "thestoryhappyend";
+            this.AddFirstMap("kleiner0");
+            this.AddLastMap("thestoryhappyend");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

@@ -12,6 +12,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         private CustomCommand _autosplitIL = new CustomCommand("ilstart");
         private CustomCommandHandler _cmdHandler;
+        private const FL _dead = FL.ATCONTROLS | FL.NOTARGET | FL.AIMTARGET;
 
         private HL2 _hl2 = new HL2();
         private HL2Ep1 _ep1 = new HL2Ep1();
@@ -37,8 +38,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
             // so lets fire onsessionstart then
             if (state.PlayerEntInfo.EntityPtr != IntPtr.Zero)
             {
-                if (!state.PlayerFlags.HasFlag(FL.ATCONTROLS | FL.NOTARGET | FL.AIMTARGET) &&
-                    state.PrevPlayerFlags.HasFlag(FL.ATCONTROLS | FL.NOTARGET | FL.AIMTARGET))
+                if (!state.PlayerFlags.HasFlag(_dead) &&
+                    state.PrevPlayerFlags.HasFlag(_dead))
                 {
                     this.OnSessionStartFull(state);
                     Debug.WriteLine("synergy session start");

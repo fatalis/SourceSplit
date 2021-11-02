@@ -16,8 +16,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_GGEFC13()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "ge_city01";
-            this.LastMap = "ge_final";
+            this.AddFirstMap("ge_city01");
+            this.AddLastMap("ge_final");
         }
 
         public override void OnGameAttached(GameState state)

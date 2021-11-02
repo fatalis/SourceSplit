@@ -17,8 +17,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Survivor()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicks;
-            this.FirstMap = "chapter01_1";
-            this.LastMap = "chapter10_5";
+            this.AddFirstMap("chapter01_1");
+            this.AddLastMap("chapter10_5");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

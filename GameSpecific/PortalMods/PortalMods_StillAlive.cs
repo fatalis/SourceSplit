@@ -16,9 +16,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public PortalMods_StillAlive()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "stillalive_1";
-            this.LastMap = "stillalive_14";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("stillalive_1");
+            this.AddLastMap("stillalive_14");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override void OnGenericUpdate(GameState state)

@@ -27,9 +27,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_YearLongAlarm()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "yla_mine";
-            this.LastMap = "yla_bridge";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("yla_mine");
+            this.AddLastMap("yla_bridge");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
         public override void OnGameAttached(GameState state)
         {

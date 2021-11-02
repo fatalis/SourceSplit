@@ -16,9 +16,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_ICE()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "ice_02";
-            this.LastMap = "ice_32";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("ice_02");
+            this.AddLastMap("ice_32");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override void OnGameAttached(GameState state)

@@ -569,7 +569,7 @@ namespace LiveSplit.SourceSplit
                 if (string.IsNullOrEmpty(_cmdBuffer.Current))
                     return;
 
-                string cleanedCmd = _cmdBuffer.Current.Replace("\n", "").Replace("\r", "").ToLower();
+                string cleanedCmd = _cmdBuffer.Current.Trim('\r', '\n').ToLower();
 
                 foreach (CustomCommand cmd in Commands)
                 {

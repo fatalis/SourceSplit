@@ -43,8 +43,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.StartOnFirstLoadMaps.Add("bm_c1a0a");
-            this.FirstMap = "bm_c1a0a";
-            this.LastMap = "bm_c4a4a";
+            this.AddFirstMap("bm_c1a0a");
+            this.AddLastMap("bm_c4a4a");
             this.RequiredProperties = PlayerProperties.ViewEntity;
 
             this.AdditionalGameSupport.AddRange(new GameSupport[] { _hazardCourse, _furtherData });

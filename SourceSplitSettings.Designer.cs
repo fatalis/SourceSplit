@@ -65,6 +65,8 @@
             this.gbAutoStartEndReset = new System.Windows.Forms.GroupBox();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.chkAutoStartEndReset = new System.Windows.Forms.CheckBox();
+            this.labStartMap = new System.Windows.Forms.Label();
+            this.boxStartMap = new System.Windows.Forms.TextBox();
             this.gbTiming = new System.Windows.Forms.GroupBox();
             this.tlpTiming = new System.Windows.Forms.TableLayoutPanel();
             this.cmbTimingMethod = new System.Windows.Forms.ComboBox();
@@ -496,12 +498,15 @@
             this.tableLayoutPanel2.ColumnCount = 1;
             this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel2.Controls.Add(this.chkAutoStartEndReset, 0, 0);
+            this.tableLayoutPanel2.Controls.Add(this.labStartMap, 0, 1);
+            this.tableLayoutPanel2.Controls.Add(this.boxStartMap, 0, 2);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 16);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
-            this.tableLayoutPanel2.RowCount = 2;
+            this.tableLayoutPanel2.RowCount = 3;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 21F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28F));
             this.tableLayoutPanel2.Size = new System.Drawing.Size(216, 114);
             this.tableLayoutPanel2.TabIndex = 0;
             // 
@@ -514,6 +519,23 @@
             this.chkAutoStartEndReset.TabIndex = 0;
             this.chkAutoStartEndReset.Text = "Enabled (supported games only)";
             this.chkAutoStartEndReset.UseVisualStyleBackColor = true;
+            // 
+            // labStartMap
+            // 
+            this.labStartMap.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.labStartMap.AutoSize = true;
+            this.labStartMap.Location = new System.Drawing.Point(3, 27);
+            this.labStartMap.Name = "labStartMap";
+            this.labStartMap.Size = new System.Drawing.Size(193, 13);
+            this.labStartMap.TabIndex = 1;
+            this.labStartMap.Text = "Auto Start upon newly loading this map:";
+            // 
+            // boxStartMap
+            // 
+            this.boxStartMap.Location = new System.Drawing.Point(3, 47);
+            this.boxStartMap.Name = "boxStartMap";
+            this.boxStartMap.Size = new System.Drawing.Size(210, 20);
+            this.boxStartMap.TabIndex = 2;
             // 
             // gbTiming
             // 
@@ -641,5 +663,7 @@
         private System.Windows.Forms.Label lblTimingMethod;
         private System.Windows.Forms.Button btnGameProcessesDefault;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label labStartMap;
+        private System.Windows.Forms.TextBox boxStartMap;
     }
 }

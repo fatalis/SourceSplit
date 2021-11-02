@@ -19,8 +19,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public EstrangedAct1()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "sp01thebeginning";
-            this.LastMap = "sp10thewarehouse";
+            this.AddFirstMap("sp01thebeginning");
+            this.AddLastMap("sp10thewarehouse");
         }
 
         public override void OnSessionStart(GameState state)

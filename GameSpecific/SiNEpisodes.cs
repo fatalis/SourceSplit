@@ -11,8 +11,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public SiNEpisodes()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "se1_docks01";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("se1_docks01");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
     }
 }

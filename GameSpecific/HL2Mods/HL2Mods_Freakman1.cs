@@ -19,8 +19,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_Freakman1()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "gordon1";
-            this.LastMap = "endbattle";
+            this.AddFirstMap("gordon1");
+            this.AddLastMap("endbattle");
         }
 
         public override void OnGameAttached(GameState state)

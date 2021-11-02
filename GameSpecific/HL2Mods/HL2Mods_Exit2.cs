@@ -16,8 +16,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_Exit2()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "e2_01";
-            this.LastMap = "e2_07";
+            this.AddFirstMap("e2_01");
+            this.AddLastMap("e2_07");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

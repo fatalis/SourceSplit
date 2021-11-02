@@ -18,8 +18,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public TE120()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "chapter_1";
-            this.LastMap = "chapter_4";
+            this.AddFirstMap("chapter_1");
+            this.AddLastMap("chapter_4");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

@@ -19,9 +19,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.AutoStartType = AutoStart.ViewEntityChanged;
-            this.FirstMap = "escape_02_d";
-            this.LastMap = "testchmb_a_00_d";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("escape_02_d");
+            this.AddLastMap("testchmb_a_00_d");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override void OnGameAttached(GameState state)

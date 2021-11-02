@@ -17,8 +17,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_DeepDown()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "ep2_deepdown_1";
-            this.LastMap = "ep2_deepdown_5";
+            this.AddFirstMap("ep2_deepdown_1");
+            this.AddLastMap("ep2_deepdown_5");
         }
 
         public override void OnSessionStart(GameState state)
@@ -43,7 +43,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (state.CurrentMap.ToLower() == this.FirstMap && this._introIndex != -1)
+            if (FirstMap.Contains(state.CurrentMap.ToLower()) && this._introIndex != -1)
             {
                 var newIntro = state.GetEntInfoByIndex(_introIndex);
 
@@ -55,7 +55,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-            else if (state.CurrentMap.ToLower() == this.LastMap)
+            else if (LastMap.Contains(state.CurrentMap.ToLower()))
             {
                 float splitTime = state.FindOutputFireTime("AlyxWakeUp1", 7);
 

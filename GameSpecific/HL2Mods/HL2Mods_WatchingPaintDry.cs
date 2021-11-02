@@ -23,17 +23,16 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_WatchingPaintDry()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "wpd_st";
-            this.FirstMap2 = "watchingpaintdry"; // the mod has 2 versions and for some reason the modder decided to start the 2nd with a completely different set of map names
-            this.LastMap = "wpd_uni";
-            this.StartOnFirstLoadMaps.AddRange(new string[] { this.FirstMap, this.FirstMap2 });
+            this.AddFirstMap("wpd_st", "watchingpaintdry");
+            this.AddLastMap("wpd_uni");
+            this.StartOnFirstLoadMaps.AddRange(FirstMap);
         }
 
         public override void OnSessionStart(GameState state)
         {
             base.OnSessionStart(state);
 
-            if (IsFirstMap || IsFirstMap2)
+            if (IsFirstMap)
             {
                 this._crashButtonPos = new MemoryWatcher<Vector3f>(state.GetEntityByName("bonzibutton") + state.GameOffsets.BaseEntityAbsOriginOffset);
             }
@@ -67,7 +66,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
 
-            if (this.IsFirstMap || this.IsFirstMap2)
+            if (this.IsFirstMap)
             {
                 _crashButtonPos.Update(state.GameProcess);
 

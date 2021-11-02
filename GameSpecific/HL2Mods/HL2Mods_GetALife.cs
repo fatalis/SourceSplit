@@ -15,8 +15,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_GetALife()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "boulevard";
-            this.LastMap = "labo2";
+            this.AddFirstMap("boulevard");
+            this.AddLastMap("labo2");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

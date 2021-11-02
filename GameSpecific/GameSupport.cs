@@ -10,15 +10,19 @@ namespace LiveSplit.SourceSplit.GameSpecific
         /// <summary>
         /// The first map of the mod / game
         /// </summary>
-        public string FirstMap { get; protected set; }
+        public List<string> FirstMap { get; protected set; } = new List<string>();
+        internal void AddFirstMap(params string[] maps)
+        {
+            FirstMap.AddRange(maps);
+        }
         /// <summary>
         /// The last map of the mod / game
         /// </summary>
-        public string LastMap { get; protected set; }
-        /// <summary>
-        /// The alternative / secondary first map of the mod / game
-        /// </summary>
-        public string FirstMap2 { get; internal set; }
+        public List<string> LastMap { get; protected set; } = new List<string>();
+        internal void AddLastMap(params string[] maps)
+        {
+            LastMap.AddRange(maps);
+        }
         /// <summary>
         /// The list of maps on a new session of which the timer should auto-start
         /// </summary>
@@ -84,7 +88,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         }
 
         protected bool IsFirstMap { get; private set; }
-        protected bool IsFirstMap2 { get; private set; }
         protected bool IsLastMap { get; private set; }
 
 
@@ -113,9 +116,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             _onceFlag = false;
 
-            this.IsFirstMap = state.CurrentMap == this.FirstMap;
-            this.IsFirstMap2 = state.CurrentMap == this.FirstMap2;
-            this.IsLastMap = (!this.IsFirstMap || !this.IsFirstMap2) && state.CurrentMap == this.LastMap;
+            this.IsFirstMap = FirstMap.Contains(state.CurrentMap);
+            this.IsLastMap = LastMap.Contains(state.CurrentMap);
         }
 
         // called when player no longer fully in the game (map changed, load started)

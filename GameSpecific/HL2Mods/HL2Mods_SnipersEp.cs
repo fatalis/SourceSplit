@@ -19,7 +19,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_SnipersEp()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "bestmod2013";
+            this.AddFirstMap("bestmod2013");
             this.RequiredProperties = PlayerProperties.Position;
         }
 

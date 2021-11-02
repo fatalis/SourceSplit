@@ -17,9 +17,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_DankMemes()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "Your_house";
-            this.LastMap = "Dank_Boss";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("Your_house");
+            this.AddLastMap("Dank_Boss");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override void OnGameAttached(GameState state)

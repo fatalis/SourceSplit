@@ -18,8 +18,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public Prospekt()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "pxg_level_01_fg";
-            this.LastMap = "pxg_finallevel01a";
+            this.AddFirstMap("pxg_level_01_fg");
+            this.AddLastMap("pxg_finallevel01a");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

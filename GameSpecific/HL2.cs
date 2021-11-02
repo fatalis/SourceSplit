@@ -23,8 +23,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "d1_trainstation_01";
-            this.LastMap = "d3_breen_01";
+            this.AddFirstMap("d1_trainstation_01");
+            this.AddLastMap("d3_breen_01");
             this.RequiredProperties = PlayerProperties.Position;
 
             AdditionalGameSupport = new List<GameSupport>(new GameSupport[] { _lostCity, _tinje, _experimentalFuel });

@@ -15,7 +15,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_DaBaby()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "dababy_hallway_ai";
+            this.AddFirstMap("dababy_hallway_ai");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

@@ -17,8 +17,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public PortalMods_PortalPrelude()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "level_01";
-            this.LastMap = "level_08";
+            this.AddFirstMap("level_01");
+            this.AddLastMap("level_08");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

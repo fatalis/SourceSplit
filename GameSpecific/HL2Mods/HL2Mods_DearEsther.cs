@@ -15,9 +15,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_DearEsther()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "donnelley";
-            this.LastMap = "Paul";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("donnelley");
+            this.AddLastMap("Paul");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override void OnSessionStart(GameState state)

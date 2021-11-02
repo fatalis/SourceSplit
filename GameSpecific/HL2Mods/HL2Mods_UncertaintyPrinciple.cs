@@ -13,8 +13,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_UncertaintyPrinciple()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "up_retreat_a";
-            this.LastMap = "up_night";
+            this.AddFirstMap("up_retreat_a");
+            this.AddLastMap("up_night");
             this.RequiredProperties = PlayerProperties.Flags | PlayerProperties.ViewEntity;
         }
 

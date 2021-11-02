@@ -16,8 +16,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_MImp()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "mimp1";
-            this.LastMap = "mimp3";
+            this.AddFirstMap("mimp1");
+            this.AddLastMap("mimp3");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

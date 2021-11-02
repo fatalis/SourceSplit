@@ -10,7 +10,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // end: when a dustmote entity is killed by the switch
 
         private bool _onceFlag;
-        private static bool _resetFlag;
+        private bool _resetFlag;
 
         private int _blockBrushIndex;
         private int _dustmoteIndex;
@@ -18,7 +18,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_ExperimentalFuel()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "bmg1_experimental_fuel";
+            this.AddFirstMap("bmg1_experimental_fuel");
         }
 
         public override void OnTimerReset(bool resetFlagTo)

@@ -13,9 +13,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_TheLostCity()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "lostcity01";
-            this.LastMap = "lostcity02";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("lostcity01");
+            this.AddLastMap("lostcity02");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override void OnSessionStart(GameState state)

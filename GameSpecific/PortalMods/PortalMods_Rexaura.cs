@@ -15,8 +15,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public PortalMods_Rexaura()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "rex_00_intro";
-            this.LastMap = "rex_19_remote";
+            this.AddFirstMap("rex_00_intro");
+            this.AddLastMap("rex_19_remote");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

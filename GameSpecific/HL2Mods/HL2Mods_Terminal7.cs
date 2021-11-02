@@ -16,9 +16,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_Terminal7()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "t7_01";
-            this.LastMap = "t7_cr";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("t7_01");
+            this.AddLastMap("t7_cr");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override void OnGameAttached(GameState state)

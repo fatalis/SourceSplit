@@ -18,8 +18,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_KillTheMonk()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "ktm_c01_01";
-            this.LastMap = "ktm_c03_02";
+            this.AddFirstMap("ktm_c01_01");
+            this.AddLastMap("ktm_c03_02");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

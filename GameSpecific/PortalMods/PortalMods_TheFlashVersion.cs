@@ -19,8 +19,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public PortalMods_TheFlashVersion()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "portaltfv1";
-            this.LastMap = "portaltfv5";
+            this.AddFirstMap("portaltfv1");
+            this.AddLastMap("portaltfv5");
             this.RequiredProperties |= PlayerProperties.Position;
         }
 

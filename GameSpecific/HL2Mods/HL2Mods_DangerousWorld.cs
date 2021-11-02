@@ -17,8 +17,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_DangerousWorld()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "dw_ep1_01";
-            this.LastMap = "dw_ep1_08";
+            this.AddFirstMap("dw_ep1_01");
+            this.AddLastMap("dw_ep1_08");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

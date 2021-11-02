@@ -17,8 +17,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_Tinje()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "tinje";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("tinje");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override void OnGenericUpdate(GameState state) { }

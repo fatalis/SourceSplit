@@ -17,9 +17,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.StartOffsetTicks = -8850;
-            this.FirstMap = "whisper";
-            this.LastMap = "nomansland2";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("whisper");
+            this.AddLastMap("nomansland2");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override void OnGameAttached(GameState state)

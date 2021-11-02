@@ -45,9 +45,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_ThinkTank()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "ml04_ascend";
-            this.LastMap = "ml04_crown_bonus";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("ml04_ascend");
+            this.AddLastMap("ml04_crown_bonus");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override void OnSessionStart(GameState state)
@@ -85,9 +85,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_Gnome()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "at03_findthegnome";
-            this.LastMap = "at03_nev_no_gnomes_land";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("at03_findthegnome");
+            this.AddLastMap("at03_nev_no_gnomes_land");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override void OnSessionStart(GameState state)
@@ -122,8 +122,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_BackwardsMod()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "backward_d3_breen_01";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("backward_d3_breen_01");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
     }
 
@@ -134,8 +134,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_Reject()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.LastMap = "reject";
-            this.StartOnFirstLoadMaps.Add(this.LastMap);
+            this.StartOnFirstLoadMaps.Add("reject");
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -162,9 +161,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_TrapVille()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "aquickdrivethrough_thc16c4";
-            this.LastMap = "makeearthgreatagain_thc16c4";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("aquickdrivethrough_thc16c4");
+            this.AddLastMap("makeearthgreatagain_thc16c4");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
 
@@ -198,9 +197,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_RTSLVille()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "from_ashes_map1_rtslv";
-            this.LastMap = "terminal_rtslv";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("from_ashes_map1_rtslv");
+            this.AddLastMap("terminal_rtslv");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -230,9 +229,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_Abridged()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "ml05_training_facilitea";
-            this.LastMap = "ml05_shortcut17";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("ml05_training_facilitea");
+            this.AddLastMap("ml05_shortcut17");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -262,9 +261,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_EpisodeOne()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "direwolf";
-            this.LastMap = "outland_resistance";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("direwolf");
+            this.AddLastMap("outland_resistance");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -294,9 +293,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_CombinationVille()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "canal_flight_ppmc_cv";
-            this.LastMap = "cvbonus_ppmc_cv";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("canal_flight_ppmc_cv");
+            this.AddLastMap("cvbonus_ppmc_cv");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         private Vector3f _tramEndPos = new Vector3f(2624f, -1856f, 250f);
@@ -339,9 +338,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_PhaseVille()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "rtsl_mlc";
-            this.LastMap = "hospitalisation_tlc18_c4";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("rtsl_mlc");
+            this.AddLastMap("hospitalisation_tlc18_c4");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -371,9 +370,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_CompanionPiece()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "tg_wrd_carnival";
-            this.LastMap = "maplab_jan_cp";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("tg_wrd_carnival");
+            this.AddLastMap("maplab_jan_cp");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -402,8 +401,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_TheCitizen()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "thecitizen_part1";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("thecitizen_part1");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
     }
 
@@ -416,9 +415,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_SchoolAdventures()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "sa_01";
-            this.LastMap = "sa_04";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("sa_01");
+            this.AddLastMap("sa_04");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 
@@ -464,9 +463,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_DarkIntervention()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "Dark_intervention";
-            this.LastMap = this.FirstMap;
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("Dark_intervention");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -498,9 +496,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_HellsMines()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "hells_mines";
-            this.LastMap = this.FirstMap;
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("hells_mines");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -532,9 +529,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_UpmineStruggle()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "twhl_upmine_struggle";
-            this.LastMap = this.FirstMap;
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("twhl_upmine_struggle");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override GameSupportResult OnUpdate(GameState state)
@@ -566,9 +562,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_Offshore()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "islandescape";
-            this.LastMap = "islandcitytrain";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("islandescape");
+            this.AddLastMap("islandcitytrain");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override void OnSessionStart(GameState state)

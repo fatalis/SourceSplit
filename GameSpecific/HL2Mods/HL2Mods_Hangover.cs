@@ -15,8 +15,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_Hangover()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "hangover_00";
-            this.LastMap = "hangover_02";
+            this.AddFirstMap("hangover_00");
+            this.AddLastMap("hangover_02");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

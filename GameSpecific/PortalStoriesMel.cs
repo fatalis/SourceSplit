@@ -11,8 +11,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         {
             this.AutoStartType = AutoStart.Unfrozen;
             this.RequiredProperties |= PlayerProperties.Position;
-            this.FirstMap = "sp_a1_tramride";
-            this.LastMap = "sp_a4_finale";
+            this.AddFirstMap("sp_a1_tramride");
+            this.AddLastMap("sp_a4_finale");
         }
 
         public override void OnSessionStart(GameState state)

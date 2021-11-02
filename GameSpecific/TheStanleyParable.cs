@@ -47,9 +47,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
             // whiteboard:  when the previous player's X pos is =< 1993 and current is >= 1993
 
         private bool _onceFlag;
-        public static bool _resetFlag;
-        public static bool _resetFlagDemo;
-        public static bool _resetFlagMod;
+        public bool _resetFlag;
+        public bool _resetFlagDemo;
+        public bool _resetFlagMod;
         private float _defFadeSplitTime;
         private float _defOutputSplitTime;
 
@@ -103,7 +103,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _endingGamesCamIndex;
         private Vector3f _endingInsaneSectorOrigin = new Vector3f(-6072f, 888f, 0);
         private int _endingInsaneCamIndex;
-        private static int _endingSeriousCount;
+        private int _endingSeriousCount;
         private MemoryWatcher<Vector3f> _endingDiscoAngVel;
         private MemoryWatcher<float> _endingStuckEndingCount;
         private int _endingZendingCamIndex;

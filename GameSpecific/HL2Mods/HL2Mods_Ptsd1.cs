@@ -17,8 +17,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HL2Mods_Ptsd1()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "ptsd_1";
-            this.LastMap = "ptsd_final";
+            this.AddFirstMap("ptsd_1");
+            this.AddLastMap("ptsd_final");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

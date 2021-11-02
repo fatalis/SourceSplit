@@ -15,7 +15,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public PortalMods_EpicEdition()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "pee_chmb_00";
+            this.AddFirstMap("pee_chmb_00");
             this.RequiredProperties = PlayerProperties.ViewEntity;
         }
 

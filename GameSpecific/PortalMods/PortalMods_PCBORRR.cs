@@ -16,9 +16,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public PortalMods_PCBORRR()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap = "testchmb_a_00";
-            this.LastMap = "escape_02_d_180";
-            this.StartOnFirstLoadMaps.Add(this.FirstMap);
+            this.AddFirstMap("testchmb_a_00");
+            this.AddLastMap("escape_02_d_180");
+            this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
         public override void OnSessionStart(GameState state)

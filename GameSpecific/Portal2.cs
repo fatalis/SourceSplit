@@ -21,8 +21,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public Portal2()
         {
             this.AutoStartType = AutoStart.ViewEntityChanged;
-            this.FirstMap = "sp_a1_intro1";
-            this.LastMap = "sp_a4_finale4";
+            this.AddFirstMap("sp_a1_intro1");
+            this.AddLastMap("sp_a4_finale4");
         }
 
         public override void OnSessionStart(GameState state)

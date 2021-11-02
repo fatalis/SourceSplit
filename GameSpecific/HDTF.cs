@@ -13,8 +13,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // ending:  when the blocker brush entity is killed
 
         private bool _onceFlag;
-        private static bool _resetFlag;
-        private static bool _tutResetFlag = true;
+        private bool _resetFlag;
+        private bool _tutResetFlag = true;
         private int _basePlayerLaggedMovementOffset = -1;
 
         private int _blockerIndex;
@@ -29,8 +29,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public HDTF()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            this.FirstMap2 = "a0c0p0"; // boot camp
-            this.LastMap = "a4c1p2";
+            this.AddFirstMap("a0c0p0"); // boot camp
+            this.AddLastMap("a4c1p2");
             this.RequiredProperties = PlayerProperties.Position;
         }
         public override void OnGameAttached(GameState state)
@@ -71,7 +71,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 _playerHP = new MemoryWatcher<int>(state.PlayerEntInfo.EntityPtr + _baseEntityHealthOffset);
                 _watcher.Add(_playerHP);
             }
-            else if (IsFirstMap2)
+            else if (IsFirstMap)
             {
                 _playerLaggedMovementValue = new MemoryWatcher<float>(state.PlayerEntInfo.EntityPtr + _basePlayerLaggedMovementOffset);
                 _playerLaggedMovementValue.Update(state.GameProcess);
@@ -104,7 +104,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     return GameSupportResult.PlayerGainedControl;
                 }
             }
-            else if (this.IsFirstMap2)
+            else if (IsFirstMap)
             {
                 _playerLaggedMovementValue.Update(state.GameProcess);
 
