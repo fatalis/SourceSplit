@@ -100,6 +100,7 @@ namespace LiveSplit.SourceSplit
         private int _tickOffset;
         private DateTime? _gamePauseTime;
         private int _gamePauseTick;
+        private float _cumulativeTime;
         private GameTimingMethod _gameRecommendedTimingMethod;
 
 
@@ -132,7 +133,7 @@ namespace LiveSplit.SourceSplit
                 int pauseTime = (_gamePauseTime != null && this.GameTimingMethod == GameTimingMethod.EngineTicksWithPauses) ?
                     _gamePauseTick + FakeTicks(_gamePauseTime.Value, DateTime.Now) : _sessionTicks;
 
-                float time = (_totalTicks + pauseTime - _sessionTicksOffset) * _intervalPerTick;
+                float time = _cumulativeTime + (_totalTicks + pauseTime - _sessionTicksOffset) * _intervalPerTick;
                 return TimeSpan.FromTicks((long)(time * 1000 * TimeSpan.TicksPerMillisecond));
             }
         }
@@ -254,7 +255,7 @@ namespace LiveSplit.SourceSplit
                     // change this if we ever have new timing methods
                     TimingMethod method = state.CurrentTimingMethod;
                     if (Settings.ShowAltTime)
-                        method = ~method;
+                        method = (TimingMethod)(((int)method + 1) % 2);
 
                     this.AltTimingComponent.SetText(state.CurrentTime[method]);
                     this.AltTimingComponent.SetName(method == TimingMethod.RealTime ? "Real Time" : "Game Time");
@@ -298,7 +299,8 @@ namespace LiveSplit.SourceSplit
 
         void state_OnStart(object sender, EventArgs e)
         {
-            
+
+            _cumulativeTime = 0;
             _timer.InitializeGameTime();
             _totalTicks = 0;
             _splitOperations.Clear();
@@ -363,7 +365,12 @@ namespace LiveSplit.SourceSplit
 
         void gameMemory_OnSetTickRate(object sender, SetTickRateEventArgs e)
         {
+            // if we keep the ticks from the previous session, a tick rate change may happen due to 
+            // different game versions, causing the existing ticks to produce the wrong time
+            // so store this time and reset the total tick count
             Debug.WriteLine("tickrate " + e.IntervalPerTick);
+            _cumulativeTime += (float)(GameTime.TotalSeconds) - _cumulativeTime;
+            _totalTicks = 0;
             _intervalPerTick = e.IntervalPerTick;
         }
 

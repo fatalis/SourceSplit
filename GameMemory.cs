@@ -1004,9 +1004,10 @@ namespace LiveSplit.SourceSplit
                             if (state.GameSupport.FirstMap.Contains(levelName))
                                 this.SendNewGameStartedEvent(levelName);
 
-                            if (levelName == _settings.StartMap
+                            if (!string.IsNullOrWhiteSpace(levelName) && 
+                                (levelName == _settings.StartMap
                                 || state.GameSupport.StartOnFirstLoadMaps.Contains(levelName)
-                                || state.GameSupport.AdditionalGameSupport.Any(x => x.StartOnFirstLoadMaps.Contains(levelName)))
+                                || state.GameSupport.AdditionalGameSupport.Any(x => x.StartOnFirstLoadMaps.Contains(levelName))))
                             {
                                 // do a debug spew of the timer start
                                 Debug.WriteLine(state.GameDir + " start on " + levelName);
