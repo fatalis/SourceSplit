@@ -122,6 +122,7 @@
     <Compile Include="GameSpecific\PortalStoriesMel.cs" />
     <Compile Include="GameSpecific\TheStanleyParable.cs" />
     <Compile Include="GameState.cs" />
+    <Compile Include="InternalComponent.cs" />
     <Compile Include="MapTimesForm.cs">
       <SubType>Form</SubType>
     </Compile>

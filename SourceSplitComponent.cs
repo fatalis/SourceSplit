@@ -14,13 +14,75 @@ using LiveSplit.SourceSplit.GameSpecific;
 
 namespace LiveSplit.SourceSplit
 {
+
+    public enum SplitType
+    {
+        User,
+        AutoSplitter
+    }
+
+    class SplitOperations
+    {
+        internal struct SplitEvent
+        {
+            public SplitType Type;
+
+            public string PreviousMap;
+            public string NextMap;
+
+            public SplitEvent(SplitType type, string prev, string next)
+            {
+                Type = type;
+                PreviousMap = prev;
+                NextMap = next;
+            }
+
+            public bool CompareTo(SplitEvent other)
+            {
+                return other.PreviousMap == PreviousMap && other.NextMap == NextMap;
+            }
+        }
+
+        public List<SplitEvent> Transitions = new List<SplitEvent>();
+        public bool HasJustAutoSplit = false;
+
+        public void AddSplit(SplitType type, string previous = "", string next = "")
+        {
+            if (type == SplitType.User)
+                Transitions.Add(new SplitEvent(type, previous, previous));
+            else
+            {
+                Transitions.Add(new SplitEvent(type, previous, next));
+                HasJustAutoSplit = true;
+            }
+        }
+
+        public bool ExistsTransition(string previous, string next)
+        {
+            return Transitions.Any(x => x.PreviousMap == previous && x.NextMap == next);
+        }
+
+        public void UndoLast()
+        {
+            Transitions.RemoveAt(Transitions.Count() - 1);
+        }
+
+        public void Clear()
+        {
+            Transitions.Clear();
+        }
+    }
+
     class SourceSplitComponent : IComponent
     {
         public string ComponentName => "SourceSplit";
 
         public SourceSplitSettings Settings { get; set; }
         public IDictionary<string, Action> ContextMenuControls { get; protected set; }
-        protected InfoTimeComponent InternalComponent { get; set; }
+        
+        private InternalComponent AltTimingComponent;
+        private InternalComponent TickCountComponent;
+        private InternalComponentRenderer _componentRenderer = new InternalComponentRenderer();
 
         public bool Disposed { get; private set; }
         public bool IsLayoutComponent { get; private set; }
@@ -45,7 +107,7 @@ namespace LiveSplit.SourceSplit
 
         private string _currentMap = String.Empty;
         private int _splitCount;
-        private List<Tuple<string, string>> _mapTransitions;
+        private SplitOperations _splitOperations = new SplitOperations();
 
         private GameTimingMethod GameTimingMethod
         {
@@ -67,16 +129,14 @@ namespace LiveSplit.SourceSplit
         {
             get
             {
-                if (_gamePauseTime != null && this.GameTimingMethod == GameTimingMethod.EngineTicksWithPauses)
-                {
-                    return TimeSpan.FromSeconds((_totalTicks + _gamePauseTick + FakeTicks(_gamePauseTime.Value, DateTime.Now) - _sessionTicksOffset) * _intervalPerTick);
-                }
-                else
-                {
-                    return TimeSpan.FromSeconds((_totalTicks + _sessionTicks - _sessionTicksOffset) * _intervalPerTick);
-                }
+                int pauseTime = (_gamePauseTime != null && this.GameTimingMethod == GameTimingMethod.EngineTicksWithPauses) ?
+                    _gamePauseTick + FakeTicks(_gamePauseTime.Value, DateTime.Now) : _sessionTicks;
+
+                float time = (_totalTicks + pauseTime - _sessionTicksOffset) * _intervalPerTick;
+                return TimeSpan.FromTicks((long)(time * 1000 * TimeSpan.TicksPerMillisecond));
             }
         }
+
 
         public SourceSplitComponent(LiveSplitState state, bool isLayoutComponent)
         {
@@ -91,7 +151,15 @@ namespace LiveSplit.SourceSplit
             this.IsLayoutComponent = isLayoutComponent;
 
             this.Settings = new SourceSplitSettings();
-            this.InternalComponent = new InfoTimeComponent("Game Time", null, new RegularTimeFormatter(TimeAccuracy.Hundredths));
+
+            AltTimingComponent = new InternalComponent(Settings.ShowGameTime, new InfoTextComponent("Game Time", ""));
+            TickCountComponent = new InternalComponent(Settings.ShowTickCount, new InfoTextComponent("Tick Count", ""));
+
+            _componentRenderer.Components.AddRange( new InternalComponent[]
+            {
+                AltTimingComponent,
+                TickCountComponent
+            });
 
             this.ContextMenuControls = new Dictionary<String, Action>();
             this.ContextMenuControls.Add("SourceSplit: Map Times", () => MapTimesForm.Instance.Show());
@@ -100,11 +168,12 @@ namespace LiveSplit.SourceSplit
 
             _timer = new TimerModel { CurrentState = state };
 
+            state.OnUndoSplit += state_OnUndoSplit;
             state.OnSplit += state_OnSplit;
             state.OnReset += state_OnReset;
             state.OnStart += state_OnStart;
 
-            _mapTransitions = new List<Tuple<string, string>>();
+            _splitOperations.Clear();
 
             _intervalPerTick = 0.015f; // will update these when attached to game
             _gameRecommendedTimingMethod = GameTimingMethod.EngineTicks;
@@ -135,6 +204,7 @@ namespace LiveSplit.SourceSplit
         {
             this.Disposed = true;
 
+            _timer.CurrentState.OnUndoSplit -= state_OnUndoSplit;
             _timer.CurrentState.OnSplit -= state_OnSplit;
             _timer.CurrentState.OnReset -= state_OnReset;
             _timer.CurrentState.OnStart -= state_OnStart;
@@ -145,10 +215,9 @@ namespace LiveSplit.SourceSplit
             _gameMemory?.Stop();
         }
 
-
-
         public void Update(IInvalidator invalidator, LiveSplitState state, float width, float height, LayoutMode mode)
         {
+
             // hack to prevent flicker, doesn't actually pause anything
             state.IsGameTimePaused = true;
 
@@ -172,46 +241,67 @@ namespace LiveSplit.SourceSplit
                 state.SetGameTime(this.GameTime >= TimeSpan.Zero ? this.GameTime : TimeSpan.Zero);
             }
 
-            if (!this.Settings.ShowGameTime)
-                return;
+            AltTimingComponent.Enabled = Settings.ShowGameTime;
+            TickCountComponent.Enabled = Settings.ShowTickCount;
 
-            this.InternalComponent.TimeValue =
-                state.CurrentTime[state.CurrentTimingMethod == TimingMethod.GameTime
-                    ? TimingMethod.RealTime : TimingMethod.GameTime];
-            this.InternalComponent.InformationName = state.CurrentTimingMethod == TimingMethod.GameTime
-                ? "Real Time" : "Game Time";
+            _componentRenderer.Update(invalidator, state, width, height, mode);
 
-            _cache.Restart();
-            _cache["TimeValue"] = this.InternalComponent.ValueLabel.Text;
-            _cache["TimingMethod"] = state.CurrentTimingMethod;
-            if (invalidator != null && _cache.HasChanged)
-                invalidator.Invalidate(0f, 0f, width, height);
+            if (_componentRenderer.VisibleComponents.Any())
+            {
+                _cache.Restart();
+                if (this.Settings.ShowGameTime)
+                {
+                    // change this if we ever have new timing methods
+                    TimingMethod method = state.CurrentTimingMethod;
+                    if (Settings.ShowAltTime)
+                        method = ~method;
+
+                    this.AltTimingComponent.SetText(state.CurrentTime[method]);
+                    this.AltTimingComponent.SetName(method == TimingMethod.RealTime ? "Real Time" : "Game Time");
+
+                    _cache["TimeValue"] = this.AltTimingComponent.Component.ValueLabel.Text;
+                    _cache["TimingMethod"] = state.CurrentTimingMethod;
+                }
+
+                if (this.Settings.ShowTickCount)
+                {
+                    TickCountComponent.SetText(((long)(GameTime.TotalSeconds / _intervalPerTick)).ToString());
+                    _cache["TickCount"] = this.TickCountComponent.Component.ValueLabel.Text;
+                }
+
+                if (_cache.HasChanged)
+                    invalidator?.Invalidate(0f, 0f, width, height);
+            }
         }
 
         public void DrawVertical(Graphics g, LiveSplitState state, float width, Region region)
         {
+            _componentRenderer.Render(g, state, width, 0, LayoutMode.Vertical, region);
             this.PrepareDraw(state);
-            this.InternalComponent.DrawVertical(g, state, width, region);
         }
 
         public void DrawHorizontal(Graphics g, LiveSplitState state, float height, Region region)
         {
             this.PrepareDraw(state);
-            this.InternalComponent.DrawHorizontal(g, state, height, region);
+            _componentRenderer.Render(g, state, 0, height, LayoutMode.Horizontal, region);
         }
 
         void PrepareDraw(LiveSplitState state)
         {
-            this.InternalComponent.NameLabel.ForeColor = state.LayoutSettings.TextColor;
-            this.InternalComponent.ValueLabel.ForeColor = state.LayoutSettings.TextColor;
-            this.InternalComponent.NameLabel.HasShadow = this.InternalComponent.ValueLabel.HasShadow = state.LayoutSettings.DropShadows;
+            _componentRenderer.VisibleComponents.ToList().ForEach(x =>
+            {
+                x.Component.NameLabel.ForeColor = state.LayoutSettings.TextColor;
+                x.Component.ValueLabel.ForeColor = state.LayoutSettings.TextColor;
+                x.Component.NameLabel.HasShadow = x.Component.ValueLabel.HasShadow = state.LayoutSettings.DropShadows;
+            });
         }
 
         void state_OnStart(object sender, EventArgs e)
         {
+            
             _timer.InitializeGameTime();
             _totalTicks = 0;
-            _mapTransitions.Clear();
+            _splitOperations.Clear();
             MapTimesForm.Instance.Reset();
             _splitCount = 0;
             _totalMapTicks = 0;
@@ -244,9 +334,19 @@ namespace LiveSplit.SourceSplit
             _gameMemory._state?.GameSupport?.OnTimerResetFull(false);
         }
 
+        void state_OnUndoSplit(object sender, EventArgs e)
+        {
+            _splitOperations.UndoLast();
+        }
+
         void state_OnSplit(object sender, EventArgs e)
         {
             Debug.WriteLine("split at time " + this.GameTime);
+
+            if (_splitOperations.HasJustAutoSplit)
+                _splitOperations.HasJustAutoSplit = false;
+            else
+                _splitOperations.AddSplit(SplitType.User);
 
             if (_timer.CurrentState.CurrentPhase == TimerPhase.Ended)
             {
@@ -304,11 +404,9 @@ namespace LiveSplit.SourceSplit
             // this is in case they load a save that was made before current map
             // fuck time travel
 
-            if (!_mapTransitions.Any(x => 
-                (x.Item1 == e.Map && x.Item2 == e.PrevMap) ||
-                (x.Item1 == e.PrevMap && x.Item2 == e.Map)))
+            if (!_splitOperations.ExistsTransition(e.PrevMap, e.Map))
             {
-                _mapTransitions.Add(new Tuple<string, string>(e.PrevMap, e.Map));
+                _splitOperations.AddSplit(SplitType.AutoSplitter, e.PrevMap, e.Map);
                 this.AutoSplit(e.PrevMap);
             }
 
@@ -472,13 +570,13 @@ namespace LiveSplit.SourceSplit
             this.Settings.SetSettings(settings);
         }
 
-        public float MinimumWidth => this.InternalComponent.MinimumWidth;
-        public float MinimumHeight => this.InternalComponent.MinimumHeight;
-        public float VerticalHeight => this.Settings.ShowGameTime ? this.InternalComponent.VerticalHeight : 0;
-        public float HorizontalWidth => this.Settings.ShowGameTime ? this.InternalComponent.HorizontalWidth : 0;
-        public float PaddingLeft => this.Settings.ShowGameTime ? this.InternalComponent.PaddingLeft : 0;
-        public float PaddingRight => this.Settings.ShowGameTime ? this.InternalComponent.PaddingRight : 0;
-        public float PaddingTop => this.Settings.ShowGameTime ? this.InternalComponent.PaddingTop : 0;
-        public float PaddingBottom => this.Settings.ShowGameTime ? this.InternalComponent.PaddingBottom : 0;
+        public float MinimumWidth => _componentRenderer.MinimumWidth;
+        public float MinimumHeight => _componentRenderer.MinimumHeight;
+        public float VerticalHeight => _componentRenderer.VerticalHeight;
+        public float HorizontalWidth => _componentRenderer.HorizontalWidth;
+        public float PaddingLeft => _componentRenderer.PaddingLeft;
+        public float PaddingRight => _componentRenderer.PaddingRight;
+        public float PaddingTop => _componentRenderer.PaddingTop;
+        public float PaddingBottom => _componentRenderer.PaddingBottom;
     }
 }

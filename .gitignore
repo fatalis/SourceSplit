@@ -4,3 +4,4 @@ obj/
 *.cache
 *.suo
 app.config
+LiveSplit.SourceSplit.sln

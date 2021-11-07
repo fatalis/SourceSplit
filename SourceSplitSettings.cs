@@ -29,6 +29,8 @@ namespace LiveSplit.SourceSplit
         public int SplitInterval { get; set; }
         public AutoSplitType AutoSplitType { get; private set; }
         public bool ShowGameTime { get; set; }
+        public bool ShowAltTime { get; set; }
+        public bool ShowTickCount { get; set; }
         public bool AutoStartEndResetEnabled { get; set; }
         public string StartMap { get; set; }
 
@@ -80,6 +82,7 @@ namespace LiveSplit.SourceSplit
         private const bool DEFAULT_SHOWGAMETIME = true;
         private const bool DEFAULT_AUTOSPLIT_ENABLED = true;
         private const bool DEFAULT_AUTOSTARTENDRESET_ENABLED = true;
+        private const bool DEFAULT_SHOWALTTIME = true;
         private const AutoSplitType DEFAULT_AUTOSPLITYPE = AutoSplitType.Interval;
         private const GameTimingMethodSetting DEFAULT_GAME_TIMING_METHOD = GameTimingMethodSetting.Automatic;
 
@@ -90,8 +93,10 @@ namespace LiveSplit.SourceSplit
             this.chkAutoSplitEnabled.DataBindings.Add("Checked", this, nameof(this.AutoSplitEnabled), false, DataSourceUpdateMode.OnPropertyChanged);
             this.dmnSplitInterval.DataBindings.Add("Value", this, nameof(this.SplitInterval), false, DataSourceUpdateMode.OnPropertyChanged);
             this.chkShowGameTime.DataBindings.Add("Checked", this, nameof(this.ShowGameTime), false, DataSourceUpdateMode.OnPropertyChanged);
+            this.chkShowAlt.DataBindings.Add("Checked", this, nameof(this.ShowAltTime), false, DataSourceUpdateMode.OnPropertyChanged);
             this.chkAutoStartEndReset.DataBindings.Add("Checked", this, nameof(this.AutoStartEndResetEnabled), false, DataSourceUpdateMode.OnPropertyChanged);
             this.boxStartMap.DataBindings.Add("Text", this, nameof(this.StartMap), false, DataSourceUpdateMode.OnPropertyChanged);
+            this.chkShowTickCount.DataBindings.Add("Checked", this, nameof(this.ShowTickCount), false, DataSourceUpdateMode.OnPropertyChanged);
 
             this.rdoWhitelist.CheckedChanged += rdoAutoSplitType_CheckedChanged;
             this.rdoInterval.CheckedChanged += rdoAutoSplitType_CheckedChanged;
@@ -165,6 +170,8 @@ namespace LiveSplit.SourceSplit
 
             settingsNode.AppendChild(ToElement(doc, nameof(this.StartMap), this.StartMap));
 
+            settingsNode.AppendChild(ToElement(doc, nameof(this.ShowTickCount), this.ShowTickCount));
+
             return settingsNode;
         }
 
@@ -190,9 +197,11 @@ namespace LiveSplit.SourceSplit
             AutoStartEndResetEnabled = GetSetting(settings, AutoStartEndResetEnabled, nameof(AutoStartEndResetEnabled), DEFAULT_AUTOSTARTENDRESET_ENABLED);
             SplitInterval = GetSetting(settings, SplitInterval, nameof(SplitInterval), DEFAULT_SPLITINTERVAL);
             ShowGameTime = GetSetting(settings, ShowGameTime, nameof(ShowGameTime), DEFAULT_SHOWGAMETIME);
+            ShowAltTime = GetSetting(settings, ShowAltTime, nameof(ShowAltTime), DEFAULT_SHOWALTTIME);
             GameTimingMethod = GetSetting(settings, GameTimingMethod, nameof(GameTimingMethod), DEFAULT_GAME_TIMING_METHOD);
             AutoSplitType = GetSetting(settings, AutoSplitType, nameof(AutoSplitType), DEFAULT_AUTOSPLITYPE);
             StartMap = GetSetting(settings, StartMap, nameof(StartMap), "");
+            ShowTickCount = GetSetting(settings, ShowTickCount, nameof(ShowTickCount), false);
 
             this.rdoInterval.Checked = this.AutoSplitType == AutoSplitType.Interval;
             this.rdoWhitelist.Checked = this.AutoSplitType == AutoSplitType.Whitelist;
@@ -281,6 +290,11 @@ namespace LiveSplit.SourceSplit
         private void btnGameProcessesDefault_Click(object sender, EventArgs e)
         {
             lbGameProcessesSetDefault();
+        }
+
+        private void chkShowGameTime_CheckedChanged(object sender, EventArgs e)
+        {
+            chkShowAlt.Enabled = chkShowGameTime.Checked;
         }
     }
 }
