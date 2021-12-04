@@ -22,14 +22,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         // earthbound start
         private string _ebEndMap = "bm_c3a2i";
-        private CustomCommand _ebEndCommand = new CustomCommand("ebend");
+        private CustomCommand _ebEndCommand = new CustomCommand("ebend", "Split on Lambda Core teleport");
         private int _ebCamIndex;
 
         // xen start & run end
         private const string _xenStartMap = "bm_c4a1a";
-        private CustomCommand _xenStartCommand = new CustomCommand("xenstart");
-        private CustomCommand _xenSplitCommand = new CustomCommand("xensplit");
-        private CustomCommand _nihiSplitCommand = new CustomCommand("nihisplit");
+        private CustomCommand _xenStartCommand = new CustomCommand("xenstart", "Start upon gaining control in xen");
+        private CustomCommand _xenSplitCommand = new CustomCommand("xensplit", "Split upon gaining control in xen");
+        private CustomCommand _nihiSplitCommand = new CustomCommand("nihisplit", "Split per phases of Nihilanth's fight");
         private MemoryWatcher<int> _nihiHP;
         private MemoryWatcher<int> _nihiPhaseCounter;
         private int _xenCamIndex;
@@ -48,7 +48,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.RequiredProperties = PlayerProperties.ViewEntity;
 
             this.AdditionalGameSupport.AddRange(new GameSupport[] { _hazardCourse, _furtherData });
-            _cmdHandler = new CustomCommandHandler(new CustomCommand[] { _xenSplitCommand, _xenStartCommand, _nihiSplitCommand, _ebEndCommand });
+            _cmdHandler = new CustomCommandHandler( _xenSplitCommand, _xenStartCommand, _nihiSplitCommand, _ebEndCommand);
         }
 
         public override void OnGameAttached(GameState state)

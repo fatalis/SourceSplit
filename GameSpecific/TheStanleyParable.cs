@@ -1,4 +1,5 @@
 ﻿using LiveSplit.ComponentUtil;
+using LiveSplit.SourceSplit.Extensions;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -154,14 +155,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             return state.PrevPlayerViewEntityIndex == prev && state.PlayerViewEntityIndex == now;
         }
 
-        private Vector3f Vector3fAbs(Vector3f A)
-        {
-            Vector3f B = new Vector3f();
-            B.X = Math.Abs(A.X);
-            B.Y = Math.Abs(A.Y);
-            B.Z = Math.Abs(A.Z);
-            return B;
-        }
+
 
         private bool EvaluateChangedViewAngle(Vector3f prev, Vector3f now, Vector3f target)
         {
@@ -414,9 +408,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                             bool hasPlayerJustLeftStartPoint    = state.PrevPlayerPosition.BitEqualsXY(_demoStartPos) && !state.PlayerPosition.BitEqualsXY(_demoStartPos);
                             bool isPlayerViewEntityCorrect      = state.PlayerViewEntityIndex == 1;
-                            bool hasPlayerMovedView             = EvaluateChangedViewAngle(Vector3fAbs(_playerViewAng.Old), Vector3fAbs(_playerViewAng.Current), _demoStartAng);
+                            bool hasPlayerMovedView             = EvaluateChangedViewAngle(_playerViewAng.Old.Abs(), _playerViewAng.Current.Abs(), _demoStartAng);
                             bool isViewAngleChangedEarly        = state.PrevPlayerPosition.BitEqualsXY(_demoStartPos)
-                                                                && EvaluateChangedViewAngle(Vector3fAbs(_playerViewAng.Old), Vector3fAbs(_playerViewAng.Current), _demoStartAng);
+                                                                && EvaluateChangedViewAngle(_playerViewAng.Old.Abs(), _playerViewAng.Current.Abs(), _demoStartAng);
 
                             if ((hasPlayerJustLeftStartPoint || hasPlayerMovedView || isViewAngleChangedEarly) && isPlayerViewEntityCorrect)
                             {

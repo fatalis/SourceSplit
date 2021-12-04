@@ -21,7 +21,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public Synergy()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
-            _cmdHandler = new CustomCommandHandler( new CustomCommand[] { _autosplitIL });
+            _cmdHandler = new CustomCommandHandler(_autosplitIL);
             this.AdditionalGameSupport.AddRange(new GameSupport[] { _hl2 , _ep1 , _ep2 });
         }
 

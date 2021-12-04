@@ -500,6 +500,12 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.StartOnFirstLoadMaps.AddRange(this.FirstMap);
         }
 
+        public override void OnSessionStart(GameState state)
+        {
+            base.OnSessionStart(state);
+            _splitTime = state.FindOutputFireTime("command", 3);
+        }
+
         public override GameSupportResult OnUpdate(GameState state)
         {
             if (_onceFlag)
@@ -508,13 +514,16 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (IsFirstMap)
             {
                 float splitTime = state.FindOutputFireTime("command", 3);
-                _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
-                if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
+                try
                 {
-                    Debug.WriteLine("hells mines end");
-                    _onceFlag = true;
-                    state.QueueOnNextSessionEnd = GameSupportResult.PlayerLostControl;
+                    if (splitTime != 0 && _splitTime == 0)
+                    {
+                        Debug.WriteLine("hells mines end");
+                        _onceFlag = true;
+                        return GameSupportResult.PlayerLostControl;
+                    }
                 }
+                finally { _splitTime = splitTime; }
             }
             return GameSupportResult.DoNothing;
         }

@@ -452,8 +452,8 @@
             this.tlpMisc.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tlpMisc.Controls.Add(this.chkShowGameTime, 0, 0);
             this.tlpMisc.Controls.Add(this.btnShowMapTimes, 0, 3);
-            this.tlpMisc.Controls.Add(this.chkShowAlt, 0, 1);
             this.tlpMisc.Controls.Add(this.chkShowTickCount, 0, 2);
+            this.tlpMisc.Controls.Add(this.chkShowAlt, 0, 1);
             this.tlpMisc.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tlpMisc.Location = new System.Drawing.Point(3, 16);
             this.tlpMisc.Name = "tlpMisc";
@@ -479,7 +479,7 @@
             // btnShowMapTimes
             // 
             this.btnShowMapTimes.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnShowMapTimes.Location = new System.Drawing.Point(3, 69);
+            this.btnShowMapTimes.Location = new System.Drawing.Point(3, 72);
             this.btnShowMapTimes.Name = "btnShowMapTimes";
             this.btnShowMapTimes.Size = new System.Drawing.Size(210, 28);
             this.btnShowMapTimes.TabIndex = 20;
@@ -490,8 +490,7 @@
             // chkShowAlt
             // 
             this.chkShowAlt.AutoSize = true;
-            this.chkShowAlt.Location = new System.Drawing.Point(20, 23);
-            this.chkShowAlt.Margin = new System.Windows.Forms.Padding(20, 0, 3, 3);
+            this.chkShowAlt.Location = new System.Drawing.Point(3, 26);
             this.chkShowAlt.Name = "chkShowAlt";
             this.chkShowAlt.Size = new System.Drawing.Size(171, 17);
             this.chkShowAlt.TabIndex = 22;
@@ -501,7 +500,7 @@
             // chkShowTickCount
             // 
             this.chkShowTickCount.AutoSize = true;
-            this.chkShowTickCount.Location = new System.Drawing.Point(3, 46);
+            this.chkShowTickCount.Location = new System.Drawing.Point(3, 49);
             this.chkShowTickCount.Name = "chkShowTickCount";
             this.chkShowTickCount.Size = new System.Drawing.Size(165, 17);
             this.chkShowTickCount.TabIndex = 21;

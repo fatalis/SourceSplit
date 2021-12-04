@@ -324,6 +324,7 @@ namespace LiveSplit.SourceSplit
                 _sessionTicksOffset = _sessionTicks - (int)(_timer.CurrentState.TimePausedAt.TotalSeconds / _intervalPerTick);
             else
                 _waitingForDelay = true;
+
         }
 
         void state_OnReset(object sender, TimerPhase t)
@@ -427,6 +428,7 @@ namespace LiveSplit.SourceSplit
         {
             if (!this.Settings.AutoStartEndResetEnabled)
                 return;
+
             _timer.Reset(); // make sure to reset for games that start from a quicksave (Aperture Tag)
             _timer.Start();
             _sessionTicksOffset += e.TicksOffset;
