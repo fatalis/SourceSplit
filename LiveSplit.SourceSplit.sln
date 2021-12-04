@@ -5,6 +5,20 @@ VisualStudioVersion = 16.0.31313.79
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiveSplit.SourceSplit", "LiveSplit.SourceSplit.csproj", "{EE96132E-A56A-4070-BE18-927DE5653906}"
 EndProject
+Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "LiveSplit", "..\..\..\~Livesplits\LiveSplit_1.7.6\LiveSplit.exe", "{36C5F398-89D2-48BF-8704-24A0B2DADF4D}"
+	ProjectSection(DebuggerProjectSystem) = preProject
+		PortSupplier = 00000000-0000-0000-0000-000000000000
+		Executable = D:\Speedrun\~Livesplits\LiveSplit_1.7.6\LiveSplit.exe
+		RemoteMachine = 
+		StartingDirectory = D:\Speedrun\~Livesplits\LiveSplit_1.7.6
+		Environment = Default
+		LaunchingEngine = 00000000-0000-0000-0000-000000000000
+		UseLegacyDebugEngines = No
+		LaunchSQLEngine = No
+		AttachLaunchAction = No
+		IORedirection = Auto
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +35,10 @@ Global
 		{EE96132E-A56A-4070-BE18-927DE5653906}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EE96132E-A56A-4070-BE18-927DE5653906}.Release|x86.ActiveCfg = Release|Any CPU
 		{EE96132E-A56A-4070-BE18-927DE5653906}.Release|x86.Build.0 = Release|Any CPU
+		{36C5F398-89D2-48BF-8704-24A0B2DADF4D}.Debug|Any CPU.ActiveCfg = Release|Any CPU
+		{36C5F398-89D2-48BF-8704-24A0B2DADF4D}.Debug|x86.ActiveCfg = Release|Any CPU
+		{36C5F398-89D2-48BF-8704-24A0B2DADF4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36C5F398-89D2-48BF-8704-24A0B2DADF4D}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

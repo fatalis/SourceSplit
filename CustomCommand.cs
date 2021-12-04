@@ -179,10 +179,10 @@ namespace LiveSplit.SourceSplit
         private void PrintHelp()
         {
             SendConsoleMsg("SourceSplit Custom Commands help:");
-            SendConsoleMsg("- Type <command><1/0> to enable / disable funtions!");
+            SendConsoleMsg("- Type <command><1/0> to enable / disable functions!");
             string name = Commands.Count() > 0 ? Commands[0].Name : "function";
             SendConsoleMsg("For example: " + $"{name}0 to disable {name}, {name}1 to enable");
-            SendConsoleMsg("- You should hear a Windows Warning Sound and a Console message when a function is toggled.");
+            SendConsoleMsg("- You should hear a Windows Warning Sound and a see Console message when a function is toggled.");
 
         }
     }
