@@ -51,7 +51,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     splitTime = state.FindOutputFireTime("client_command", 10);
             }
             else
-                splitTime = state.FindOutputFireTime("command", "Command", "map ", 10, true, false, true);
+                splitTime = state.FindOutputFireTime("*command*", "Command", "*map *", 10);
 
             if (splitTime != 0f)
                 _splitTime = splitTime;

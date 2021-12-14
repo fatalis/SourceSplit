@@ -87,9 +87,7 @@ namespace LiveSplit.SourceSplit
                 ret = CEntInfoV2.FromV1(v1);
             }
             else
-            {
                 this.GameProcess.ReadValue(addr, out ret);
-            }
 
             return ret;
         }
@@ -100,29 +98,12 @@ namespace LiveSplit.SourceSplit
         /// Gets the entity pointer of the entity with matching name
         /// </summary>
         /// <param name="name">The name of the entity</param>
-        public IntPtr GetEntityByName(string name)
+        public IntPtr GetEntityByName(string name, params string[] ignore)
         {
             // se 2003 has a really convoluted ehandle system that basically equivalent to this
             // so let's just use the old system for that
             if (GameMemory.IsSource2003)
-            {
-                for (int i = 0; i < _maxEnts; i++)
-                {
-                    CEntInfoV2 info = this.GetEntInfoByIndex(i);
-                    if (info.EntityPtr == IntPtr.Zero)
-                        continue;
-
-                    IntPtr namePtr;
-                    this.GameProcess.ReadPointer(info.EntityPtr + this.GameOffsets.BaseEntityTargetNameOffset, false, out namePtr);
-                    if (namePtr == IntPtr.Zero)
-                        continue;
-
-                    string n;
-                    this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
-                    if (n == name)
-                        return info.EntityPtr;
-                }
-            } 
+                return GetEntInfoByIndex(GetEntIndexByName(name, ignore)).EntityPtr;
             else
             {
                 CEntInfoV2 nextPtr = this.GetEntInfoByIndex(0);
@@ -136,7 +117,7 @@ namespace LiveSplit.SourceSplit
                     if (namePtr != IntPtr.Zero)
                     {
                         this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out string n);  // TODO: find real max len
-                        if (n == name)
+                        if (!(ignore?.Contains(n) ?? false) && name.CompareWildcard(n))
                             return nextPtr.EntityPtr;
                     }
                     nextPtr = GameProcess.ReadValue<CEntInfoV2>((IntPtr)nextPtr.m_pNext);
@@ -150,7 +131,7 @@ namespace LiveSplit.SourceSplit
         /// Gets the entity index of the entity with matching name
         /// </summary>
         /// <param name="name">The name of the entity</param>
-        public int GetEntIndexByName(string name)
+        public int GetEntIndexByName(string name, params string[] ignore)
         {
             for (int i = 0; i < _maxEnts; i++)
             {
@@ -165,7 +146,7 @@ namespace LiveSplit.SourceSplit
 
                 string n;
                 this.GameProcess.ReadString(namePtr, ReadStringType.ASCII, 32, out n);  // TODO: find real max len
-                if (n == name)
+                if (!(ignore?.Contains(n) ?? false) && n.CompareWildcard(name))
                     return i;
             }
 
@@ -287,7 +268,7 @@ namespace LiveSplit.SourceSplit
         /// <param name="targetName">The name of the targeted entity</param>
         /// <param name="clamp">The maximum number of inputs to check</param>
         /// <param name="inclusive">If the name specified is a substring of the target name</param>
-        public float FindOutputFireTime(string targetName, int clamp = 100, bool inclusive = false)
+        public float FindOutputFireTime(string targetName, int clamp = 100)
         {
             if (GameProcess.ReadPointer(GameOffsets.EventQueuePtr) == IntPtr.Zero)
                 return 0;
@@ -300,7 +281,7 @@ namespace LiveSplit.SourceSplit
             for (int i = 0; i < clamp; i++)
             {
                 string tempName = GameProcess.ReadString((IntPtr)ioEvent.m_iTarget, 256) ?? "";
-                if (!inclusive ? tempName == targetName : tempName.Contains(targetName))
+                if (tempName.CompareWildcard(targetName))
                     return ioEvent.m_flFireTime;
                 else
                 {
@@ -324,11 +305,7 @@ namespace LiveSplit.SourceSplit
         /// <param name="command">The command of the output</param>
         /// <param name="param">The parameters of the command</param>
         /// <param name="clamp">The maximum number of inputs to check</param>
-        /// <param name="nameInclusive">If the name specified is a substring of the target name</param>
-        /// <param name="commandInclusive">If the command specified is a substring of the command</param>
-        /// <param name="paramInclusive">If the parameters specified are a substring of the parameters</param>
-        public unsafe float FindOutputFireTime(string targetName, string command, string param, int clamp = 100, 
-            bool nameInclusive = false, bool commandInclusive = false, bool paramInclusive = false)
+        public unsafe float FindOutputFireTime(string targetName, string command, string param, int clamp = 100)
         {
             if (GameProcess.ReadPointer(GameOffsets.EventQueuePtr) == IntPtr.Zero)
                 return 0;
@@ -342,9 +319,9 @@ namespace LiveSplit.SourceSplit
                 string tempCommand = GameProcess.ReadString((IntPtr)ioEvent.m_iTargetInput, 256) ?? "";
                 string tempParam = GameProcess.ReadString((IntPtr)ioEvent.m_VariantValue[0], 256) ?? "";
 
-                if (((!nameInclusive) ? tempName == targetName : tempName.Contains(targetName)) &&
-                   ((!commandInclusive) ? tempCommand.ToLower() == command.ToLower() : tempCommand.ToLower().Contains(command.ToLower())) && 
-                   ((!paramInclusive) ? tempParam.ToLower() == param.ToLower() : tempParam.ToLower().Contains(param.ToLower())))
+                if (tempName.CompareWildcard(targetName) 
+                    && tempCommand.CompareWildcard(command) 
+                    && tempParam.CompareWildcard(param))
                     return ioEvent.m_flFireTime;
                 else
                 {

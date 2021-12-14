@@ -100,7 +100,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private int _endingEscapeCamIndex;
         private int _endingMap1CamIndex;
         private int _endingCountCamIndex;
-        private int endingArtCamIndex;
+        private int _endingArtCamIndex;
         private int _endingGamesCamIndex;
         private Vector3f _endingInsaneSectorOrigin = new Vector3f(-6072f, 888f, 0);
         private int _endingInsaneCamIndex;
@@ -121,10 +121,14 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private MemoryWatcher<Vector3f> _modEndingMuseumPodPos;
         private Vector3f _modEndingApartmentSectorOrigin = new Vector3f(-3524f, 1368f, -620f);
 
+        private CustomCommand _noSpaceEnd = new CustomCommand("nospaceend", "Disable splitting on Space Ending");
+        private CustomCommandHandler _ccHandler;
+
         public TheStanleyParable()
         {
             this.GameTimingMethod = GameTimingMethod.EngineTicksWithPauses;
             this.RequiredProperties = PlayerProperties.ViewEntity | PlayerProperties.Position | PlayerProperties.ParentEntity;
+            _ccHandler = new CustomCommandHandler(_noSpaceEnd);
         }
 
         // Shorthands
@@ -196,6 +200,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         public override void OnGameAttached(GameState state)
         {
+            _ccHandler.Init(state);
+
             server = state.GetModule("server.dll");
             client = state.GetModule("client.dll");
             engine = state.GetModule("engine.dll");
@@ -298,7 +304,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     }
                 case "babygame":
                     {
-                        this.endingArtCamIndex = state.GetEntIndexByName("whitecamera");
+                        this._endingArtCamIndex = state.GetEntIndexByName("whitecamera");
                         break;
                     }
                 case "testchmb_a_00":
@@ -326,6 +332,8 @@ namespace LiveSplit.SourceSplit.GameSpecific
         public override GameSupportResult OnUpdate(GameState state)
         {
             _endingsWatcher.UpdateAll(state.GameProcess);
+
+            _ccHandler.Update(state);
 
             if (_onceFlag)
                 return GameSupportResult.DoNothing;
@@ -525,7 +533,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                 case "babygame": //art ending
                     {
-                        if (EvaluateChangedViewIndex(state, 1, endingArtCamIndex))
+                        if (EvaluateChangedViewIndex(state, 1, _endingArtCamIndex))
                         {
                             return DefaultEnd("art", 3);
                         }
@@ -588,7 +596,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     }
                 case "zending": // space, zending ending
                     {
-                        if (state.PrevPlayerPosition.X <= -7000 &&
+                        if (!_noSpaceEnd.BValue && state.PrevPlayerPosition.X <= -7000 &&
                             state.PlayerPosition.X >= -400)
                         {
                             Debug.WriteLine("space ending");

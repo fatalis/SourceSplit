@@ -15,5 +15,13 @@ namespace LiveSplit.SourceSplit.Extensions
                 return IntPtr.Zero;
             return (IntPtr)(scanner.Process.ReadValue<int>(ptr + 0x1) + (int)(ptr + 5));
         }
+
+        static public bool IsWithin(this SignatureScanner scanner, uint value)
+        {
+            uint start = (uint)scanner.Address;
+            uint end = start + (uint)scanner.Size;
+
+            return start < value && value < end;
+        }
     }
 }

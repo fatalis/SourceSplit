@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using LiveSplit.SourceSplit.Extensions;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -29,26 +30,17 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             this.EndOffsetTicks = 0;
 
-            string getStringByteArray(byte[] input)
-            {
-                return BitConverter.ToString(input).Replace("-", " ");
-            }
-
-            string getPtrStringByteArray(IntPtr input)
-            {
-                return getStringByteArray(BitConverter.GetBytes(input.ToInt32()));
-            }
 
             IntPtr getStringPtr(string str)
             {
-                return scanner.Scan(new SigScanTarget(0, getStringByteArray(Encoding.ASCII.GetBytes(str)) + " 00"));
+                return scanner.Scan(new SigScanTarget(0, str.ConvertToHex() + " 00"));
             }
 
             IntPtr getPtrRef(IntPtr ptr, SignatureScanner scanner, params string[] prefixes)
             {
                 if (ptr == IntPtr.Zero)
                     return ptr;
-                string ptrStr = getPtrStringByteArray(ptr);
+                string ptrStr = ptr.GetByteString();
                 SigScanTarget target = new SigScanTarget();
                 prefixes.ToList().ForEach(x => target.AddSignature(0, x + " " + ptrStr));
                 return scanner.Scan(target);

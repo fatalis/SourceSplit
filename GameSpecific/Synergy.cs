@@ -10,7 +10,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
         // how to match with demos:
         // start: on map load
 
-        private CustomCommand _autosplitIL = new CustomCommand("ilstart");
+        private CustomCommand _autosplitIL = new CustomCommand("ilstart", "0");
         private CustomCommandHandler _cmdHandler;
         private const FL _dead = FL.ATCONTROLS | FL.NOTARGET | FL.AIMTARGET;
 
@@ -46,7 +46,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 }    
             }
 
-            if (_autosplitIL.Enabled)
+            if (_autosplitIL.BValue)
             {
                 if (!StartOnFirstLoadMaps.Contains(state.CurrentMap))
                 {

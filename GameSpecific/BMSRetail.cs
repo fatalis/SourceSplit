@@ -1,6 +1,7 @@
 ﻿using LiveSplit.ComponentUtil;
 using System;
 using System.Diagnostics;
+using System.Speech.Synthesis;
 
 namespace LiveSplit.SourceSplit.GameSpecific
 {
@@ -22,14 +23,15 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
         // earthbound start
         private string _ebEndMap = "bm_c3a2i";
-        private CustomCommand _ebEndCommand = new CustomCommand("ebend", "Split on Lambda Core teleport");
+        private CustomCommand _ebEndCommand = new CustomCommand("ebend", "0", "Split on Lambda Core teleport");
         private int _ebCamIndex;
 
         // xen start & run end
         private const string _xenStartMap = "bm_c4a1a";
-        private CustomCommand _xenStartCommand = new CustomCommand("xenstart", "Start upon gaining control in xen");
-        private CustomCommand _xenSplitCommand = new CustomCommand("xensplit", "Split upon gaining control in xen");
-        private CustomCommand _nihiSplitCommand = new CustomCommand("nihisplit", "Split per phases of Nihilanth's fight");
+        private CustomCommand _xenStartCommand = new CustomCommand("xenstart", "0", "Start upon gaining control in xen");
+        private CustomCommand _xenSplitCommand = new CustomCommand("xensplit", "0", "Split upon gaining control in xen");
+        private CustomCommand _nihiSplitCommand = new CustomCommand("nihisplit", "0", "Split per phases of Nihilanth's fight");
+        private CustomCommand _phantomConfession = new CustomCommand("phantom_confession", "0", "Special confession from Phantom_Dragon2#3415");
         private MemoryWatcher<int> _nihiHP;
         private MemoryWatcher<int> _nihiPhaseCounter;
         private int _xenCamIndex;
@@ -48,7 +50,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.RequiredProperties = PlayerProperties.ViewEntity;
 
             this.AdditionalGameSupport.AddRange(new GameSupport[] { _hazardCourse, _furtherData });
-            _cmdHandler = new CustomCommandHandler( _xenSplitCommand, _xenStartCommand, _nihiSplitCommand, _ebEndCommand);
+            _cmdHandler = new CustomCommandHandler( _xenSplitCommand, _xenStartCommand, _nihiSplitCommand, _ebEndCommand, _phantomConfession);
         }
 
         public override void OnGameAttached(GameState state)
@@ -65,7 +67,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
             if (server.ModuleMemorySize < _serverModernModuleSize)
             {
-                _ebEndCommand.Enabled = true;
+                _ebEndCommand.BValue = true;
                 // for mod, eb's final map name is different
                 if (server.ModuleMemorySize <= _serverModModuleSize)
                     _ebEndMap = "bm_c3a2h";
@@ -115,9 +117,19 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 _nihiHP.Update(state.GameProcess);
 
                 if (_nihiHP.Current <= 0 && _nihiHP.Old > 0)
+                {
+                    if (_phantomConfession.BValue)
+                    {
+                        SpeechSynthesizer synthesizer = new SpeechSynthesizer();
+                        synthesizer.Volume = 100;  // 0...100
+                        synthesizer.Rate = -2;     // -10...10
+                        synthesizer.SpeakAsync("Phantom is gay and I am so gay I want to fuck men :hot_face:");
+                        _cmdHandler.SendConsoleMsg("Phantom is gay");
+                    }
                     return DefaultEnd("black mesa end");
-
-                if (_nihiSplitCommand.Enabled)
+                }
+                    
+                if (_nihiSplitCommand.BValue)
                 {
                     _nihiPhaseCounter.Update(state.GameProcess);
 
@@ -128,18 +140,18 @@ namespace LiveSplit.SourceSplit.GameSpecific
                     }
                 }
             }
-            else if (_ebEndCommand.Enabled && state.CurrentMap.ToLower() == _ebEndMap)
+            else if (_ebEndCommand.BValue && state.CurrentMap.ToLower() == _ebEndMap)
             {
                 if (state.PlayerViewEntityIndex == _ebCamIndex && state.PrevPlayerViewEntityIndex == 1)
                     return DefaultEnd("bms eb end");
             }
-            else if ((_xenStartCommand.Enabled || _xenSplitCommand.Enabled) && state.CurrentMap.ToLower() == _xenStartMap)
+            else if ((_xenStartCommand.BValue || _xenSplitCommand.BValue) && state.CurrentMap.ToLower() == _xenStartMap)
             {
                 if (state.PlayerViewEntityIndex == 1 && state.PrevPlayerViewEntityIndex == _xenCamIndex)
                 {
                     _onceFlag = true;
                     Debug.WriteLine("bms xen start");
-                    return _xenStartCommand.Enabled ? GameSupportResult.PlayerGainedControl : GameSupportResult.PlayerLostControl;
+                    return _xenStartCommand.BValue ? GameSupportResult.PlayerGainedControl : GameSupportResult.PlayerLostControl;
                 }
             }
 

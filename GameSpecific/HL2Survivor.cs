@@ -42,9 +42,9 @@ namespace LiveSplit.SourceSplit.GameSpecific
             if (_onceFlag) 
                 return;
 
-            float splitTime = state.FindOutputFireTime("", "NextScene", "", 7, true, false);
+            float splitTime = state.FindOutputFireTime("*", "NextScene", "", 7);
             if (splitTime == 0f)
-                splitTime = state.FindOutputFireTime("", "StageClear", "", 7, true, false);
+                splitTime = state.FindOutputFireTime("*", "StageClear", "", 7);
             _splitTime = (splitTime == 0f) ? _splitTime : splitTime;
 
             if (state.CompareToInternalTimer(_splitTime, 0f, false, true))
