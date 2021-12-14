@@ -96,13 +96,13 @@ namespace LiveSplit.SourceSplit.GameSpecific
 
                 try
                 {
-                    if (splitTime == 0 && _splitTime != 0)
+                    if (splitTime == 0 && _elevSplitTime != 0)
                     {
                         Debug.WriteLine("Elevator began moving!");
                         return GameSupportResult.ManualSplit;
                     }
                 }
-                finally { _splitTime = splitTime; }
+                finally { _elevSplitTime = splitTime; }
             }
 
             if (_deathSplit.BValue)
