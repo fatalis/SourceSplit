@@ -41,8 +41,8 @@ namespace LiveSplit.SourceSplit
         }
 
         public string UpdateName => this.ComponentName;
-        public string UpdateURL => null;
+        public string UpdateURL => "https://github.com/thisis2838/SourceSplit/raw/master/update/";
         public Version Version => Assembly.GetExecutingAssembly().GetName().Version;
-        public string XMLURL => null;
+        public string XMLURL => "https://raw.githubusercontent.com/thisis2838/SourceSplit/master/update/update.xml";
     }
 }

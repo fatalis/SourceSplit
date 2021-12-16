@@ -2,7 +2,7 @@
 <updates>
 	<update version="3.1">
 		<files>
-			<file path="Components/LiveSplit.SourceSplit.dll" status="changed" />
+			<file path="LiveSplit.SourceSplit.dll" status="changed" />
 		</files>
 		<changelog>
 			<change>Redesigned Map Transition Auto-Splitting evaluation to being one-way</change>
@@ -14,7 +14,7 @@
 	</update>
 	<update version="3.1.1">
 		<files>
-			<file path="Components/LiveSplit.SourceSplit.dll" status="changed" />
+			<file path="LiveSplit.SourceSplit.dll" status="changed" />
 		</files>
 		<changelog>
 			<change>Added an option to start on portal open in Portal</change>
@@ -24,7 +24,7 @@
 	</update>
 	<update version="3.1.2">
 		<files>
-			<file path="Components/LiveSplit.SourceSplit.dll" status="changed" />
+			<file path="LiveSplit.SourceSplit.dll" status="changed" />
 		</files>
 		<changelog>
 			<change>Overhauled Custom Commands</change>
