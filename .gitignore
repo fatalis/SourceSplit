@@ -5,3 +5,4 @@ obj/
 *.suo
 app.config
 LiveSplit.SourceSplit.sln
+!update/

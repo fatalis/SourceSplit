@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<updates>
+	<update version="3.1">
+		<files>
+			<file path="Components/LiveSplit.SourceSplit.dll" status="changed" />
+		</files>
+		<changelog>
+			<change>Redesigned Map Transition Auto-Splitting evaluation to being one-way</change>
+			<change>Made Undo Split also affecting Auto-Splitting evaluation</change>
+			<change>Added Higher-Precision Time and Tick Count</change>
+			<change>Fixed a bug where leaving the Auto-Start map field empty resets the run upon game exit.</change>
+			<change>Fixed a bug where changing tickrates affects the existing time on the timer.</change>
+		</changelog>
+	</update>
+	<update version="3.1.1">
+		<files>
+			<file path="Components/LiveSplit.SourceSplit.dll" status="changed" />
+		</files>
+		<changelog>
+			<change>Added an option to start on portal open in Portal</change>
+			<change>Renovated Custom Commands</change>
+			<change>Modified Auto-End for Hell's Mines</change>
+		</changelog>
+	</update>
+	<update version="3.1.2">
+		<files>
+			<file path="Components/LiveSplit.SourceSplit.dll" status="changed" />
+		</files>
+		<changelog>
+			<change>Overhauled Custom Commands</change>
+			<change>Function to split on elevator starts and split on Death% ending in Portal (limited)</change>
+		</changelog>
+	</update>
+</updates>

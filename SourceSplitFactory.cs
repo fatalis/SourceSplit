@@ -41,8 +41,8 @@ namespace LiveSplit.SourceSplit
         }
 
         public string UpdateName => this.ComponentName;
-        public string UpdateURL => "http://fatalis.pw/livesplit/update/";
+        public string UpdateURL => null;
         public Version Version => Assembly.GetExecutingAssembly().GetName().Version;
-        public string XMLURL => this.UpdateURL + "Components/update.LiveSplit.SourceSplit.xml";
+        public string XMLURL => null;
     }
 }
