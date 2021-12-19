@@ -31,7 +31,6 @@ namespace LiveSplit.SourceSplit.GameSpecific
         private CustomCommand _xenStartCommand = new CustomCommand("xenstart", "0", "Start upon gaining control in xen");
         private CustomCommand _xenSplitCommand = new CustomCommand("xensplit", "0", "Split upon gaining control in xen");
         private CustomCommand _nihiSplitCommand = new CustomCommand("nihisplit", "0", "Split per phases of Nihilanth's fight");
-        private CustomCommand _phantomConfession = new CustomCommand("phantom_confession", "0", "Special confession from Phantom_Dragon2#3415");
         private MemoryWatcher<int> _nihiHP;
         private MemoryWatcher<int> _nihiPhaseCounter;
         private int _xenCamIndex;
@@ -50,7 +49,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
             this.RequiredProperties = PlayerProperties.ViewEntity;
 
             this.AdditionalGameSupport.AddRange(new GameSupport[] { _hazardCourse, _furtherData });
-            _cmdHandler = new CustomCommandHandler( _xenSplitCommand, _xenStartCommand, _nihiSplitCommand, _ebEndCommand, _phantomConfession);
+            _cmdHandler = new CustomCommandHandler( _xenSplitCommand, _xenStartCommand, _nihiSplitCommand, _ebEndCommand);
         }
 
         public override void OnGameAttached(GameState state)
@@ -117,17 +116,7 @@ namespace LiveSplit.SourceSplit.GameSpecific
                 _nihiHP.Update(state.GameProcess);
 
                 if (_nihiHP.Current <= 0 && _nihiHP.Old > 0)
-                {
-                    if (_phantomConfession.BValue)
-                    {
-                        SpeechSynthesizer synthesizer = new SpeechSynthesizer();
-                        synthesizer.Volume = 100;  // 0...100
-                        synthesizer.Rate = -2;     // -10...10
-                        synthesizer.SpeakAsync("Phantom is gay and I am so gay I want to fuck men :hot_face:");
-                        _cmdHandler.SendConsoleMsg("Phantom is gay");
-                    }
                     return DefaultEnd("black mesa end");
-                }
                     
                 if (_nihiSplitCommand.BValue)
                 {

@@ -166,8 +166,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>if exist "$(ProjectDir)\update\$(TargetFileName)\$(TargetPath)" del "$(ProjectDir)\update\$(TargetFileName)\$(TargetPath)"
+copy "$(TargetPath)" "$(ProjectDir)update\$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
