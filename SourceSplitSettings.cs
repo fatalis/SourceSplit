@@ -113,6 +113,9 @@ namespace LiveSplit.SourceSplit
             this.StartMap = "";
 
             this.UpdateDisabledControls(this, EventArgs.Empty);
+
+            // an exception that i can't debug happens when the selected index lands on anywhere else and a checkbox is ticked
+            this.Load += (e, f) => tabCtrlMaster.SelectedIndex = 0;
         }
 
         private void lbGameProcessesSetDefault()
@@ -222,9 +225,9 @@ namespace LiveSplit.SourceSplit
                     string gameProcesses = settings[nameof(this.GameProcesses)]?.InnerText ?? String.Empty;
                     string[] processes = gameProcesses.Split('|');
 
-                    if (new List<string>(processes).All(x => string.IsNullOrWhiteSpace(x)))
+                    if (processes.All(x => string.IsNullOrWhiteSpace(x)))
                         MessageBox.Show("Saved Game Process list is empty!\n" +
-                            "Please fill your game's process name for the spliter to function!", 
+                            "Please fill your game's process name for the splitter to function!", 
                             "SourceSplit Warning", 
                             MessageBoxButtons.OK, 
                             MessageBoxIcon.Warning);
@@ -254,6 +257,8 @@ namespace LiveSplit.SourceSplit
                 (this.AutoSplitType == AutoSplitType.Whitelist && chkAutoSplitEnabled.Checked);
             this.lbMapBlacklist.Enabled = 
                 (this.AutoSplitType == AutoSplitType.Interval && chkAutoSplitEnabled.Checked);
+
+            chkShowAlt.Enabled = chkShowGameTime.Checked;
         }
 
         static XmlElement ToElement<T>(XmlDocument document, string name, T value)
